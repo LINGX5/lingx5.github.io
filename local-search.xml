@@ -4,6 +4,31 @@
   
   
   <entry>
+    <title>fastjson-1.2.68-bypass</title>
+    <link href="/2025/03/25/fastjson-1-2-68-bypass/"/>
+    <url>/2025/03/25/fastjson-1-2-68-bypass/</url>
+    
+    <content type="html"><![CDATA[<meta name="referrer" content="no-referrer" />]]></content>
+    
+    
+    <categories>
+      
+      <category>java安全</category>
+      
+    </categories>
+    
+    
+    <tags>
+      
+      <tag>fastjson,fastjson反序列化</tag>
+      
+    </tags>
+    
+  </entry>
+  
+  
+  
+  <entry>
     <title>fastjson反序列化</title>
     <link href="/2025/03/25/fastjson/"/>
     <url>/2025/03/25/fastjson/</url>
@@ -20,7 +45,7 @@
     
     <tags>
       
-      <tag>java安全</tag>
+      <tag>java安全,fastjson反序列化</tag>
       
     </tags>
     
