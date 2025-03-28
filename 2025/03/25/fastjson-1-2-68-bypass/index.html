@@ -21,21 +21,25 @@
   <meta name="author" content="lingx5">
   <meta name="keywords" content="">
   
-    <meta property="og:type" content="article">
+    <meta name="description" content="这其实就是 $ref 的机制，他告诉fastjson：不要在这里创建一个新对象。请使用之前在 JSON 中已经被创建并赋值给 &#39;input&#39; 键的那个对象。 第一个触发器 (trigger):执行完之后 TeeInputStream 读取了 4096 个字节，同时将这些 4096 字节写入了它的 branch中 此时，文件 尚未被写入任何内容。   第二个触发器 (trigger): 通过">
+<meta property="og:type" content="article">
 <meta property="og:title" content="fastjson-1.2.68-bypass">
 <meta property="og:url" content="http://lingx5.github.io/2025/03/25/fastjson-1-2-68-bypass/index.html">
 <meta property="og:site_name" content="lingx5的博客">
+<meta property="og:description" content="这其实就是 $ref 的机制，他告诉fastjson：不要在这里创建一个新对象。请使用之前在 JSON 中已经被创建并赋值给 &#39;input&#39; 键的那个对象。 第一个触发器 (trigger):执行完之后 TeeInputStream 读取了 4096 个字节，同时将这些 4096 字节写入了它的 branch中 此时，文件 尚未被写入任何内容。   第二个触发器 (trigger): 通过">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250326160612318.png">
 <meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250326160316923.png">
 <meta property="article:published_time" content="2025-03-25T11:41:55.000Z">
-<meta property="article:modified_time" content="2025-03-27T02:35:18.344Z">
+<meta property="article:modified_time" content="2025-03-27T12:09:39.355Z">
 <meta property="article:author" content="lingx5">
 <meta property="article:tag" content="java安全">
 <meta property="article:tag" content="fastjson反序列化">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250326160612318.png">
   
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
   
   
   <title>fastjson-1.2.68-bypass - lingx5的博客</title>
@@ -227,7 +231,7 @@
       <span class="post-meta mr-2">
         <i class="iconfont icon-chart"></i>
         
-          0 字
+          276 字
         
       </span>
     
@@ -238,7 +242,7 @@
         
         
         
-          1 分钟
+          3 分钟
         
       </span>
     
@@ -246,12 +250,12 @@
     
     
       
-        <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+        <span id="busuanzi_container_page_pv" style="display: none">
           <i class="iconfont icon-eye" aria-hidden="true"></i>
-          <span id="leancloud-page-views"></span> 次
+          <span id="busuanzi_value_page_pv"></span> 次
         </span>
         
-      
+
       
     
   </div>
@@ -291,6 +295,12 @@
                 
                 <meta name="referrer" content="no-referrer" />
 
+<div class="note note-success" > 这其实就是 $ref 的机制，他告诉fastjson：不要在这里创建一个新对象。请使用之前在 JSON 中已经被创建并赋值给 'input' 键的那个对象。</br></br>
+第一个触发器 (trigger):执行完之后 TeeInputStream 读取了 4096 个字节，同时将这些 4096 字节写入了它的 branch中 此时，文件 尚未被写入任何内容。  </br></br>
+第二个触发器 (trigger): 通过 $ref 被设置为指向与第一个触发器完全相同的 ReaderInputStream 实例,而流（Stream）会保持它们的状态，知道前 4096 字节已经被读取了，会接着读取后边的字节同时写入branch，此时 branch就已经8192个字节了，已经满了。  </br></br>
+第三个触发器 (trigger): 使 brach的缓冲区溢出，触发写操作。   
+简而言之，就是利用多个触发器 (XmlStreamReader)，每个触发器都从一个共享的输入管道 (TeeInputStream) 读取一部分数据，迫使这个管道将数据倾倒入一个共享的输出缓冲区 (FileWriterWithEncoding)，直到该缓冲区溢出并将内容写入目标文件。
+</div>
 <div class="group-image-container"><div class="group-image-row"><div class="group-image-wrap"><img src="https://gitee.com/ling-x5/img/raw/master/image-20250326160612318.png" srcset="/img/loading.gif" lazyload alt="image-20250326160612318"></div><div class="group-image-wrap"><img src="https://gitee.com/ling-x5/img/raw/master/image-20250326160316923.png" srcset="/img/loading.gif" lazyload alt="image-20250326160316923"></div></div><div class="group-image-row"></div></div>
                 
               </div>
@@ -378,6 +388,23 @@
 
 
 
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/03/25/fastjson/" title="fastjson反序列化">
+                        <span class="hidden-mobile">fastjson反序列化</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
               
             </div>
 
@@ -493,16 +520,16 @@
 
   
     
-      <span id="leancloud-site-pv-container" style="display: none">
+      <span id="busuanzi_container_site_pv" style="display: none">
         总访问量 
-        <span id="leancloud-site-pv"></span>
+        <span id="busuanzi_value_site_pv"></span>
          次
       </span>
     
     
-      <span id="leancloud-site-uv-container" style="display: none">
+      <span id="busuanzi_container_site_uv" style="display: none">
         总访客数 
-        <span id="leancloud-site-uv"></span>
+        <span id="busuanzi_value_site_uv"></span>
          人
       </span>
     
@@ -658,7 +685,7 @@
 
   <script  src="/js/local-search.js" ></script>
 
-  <script defer src="/js/leancloud.js" ></script>
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
 
 
 
