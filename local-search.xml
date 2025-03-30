@@ -15,6 +15,8 @@
       
       <category>java安全</category>
       
+      <category>fastjson反序列化</category>
+      
     </categories>
     
     
@@ -41,6 +43,8 @@
     <categories>
       
       <category>java安全</category>
+      
+      <category>fastjson反序列化</category>
       
     </categories>
     
