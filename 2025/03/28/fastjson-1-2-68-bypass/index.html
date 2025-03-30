@@ -93,13 +93,15 @@
 <meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250328123434401.png">
 <meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250328125244146.png">
 <meta property="article:published_time" content="2025-03-28T05:41:55.000Z">
-<meta property="article:modified_time" content="2025-03-28T11:26:26.256Z">
+<meta property="article:modified_time" content="2025-03-30T01:04:26.985Z">
 <meta property="article:author" content="lingx5">
 <meta property="article:tag" content="java安全">
 <meta property="article:tag" content="fastjson反序列化">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250323141729168.png">
   
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
   
   
   <title>fastjson-1.2.68-bypass - lingx5的博客</title>
@@ -310,12 +312,12 @@
     
     
       
-        <span id="leancloud-page-views-container" class="post-meta" style="display: none">
+        <span id="busuanzi_container_page_pv" style="display: none">
           <i class="iconfont icon-eye" aria-hidden="true"></i>
-          <span id="leancloud-page-views"></span> 次
+          <span id="busuanzi_value_page_pv"></span> 次
         </span>
         
-      
+
       
     
   </div>
@@ -349,6 +351,12 @@
         <div id="board">
           <article class="post-content mx-auto">
             <h1 id="seo-header">fastjson-1.2.68-bypass</h1>
+            
+              <div class="note note-info">
+                <i class="iconfont icon-book" aria-hidden="true"></i>
+                <span>系列：fastjson</span>
+              </div>
+            
             
             
               <div class="markdown-body">
@@ -551,7 +559,7 @@
 <p>在封装 FileOutputStream，指定路径，指定 append 为 false，即覆盖文件内容</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><code class="hljs java"><br><span class="hljs-comment">// 先获得了 String boolean的构造器</span><br><span class="hljs-keyword">public</span> <span class="hljs-title function_">FileOutputStream</span><span class="hljs-params">(String name, <span class="hljs-type">boolean</span> append)</span><br>    <span class="hljs-keyword">throws</span> FileNotFoundException<br>&#123;<br>    <span class="hljs-built_in">this</span>(name != <span class="hljs-literal">null</span> ? <span class="hljs-keyword">new</span> <span class="hljs-title class_">File</span>(name) : <span class="hljs-literal">null</span>, append);<br>&#125;<br><span class="hljs-comment">// 重载调用</span><br><span class="hljs-keyword">public</span> <span class="hljs-title function_">FileOutputStream</span><span class="hljs-params">(File file, <span class="hljs-type">boolean</span> append)</span><br>    <span class="hljs-keyword">throws</span> FileNotFoundException<br>&#123;<br>    <span class="hljs-type">String</span> <span class="hljs-variable">name</span> <span class="hljs-operator">=</span> (file != <span class="hljs-literal">null</span> ? file.getPath() : <span class="hljs-literal">null</span>);<br>    <span class="hljs-type">SecurityManager</span> <span class="hljs-variable">security</span> <span class="hljs-operator">=</span> System.getSecurityManager();<br>    <span class="hljs-keyword">if</span> (security != <span class="hljs-literal">null</span>) &#123;<br>        security.checkWrite(name);<br>    &#125;<br>    <span class="hljs-keyword">if</span> (name == <span class="hljs-literal">null</span>) &#123;<br>        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">NullPointerException</span>();<br>    &#125;<br>    <span class="hljs-keyword">if</span> (file.isInvalid()) &#123;<br>        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">FileNotFoundException</span>(<span class="hljs-string">&quot;Invalid file path&quot;</span>);<br>    &#125;<br>    <span class="hljs-built_in">this</span>.fd = <span class="hljs-keyword">new</span> <span class="hljs-title class_">FileDescriptor</span>();<br>    fd.attach(<span class="hljs-built_in">this</span>);<br>    <span class="hljs-built_in">this</span>.append = append;<br>    <span class="hljs-built_in">this</span>.path = name;<br>	<span class="hljs-comment">// 打开文件流，并指定追加内容</span><br>    open(name, append);<br>&#125;<br></code></pre></td></tr></table></figure>
 
-<h5 id="调用流程"><a href="#调用流程" class="headerlink" title="调用流程"></a><strong>调用流程</strong></h5><p>MarshalOutputStream 的 super，就是 ObjectOutputStream 的带有 out 参数的构造方法</p>
+<h5 id="调用流程"><a href="#调用流程" class="headerlink" title="调用流程"></a>调用流程</h5><p>MarshalOutputStream 的 super，就是 ObjectOutputStream 的带有 out 参数的构造方法</p>
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-title function_">ObjectOutputStream</span><span class="hljs-params">(OutputStream out)</span> <span class="hljs-keyword">throws</span> IOException &#123;<br>    verifySubclass();<br>    <span class="hljs-comment">// 创建BlockDataOutputStream实例</span><br>    bout = <span class="hljs-keyword">new</span> <span class="hljs-title class_">BlockDataOutputStream</span>(out);<br>    handles = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HandleTable</span>(<span class="hljs-number">10</span>, (<span class="hljs-type">float</span>) <span class="hljs-number">3.00</span>);<br>    subs = <span class="hljs-keyword">new</span> <span class="hljs-title class_">ReplaceTable</span>(<span class="hljs-number">10</span>, (<span class="hljs-type">float</span>) <span class="hljs-number">3.00</span>);<br>    enableOverride = <span class="hljs-literal">false</span>;<br>    writeStreamHeader();<br>    <span class="hljs-comment">// 这个bout 是 用我们传入的InflaterOutputStream 创建的 BlockDataOutputStream</span><br>    bout.setBlockDataMode(<span class="hljs-literal">true</span>);<br>    <span class="hljs-keyword">if</span> (extendedDebugInfo) &#123;<br>        debugInfoStack = <span class="hljs-keyword">new</span> <span class="hljs-title class_">DebugTraceInfoStack</span>();<br>    &#125; <span class="hljs-keyword">else</span> &#123;<br>        debugInfoStack = <span class="hljs-literal">null</span>;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
 
 <p>BlockDataOutputStream#setBlockDataMode 方法</p>
@@ -839,28 +847,6 @@
   
     <article id="comments" lazyload>
       
-  <div id="valine"></div>
-  <script type="text/javascript">
-    Fluid.utils.loadComments('#valine', function() {
-      Fluid.utils.createScript('https://lib.baomitu.com/valine/1.5.1/Valine.min.js', function() {
-        var options = Object.assign(
-          {"appId":"Q4th1PtYC02FHNKGV3QVJgNX-MdYXbMMI","appKey":"Y9vGCfdqm9u55ZBjM8ep8KDX","path":"window.location.pathname","placeholder":null,"avatar":"retro","meta":["nick","mail","link"],"requiredFields":[],"pageSize":10,"lang":"zh-CN","highlight":false,"recordIP":false,"serverURLs":"","emojiCDN":null,"emojiMaps":null,"enableQQ":false},
-          {
-            el: "#valine",
-            path: window.location.pathname
-          }
-        )
-        new Valine(options);
-        Fluid.utils.waitElementVisible('#valine .vcontent', () => {
-          var imgSelector = '#valine .vcontent img:not(.vemoji)';
-          Fluid.plugins.imageCaption(imgSelector);
-          Fluid.plugins.fancyBox(imgSelector);
-        })
-      });
-    });
-  </script>
-  <noscript>Please enable JavaScript to view the comments</noscript>
-
 
     </article>
   
@@ -968,16 +954,16 @@
 
   
     
-      <span id="leancloud-site-pv-container" style="display: none">
+      <span id="busuanzi_container_site_pv" style="display: none">
         总访问量 
-        <span id="leancloud-site-pv"></span>
+        <span id="busuanzi_value_site_pv"></span>
          次
       </span>
     
     
-      <span id="leancloud-site-uv-container" style="display: none">
+      <span id="busuanzi_container_site_uv" style="display: none">
         总访客数 
-        <span id="leancloud-site-uv"></span>
+        <span id="busuanzi_value_site_uv"></span>
          人
       </span>
     
@@ -1133,7 +1119,7 @@
 
   <script  src="/js/local-search.js" ></script>
 
-  <script defer src="/js/leancloud.js" ></script>
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
 
 
 
