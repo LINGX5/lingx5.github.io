@@ -403,7 +403,7 @@
         aria-expanded="true"
       >
         Struts2
-        <span class="list-group-count">(1)</span>
+        <span class="list-group-count">(2)</span>
         <i class="iconfont icon-arrowright"></i>
       </a>
       
@@ -421,6 +421,15 @@
            class="list-group-item list-group-item-action
            active">
           <span class="category-post">struts2漏洞1-9</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2025/04/10/struts2%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%9612-61/" title="struts2反序列化12-61"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">struts2反序列化12-61</span>
         </a>
       
     
@@ -732,7 +741,7 @@
 <p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250408190714955.png" srcset="/img/loading.gif" lazyload alt="image-20250408190714955"></p>
 <p>在执行</p>
 <blockquote>
-<p>(‘\u0023lingx5\<a href="mailto:&#117;&#48;&#48;&#51;&#x64;&#64;&#106;&#x61;&#118;&#97;&#x2e;&#x6c;&#97;&#110;&#103;&#46;&#x52;&#x75;&#x6e;&#116;&#105;&#109;&#101;">u003d@java.lang.Runtime</a>@getRuntime().exec(&#39;calc&#39;)’)(lingx5)(lingx5)</p>
+<p>(‘\u0023lingx5\<a href="mailto:&#x75;&#48;&#48;&#51;&#100;&#64;&#x6a;&#97;&#x76;&#x61;&#46;&#108;&#97;&#110;&#103;&#46;&#82;&#117;&#x6e;&#x74;&#105;&#109;&#x65;">u003d@java.lang.Runtime</a>@getRuntime().exec(&#39;calc&#39;)’)(lingx5)(lingx5)</p>
 </blockquote>
 <p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250408191245437.png" srcset="/img/loading.gif" lazyload alt="image-20250408191245437"></p>
 <p>来到了命令执行拦截的地方，可以看到 这次我们的 e 为 false ，就会去调用方法了</p>
@@ -759,7 +768,7 @@
 <p>这就说明了，我们的 ognl 表达式 还是可以被解析执行的。那么我们的方法并没有执行，肯定是新加入的某个参数判断，阻止了 我们的恶意命令执行，我们只需要把它找出来，用 ognl 表达式修改为对应可以执行的参数即可</p>
 <p>我们跟一下这个第二句命令执行的操作，看看是哪里做了限制</p>
 <blockquote>
-<p>(‘\u0023lingx5\<a href="mailto:&#117;&#48;&#48;&#x33;&#100;&#64;&#106;&#97;&#x76;&#x61;&#46;&#x6c;&#97;&#110;&#x67;&#x2e;&#82;&#117;&#x6e;&#x74;&#x69;&#109;&#x65;">u003d@java.lang.Runtime</a>@getRuntime().exec(&#39;calc&#39;)’)(lingx5)(lingx5)</p>
+<p>(‘\u0023lingx5\<a href="mailto:&#117;&#x30;&#x30;&#51;&#x64;&#x40;&#106;&#97;&#118;&#x61;&#x2e;&#x6c;&#x61;&#x6e;&#103;&#46;&#x52;&#117;&#110;&#116;&#x69;&#109;&#101;">u003d@java.lang.Runtime</a>@getRuntime().exec(&#39;calc&#39;)’)(lingx5)(lingx5)</p>
 </blockquote>
 <p>通过调试发现在 SecurityMemberAccess#isAcceptableProperty 的判断，没有通过</p>
 <p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250409102424409.png" srcset="/img/loading.gif" lazyload alt="image-20250409102424409"></p>
@@ -1035,8 +1044,8 @@
                   <article class="post-next col-6">
                     
                     
-                      <a href="/2025/04/06/java-CC4-%E9%93%BE%E5%AE%A1%E8%AE%A1%E7%AC%94%E8%AE%B0/" title="java-CC4 链审计笔记">
-                        <span class="hidden-mobile">java-CC4 链审计笔记</span>
+                      <a href="/2025/04/10/struts2%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%9612-61/" title="struts2反序列化12-61">
+                        <span class="hidden-mobile">struts2反序列化12-61</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

