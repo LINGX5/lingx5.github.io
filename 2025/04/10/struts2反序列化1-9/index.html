@@ -741,7 +741,7 @@
 <p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250408190714955.png" srcset="/img/loading.gif" lazyload alt="image-20250408190714955"></p>
 <p>在执行</p>
 <blockquote>
-<p>(‘\u0023lingx5\<a href="mailto:&#117;&#48;&#x30;&#x33;&#100;&#x40;&#x6a;&#97;&#x76;&#97;&#46;&#x6c;&#97;&#110;&#103;&#46;&#82;&#117;&#110;&#x74;&#x69;&#x6d;&#x65;">u003d@java.lang.Runtime</a>@getRuntime().exec(&#39;calc&#39;)’)(lingx5)(lingx5)</p>
+<p>(‘\u0023lingx5\<a href="mailto:&#x75;&#48;&#x30;&#x33;&#100;&#64;&#x6a;&#97;&#x76;&#x61;&#x2e;&#x6c;&#97;&#110;&#103;&#46;&#x52;&#117;&#110;&#116;&#105;&#109;&#101;">u003d@java.lang.Runtime</a>@getRuntime().exec(&#39;calc&#39;)’)(lingx5)(lingx5)</p>
 </blockquote>
 <p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250408191245437.png" srcset="/img/loading.gif" lazyload alt="image-20250408191245437"></p>
 <p>来到了命令执行拦截的地方，可以看到 这次我们的 e 为 false ，就会去调用方法了</p>
@@ -768,7 +768,7 @@
 <p>这就说明了，我们的 ognl 表达式 还是可以被解析执行的。那么我们的方法并没有执行，肯定是新加入的某个参数判断，阻止了 我们的恶意命令执行，我们只需要把它找出来，用 ognl 表达式修改为对应可以执行的参数即可</p>
 <p>我们跟一下这个第二句命令执行的操作，看看是哪里做了限制</p>
 <blockquote>
-<p>(‘\u0023lingx5\<a href="mailto:&#117;&#48;&#48;&#51;&#x64;&#64;&#x6a;&#x61;&#x76;&#97;&#46;&#108;&#x61;&#110;&#103;&#46;&#x52;&#117;&#x6e;&#116;&#105;&#x6d;&#101;">u003d@java.lang.Runtime</a>@getRuntime().exec(&#39;calc&#39;)’)(lingx5)(lingx5)</p>
+<p>(‘\u0023lingx5\<a href="mailto:&#x75;&#x30;&#48;&#51;&#x64;&#64;&#x6a;&#x61;&#118;&#x61;&#46;&#x6c;&#97;&#x6e;&#x67;&#x2e;&#x52;&#x75;&#110;&#116;&#105;&#109;&#x65;">u003d@java.lang.Runtime</a>@getRuntime().exec(&#39;calc&#39;)’)(lingx5)(lingx5)</p>
 </blockquote>
 <p>通过调试发现在 SecurityMemberAccess#isAcceptableProperty 的判断，没有通过</p>
 <p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250409102424409.png" srcset="/img/loading.gif" lazyload alt="image-20250409102424409"></p>
